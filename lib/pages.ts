@@ -102,7 +102,7 @@ export async function cropFigure(pageImage: string, box: Box): Promise<string> {
   const img = new Image();
   img.src = pageImage;
   await img.decode();
-  const pad = 0.012;
+  const pad = 0.005;
   const x0 = Math.max(0, box[0] - pad) * img.naturalWidth;
   const y0 = Math.max(0, box[1] - pad) * img.naturalHeight;
   const x1 = Math.min(1, box[2] + pad) * img.naturalWidth;

@@ -404,7 +404,7 @@ code {
 }
 
 .figure {
-  flex: 0 1 40%;
+  flex: 0 1 auto;
   max-width: 40%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -412,9 +412,12 @@ code {
   background: var(--color-page);
 }
 
+/* Natural size, never upscaled: crops come from a ~1400px page render, so 1 image px reads at print size. */
 .figure img {
   display: block;
-  width: 100%;
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
   height: auto;
 }
 
@@ -428,7 +431,8 @@ code {
 .option {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: baseline;
+  align-content: center;
   gap: 12px;
   min-height: 56px;
   padding: 10px 16px;
@@ -789,10 +793,12 @@ code {
 
   .stem {
     flex-direction: column;
+    align-items: stretch;
     gap: 16px;
   }
 
   .figure {
+    align-self: flex-start;
     max-width: 100%;
   }
 
@@ -813,6 +819,7 @@ code {
 
   .option {
     grid-template-columns: 16px minmax(0, 1fr);
+    row-gap: 2px;
   }
 
   .option-status {
