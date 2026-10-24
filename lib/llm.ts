@@ -60,7 +60,7 @@ Return one JSON object:
 Each question:
 - "number": the question number as printed ("3", "4b").
 - "topic": a 1 to 3 word topic label in Title Case, e.g. "Recursion", "Big-O", "Linked Lists". Reuse the same label for related questions.
-- "prompt": the full question stem. Plain text with Markdown. Put code in fenced code blocks with a language tag, preserving indentation exactly. Write math with Unicode (x², ≤, Θ(n log n)), not LaTeX. Do not include the options in the prompt.
+- "prompt": the full question stem. Plain text with Markdown. Put all code in fenced code blocks (\`\`\`python ... \`\`\`) with a language tag, preserving indentation exactly. Leave a blank line between the stem text and each code fence, and never put stem text inside a fence. Write math with Unicode (x², ≤, Θ(n log n)), not LaTeX. Do not include the options in the prompt.
 - "options": every choice in order, [{ "label": "A", "text": "..." }]. Use the printed labels (A, B, C, D...). If choices are unlabeled, label them A, B, C... in order. Do not include the label inside "text".
 - "answer": the correct option label ONLY if the document itself marks it (answer key, circled or highlighted choice, "Answer: C"). Never guess. Otherwise null.
 - "figure": if the question depends on a diagram, graph, table, or image that you cannot faithfully reproduce as text, give { "page": N, "box": [x0, y0, x1, y1] } where the box is the figure's bounding box on that page as fractions of the page width and height (0 to 1, origin top-left). Otherwise null. Code that you transcribed into the prompt does not need a figure.
@@ -157,8 +157,10 @@ export async function askStream(req: AskRequest): Promise<ReadableStream<Uint8Ar
   const stream = await llm().chat.completions.create({
     model: config.models.fast,
     stream: true,
-    max_tokens: 600,
+    max_tokens: 1500,
     messages: [{ role: "system", content: askSystem(req) }, ...req.messages],
+    // Lightning reasons by default and spends the whole token budget before any visible text.
+    ...({ reasoning: { enabled: false } } as object),
   });
   const encoder = new TextEncoder();
   return new ReadableStream({
