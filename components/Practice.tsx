@@ -92,12 +92,16 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
     return () => window.removeEventListener("keydown", onKey);
   }, [attempt.status, choose, goto, next, onward, prev, question.options]);
 
+  const [askRequest, setAskRequest] = useState(0);
+  useEffect(() => {
+    if (!askRequest) return;
+    askInput.current?.focus({ preventScroll: true });
+    askInput.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [askRequest]);
+
   function askWhy() {
     if (attempt.status === "unanswered") setHintFor(question.id);
-    requestAnimationFrame(() => {
-      askInput.current?.focus();
-      askInput.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    });
+    setAskRequest((n) => n + 1);
   }
 
   const title = [session.exam.course, session.exam.title].filter(Boolean).join(" · ");
