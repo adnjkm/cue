@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { attemptOf, type Session } from "@/lib/session";
 import type { Question } from "@/lib/types";
-import { Check } from "./icons";
 
 type TileState = "current" | "correct" | "missed" | "unanswered";
 
@@ -31,12 +30,10 @@ export default function Navigator({
   questions,
   session,
   onSelect,
-  summary,
 }: {
   questions: Question[];
   session: Session;
   onSelect: (q: Question) => void;
-  summary: string;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -62,7 +59,9 @@ export default function Navigator({
       <div className="navigator-scroll" ref={scroller}>
         {groupByTopic(questions).map((g) => (
           <div key={g.topic} className="nav-group" role="group" aria-label={g.topic}>
-            <span className="nav-topic">{g.topic}</span>
+            <span className="nav-topic caps" aria-hidden="true">
+              {g.topic}
+            </span>
             <div className="nav-tiles">
               {g.questions.map((q) => {
                 const state = tileState(session, q);
@@ -78,11 +77,6 @@ export default function Navigator({
                     onClick={() => onSelect(q)}
                   >
                     {q.number}
-                    {state === "correct" && (
-                      <span className="tile-check">
-                        <Check size={10} />
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -90,7 +84,6 @@ export default function Navigator({
           </div>
         ))}
       </div>
-      <p className="nav-summary">{summary}</p>
     </nav>
   );
 }

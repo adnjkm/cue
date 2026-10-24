@@ -102,14 +102,24 @@ export function parseSolutionOutput(raw: unknown, labels: string[]): Solution {
   return { answer: s.answer, explanation: s.explanation, steps: s.steps.filter(Boolean), whyNot };
 }
 
-/** Extracts the first JSON object from model text, tolerating code fences and reasoning preambles. */
+/**
+ * Extracts the JSON object from model text, tolerating code fences and reasoning preambles.
+ * The outermost braces go first: question prompts carry their own ``` fences inside JSON strings.
+ */
 export function extractJson(content: string): unknown {
-  const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const body = fenced ? fenced[1] : content;
-  const start = body.indexOf("{");
-  const end = body.lastIndexOf("}");
-  if (start < 0 || end <= start) throw new Error("Model response contained no JSON object");
-  return JSON.parse(body.slice(start, end + 1));
+  const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1];
+  let error: unknown = new Error("Model response contained no JSON object");
+  for (const body of fenced === undefined ? [content] : [content, fenced]) {
+    const start = body.indexOf("{");
+    const end = body.lastIndexOf("}");
+    if (start < 0 || end <= start) continue;
+    try {
+      return JSON.parse(body.slice(start, end + 1));
+    } catch (e) {
+      error = e;
+    }
+  }
+  throw error;
 }
 
 const dataUrl = z.string().regex(/^data:image\/(jpeg|png|webp);base64,/);

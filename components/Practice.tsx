@@ -13,7 +13,6 @@ import {
 } from "@/lib/session";
 import type { AttemptState, Option, Question, SolutionState } from "@/lib/types";
 import AskChat from "./AskChat";
-import { Credit } from "./Credit";
 import { ChevronLeft, ChevronRight } from "./icons";
 import Navigator from "./Navigator";
 import { Prose } from "./Prose";
@@ -22,6 +21,7 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
   const [session, dispatch] = useReducer(reduce, initial);
   const [hintFor, setHintFor] = useState<string | null>(null);
   const askInput = useRef<HTMLInputElement>(null);
+  const body = useRef<HTMLElement>(null);
 
   const visible = visibleQuestions(session);
   const index = visible.findIndex((q) => q.id === session.current);
@@ -56,7 +56,7 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
   const goto = useCallback((q: Question | undefined) => {
     if (!q) return;
     dispatch({ type: "goto", id: q.id });
-    window.scrollTo({ top: 0 });
+    body.current?.scrollTo({ top: 0 });
   }, []);
 
   const choose = useCallback(
@@ -105,7 +105,6 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
   }
 
   const title = [session.exam.course, session.exam.title].filter(Boolean).join(" · ");
-  const answeredCount = visible.filter((q) => attemptOf(session, q.id).status === "answered").length;
   const correctCount = visible.filter((q) => {
     const a = attemptOf(session, q.id);
     return a.status === "answered" && a.correct;
@@ -113,35 +112,30 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
   const showPanel = attempt.status !== "unanswered" || hintFor === question.id;
 
   return (
-    <div className="shell">
-      <main className="page">
-        <header className="toolbar">
-          <div className="toolbar-title">
-            <h1 className="title">{title}</h1>
-            <button className="text-button" onClick={onNew}>
-              New document
-            </button>
-          </div>
-          <div className="toolbar-controls">
-            <label className="visually-hidden" htmlFor="topic-filter">
-              Filter by topic
-            </label>
-            <select
-              id="topic-filter"
-              className="select"
-              value={session.topic ?? ""}
-              onChange={(e) => dispatch({ type: "topic", topic: e.target.value || ALL_TOPICS })}
-            >
-              <option value="">All topics</option>
-              {topics.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-            <button className="button" onClick={askWhy}>
-              Ask why
-            </button>
+    <div className="practice">
+      <header className="toolbar">
+        <h1 className="title">{title}</h1>
+        <div className="toolbar-controls">
+          <label className="visually-hidden" htmlFor="topic-filter">
+            Filter by topic
+          </label>
+          <select
+            id="topic-filter"
+            className="select"
+            value={session.topic ?? ""}
+            onChange={(e) => dispatch({ type: "topic", topic: e.target.value || ALL_TOPICS })}
+          >
+            <option value="">All topics</option>
+            {topics.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <button className="button" onClick={askWhy}>
+            Ask why
+          </button>
+          <div className="stepper">
             <button className="icon-button" aria-label="Previous question" disabled={!prev} onClick={() => goto(prev)}>
               <ChevronLeft />
             </button>
@@ -149,17 +143,21 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
               <ChevronRight />
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
+      <main className="practice-body" ref={body}>
         <p className="visually-hidden" aria-live="polite">
           Question {index + 1} of {visible.length}
         </p>
         <article className="question" aria-labelledby={`q-${question.id}`} key={question.id}>
-          <p className="eyebrow" id={`q-${question.id}`}>
-            Question {question.number} · {question.topic}
-          </p>
           <div className="stem" data-figure={session.figures[question.id] ? "" : undefined}>
-            <Prose className="prompt" text={question.prompt} />
+            <div className="question-head">
+              <p className="eyebrow caps" id={`q-${question.id}`}>
+                Question {question.number} · {question.topic}
+              </p>
+              <Prose className="prompt" text={question.prompt} />
+            </div>
             {session.figures[question.id] && (
               <figure className="figure">
                 <img src={session.figures[question.id]} alt={`Figure for question ${question.number}, from page ${question.figure?.page}`} />
@@ -182,48 +180,53 @@ export default function Practice({ initial, onNew }: { initial: Session; onNew: 
           </div>
 
           {showPanel && (
-            <section className="solution" aria-label="Worked solution">
-              <div className="solution-main">
-                <h2 className="heading">Worked solution</h2>
-                <SolutionBody
-                  attempt={attempt}
-                  state={session.solutions[question.id]}
-                  onRetry={() => requestSolution(question)}
-                />
-                {attempt.status === "answered" &&
-                  (onward ? (
-                    <button className="button primary next" onClick={() => goto(onward)}>
-                      {onward === next ? "Next question" : "Next unanswered"} ›
-                    </button>
-                  ) : (
-                    <p className="done">
-                      All {visible.length} answered · {correctCount} correct
-                    </p>
-                  ))}
-              </div>
-              <div className="solution-ask">
-                <AskChat
-                  key={question.id}
-                  ref={askInput}
-                  question={question}
-                  attempt={attempt}
-                  solution={session.solutions[question.id]}
-                  messages={session.chats[question.id] ?? []}
-                  onMessages={(messages) => dispatch({ type: "chat", id: question.id, messages })}
-                />
+            <section className="solution" aria-labelledby={`solution-${question.id}`}>
+              <h2 className="caps" id={`solution-${question.id}`}>
+                Worked solution
+              </h2>
+              <div className="solution-block">
+                <div className="solution-main">
+                  <SolutionBody
+                    attempt={attempt}
+                    source={question.answerSource}
+                    state={session.solutions[question.id]}
+                    onRetry={() => requestSolution(question)}
+                  />
+                  {attempt.status === "answered" &&
+                    (onward ? (
+                      <button className="button primary next" onClick={() => goto(onward)}>
+                        {onward === next ? "Next question" : "Next unanswered"}
+                        <ChevronRight size={12} strokeWidth={2} />
+                      </button>
+                    ) : (
+                      <p className="done">
+                        All {visible.length} answered · {correctCount} correct
+                      </p>
+                    ))}
+                </div>
+                <div className="solution-ask">
+                  <AskChat
+                    key={question.id}
+                    ref={askInput}
+                    question={question}
+                    attempt={attempt}
+                    solution={session.solutions[question.id]}
+                    messages={session.chats[question.id] ?? []}
+                    onMessages={(messages) => dispatch({ type: "chat", id: question.id, messages })}
+                  />
+                </div>
               </div>
             </section>
           )}
         </article>
-
-        <Credit />
       </main>
-      <Navigator
-        questions={visible}
-        session={session}
-        onSelect={goto}
-        summary={`${answeredCount} of ${visible.length} answered · ${correctCount} correct`}
-      />
+
+      <footer className="bottom-bar">
+        <Navigator questions={visible} session={session} onSelect={goto} />
+        <button className="text-button" onClick={onNew}>
+          New document
+        </button>
+      </footer>
     </div>
   );
 }
@@ -281,16 +284,38 @@ function OptionRow({
       aria-keyshortcuts={`${index + 1} ${option.label}`}
     >
       <span className="option-label">{option.label}</span>
-      <span className="option-body">
-        <Prose className="option-text" text={option.text} />
-        {state === "other" && hint && <span className="option-hint">{hint}</span>}
-      </span>
-      {status && <span className="option-status">{status}</span>}
+      <Prose className="option-text" text={option.text} />
+      {status ? (
+        <span className="option-trail">{status}</span>
+      ) : (
+        state === "other" &&
+        hint && (
+          <span className="option-trail option-hint" title={hint}>
+            {hint}
+          </span>
+        )
+      )}
     </button>
   );
 }
 
-function SolutionBody({ attempt, state, onRetry }: { attempt: AttemptState; state?: SolutionState; onRetry: () => void }) {
+const PROVENANCE: Record<Question["answerSource"], string> = {
+  document: "Answer from the official answer key; Nemotron 3 Ultra wrote the explanation.",
+  model: "The original exam had no answer key; Nemotron 3 Ultra worked this out.",
+  none: "The original exam had no answer key; Nemotron 3 Ultra worked this out.",
+};
+
+function SolutionBody({
+  attempt,
+  source,
+  state,
+  onRetry,
+}: {
+  attempt: AttemptState;
+  source: Question["answerSource"];
+  state?: SolutionState;
+  onRetry: () => void;
+}) {
   if (attempt.status === "unanswered") {
     return <p className="muted">Pick an answer to see the worked solution. Ask for a hint on the right.</p>;
   }
@@ -323,11 +348,15 @@ function SolutionBody({ attempt, state, onRetry }: { attempt: AttemptState; stat
         <ol className="steps">
           {state.solution.steps.map((s, i) => (
             <li key={i}>
+              <span className="step-label" aria-hidden="true">
+                Step {i + 1}
+              </span>
               <Prose text={s} />
             </li>
           ))}
         </ol>
       )}
+      <p className="muted">{PROVENANCE[source]}</p>
     </>
   );
 }

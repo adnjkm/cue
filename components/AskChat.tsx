@@ -3,6 +3,7 @@
 import { useState, type Ref } from "react";
 import { ClientApiError, streamAsk } from "@/lib/client";
 import type { AttemptState, ChatMessage, Question, SolutionState } from "@/lib/types";
+import { ChevronRight } from "./icons";
 import { Prose } from "./Prose";
 
 export default function AskChat({
@@ -60,26 +61,29 @@ export default function AskChat({
 
   return (
     <div className="ask">
-      <h2 className="heading">Ask why</h2>
+      <h3 className="ask-label">Ask why</h3>
       {messages.length === 0 ? (
-        <div className="suggestions">
+        <ul className="ask-rows">
           {suggestions.map((s) => (
-            <button key={s} className="chip" onClick={() => void send(s)}>
-              {s}
-            </button>
+            <li key={s}>
+              <button className="ask-row row-button" onClick={() => void send(s)}>
+                {s}
+                <ChevronRight />
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
-        <ol className="chat" aria-live="polite">
+        <ol className="ask-rows chat" aria-live="polite">
           {messages.map((m, i) => (
-            <li key={i} className="message" data-role={m.role}>
+            <li key={i} className="ask-row message" data-role={m.role}>
               {m.content ? <Prose text={m.content} /> : <span className="muted">Thinking…</span>}
             </li>
           ))}
         </ol>
       )}
       <form
-        className="ask-form"
+        className="ask-row ask-form"
         onSubmit={(e) => {
           e.preventDefault();
           void send(draft);
@@ -91,14 +95,14 @@ export default function AskChat({
         <input
           id={`ask-${question.id}`}
           ref={ref}
-          className="input"
+          className="ask-input"
           value={draft}
           autoComplete="off"
           placeholder={answered ? "Ask a follow-up" : "Ask for a hint"}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <button className="button" type="submit" disabled={busy || !draft.trim()}>
-          Ask
+        <button className="ask-send" type="submit" aria-label="Ask" disabled={busy || !draft.trim()}>
+          <ChevronRight />
         </button>
       </form>
     </div>

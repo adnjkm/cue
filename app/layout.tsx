@@ -4,7 +4,8 @@ import "./globals.css";
 
 const timeless = localFont({
   src: [
-    { path: "./fonts/TimelessSans-Regular.ttf", weight: "400", style: "normal" },
+    // Paper sets body text at weight 420. The range keeps 420 on the Regular file; CSS matching would otherwise pick Medium.
+    { path: "./fonts/TimelessSans-Regular.ttf", weight: "400 499", style: "normal" },
     { path: "./fonts/TimelessSans-Medium.ttf", weight: "500", style: "normal" },
   ],
   variable: "--font-sans",
