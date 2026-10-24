@@ -8,6 +8,25 @@ export function normalizeLabel(raw: string): string {
   return raw.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
 }
 
+// Super VL often transcribes code without the fences the prompt asks for, sometimes in the same block as the stem.
+const CODE_START = /^(def|class|for|while|if|return|import|from|function|const|let|public|private|int|void|#include)\b/;
+const isCodeLine = (line: string) =>
+  /^\s+\S/.test(line) || (CODE_START.test(line) && /[:;(){}=]|^(import|from|#include)\b/.test(line));
+
+export function fenceBareCode(prompt: string): string {
+  if (prompt.includes("```")) return prompt;
+  return prompt
+    .split(/\n{2,}/)
+    .map((block) => {
+      const lines = block.replace(/\n+$/, "").split("\n");
+      const start = lines.findIndex(isCodeLine);
+      if (start < 0 || lines.length - start < 2) return block;
+      const code = "```\n" + lines.slice(start).join("\n") + "\n```";
+      return start === 0 ? code : lines.slice(0, start).join("\n") + "\n\n" + code;
+    })
+    .join("\n\n");
+}
+
 const optionSchema = z.object({ label: text.transform(normalizeLabel), text: text });
 
 const boxSchema = z
@@ -32,7 +51,7 @@ const questionSchema = z
     return {
       number: q.number,
       topic: q.topic || "General",
-      prompt: q.prompt,
+      prompt: fenceBareCode(q.prompt),
       options: q.options,
       answer: answer && labels.has(answer) ? answer : undefined,
       figure: q.figure ?? undefined,
