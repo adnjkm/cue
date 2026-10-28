@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { ids, ingestStatus, sourceKey, type EpochMs, type IngestOptions, type IngestProgress, type Material, type MaterialId, type MaterialPage, type RenderedPage } from "@/lib/domain";
+import { ids, ingestStatus, sourceKey, type BlobId, type EpochMs, type IngestOptions, type IngestProgress, type Material, type MaterialId, type MaterialPage, type RenderedPage } from "@/lib/domain";
 import { ai } from "@/lib/ai";
 import { reindexSource } from "@/lib/retrieval";
 import { renderPages, sha256Hex, toPageImage } from "./pages";
@@ -120,4 +120,11 @@ export async function pendingMaterials(): Promise<MaterialId[]> {
     if (ingestStatus(m, await db.pages.where("materialId").equals(m.id).toArray()).status === "pending") out.push(m.id);
   }
   return out;
+}
+
+/** Stores an image a feature cut out (a figure crop), keyed by its content hash so a repeat lands on the same row. */
+export async function saveBlob(blob: Blob): Promise<BlobId> {
+  const id = ids.blob(await sha256Hex(blob));
+  await db.blobs.put({ id, blob, type: blob.type || "image/jpeg" });
+  return id;
 }

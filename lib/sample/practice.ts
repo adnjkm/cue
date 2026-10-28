@@ -126,7 +126,7 @@ export const practiceSample: SampleFragment<"practiceSets" | "questions" | "atte
       { label: "Root", text: "A" },
     ],
     conclusion: "So the order is D, E, B, C, A.",
-    whyNot: { A: "That's preorder", C: "That's inorder", D: "Reversed preorder" },
+    whyNot: { C: "That's inorder", D: "Reversed preorder" },
     resources: [
       { kind: "page", materialId: SAMPLE.materials.csc148L8Slides, doc: { kind: "slides", title: "Lecture 8 slides", lectureNumber: 8 }, page: 17, title: "Postorder traversal" },
       { kind: "transcript", lectureId: SAMPLE.lectures.csc148Lecture8, courseId: SAMPLE.courses.csc148, lectureNumber: 8, atMs: (41 * 60 + 5) * 1000, quote: "Delete the children before the parent" },

@@ -20,7 +20,7 @@ export function SourceChip({ source, onOpenSource, className }: { source: Source
       )}
     >
       {sourceLabel(source, "chip")}
-      <ChevronRight size={12} strokeWidth={2} aria-hidden="true" className="text-graphite" />
+      <ChevronRight size={12} strokeWidth={3} aria-hidden="true" className="text-graphite" />
     </button>
   );
 }
