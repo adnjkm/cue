@@ -1,5 +1,6 @@
 import type { Interval, Lecture, RelatedLink } from "@/lib/domain";
 import { currentZone, fmtRange, zoneOf } from "@/lib/time";
+import { plural } from "@/lib/plural";
 
 /** `MAT137 · Integration by parts`, `MAT137 · Lecture 9`, or `CSC148 · New lecture` until the notes name it. */
 export function lectureTitle(l: Pick<Lecture, "courseId" | "topic" | "number">): string {
@@ -14,7 +15,7 @@ export function spokenDuration(ms: number): string {
     [Math.floor((total % 3600) / 60), "minute"],
     [total % 60, "second"],
   ];
-  const said = parts.filter(([n]) => n > 0).map(([n, unit]) => `${n} ${unit}${n === 1 ? "" : "s"}`);
+  const said = parts.filter(([n]) => n > 0).map(([n, unit]) => plural(n, unit));
   return said.length ? said.join(" ") : "0 seconds";
 }
 

@@ -57,7 +57,7 @@ function SlideCard({ at, onMove }: { at: PageRef; onMove: (delta: number) => voi
         </p>
       ) : slide ? (
         <>
-          <h2 className="text-lg leading-6 font-normal tracking-display text-ink">{slide.heading}</h2>
+          <h2 className="text-lg leading-6 font-medium tracking-display text-ink">{slide.heading}</h2>
           {slide.body && <Prose text={slide.body} className="gap-2 text-sm leading-5 text-ink" />}
           {slide.code && (
             <pre className="max-w-full overflow-x-auto rounded-xs bg-fill px-5 py-4 font-mono text-[13px] leading-[22px] tracking-normal text-ink [tab-size:4]">

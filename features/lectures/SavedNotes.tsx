@@ -104,7 +104,7 @@ export function SavedNotes({
   const shown = needle ? ordered.filter((s) => (s.text ?? s.raw).toLowerCase().includes(needle)) : ordered;
 
   const summary = lecture.notes ? (
-    <p className="max-w-[32em] px-4 text-sm leading-5 text-ink max-md:px-3">{lecture.notes.summary}</p>
+    <p className="max-w-[32em] px-4 text-sm text-pretty leading-5 text-ink max-md:px-3">{lecture.notes.summary}</p>
   ) : job?.status === "failed" ? (
     <ErrorLine
       className="px-4"
@@ -209,7 +209,7 @@ export function SavedNotes({
   );
 
   return (
-    <main data-testid={tid.main} className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(16px,env(safe-area-inset-bottom))]">
+    <main data-testid={tid.main} className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-4">
       <Toolbar title={lectureTitle(lecture)}>
         <StatusPill kind="saved" label="Saved" />
         <span className="text-sm leading-4 text-graphite tabular-nums">{wide ? whenText(lecture, event) : fmtStamp(lecture.state.status === "saved" ? lecture.state.capturedMs : 0)}</span>

@@ -45,7 +45,7 @@ const plan: SessionPlan = {
     { title: "Re-read key slides", kind: "reread", minutes: 8 },
     { title: "Explain it back", kind: "explain", minutes: 10 },
     { title: "Practice questions", kind: "practice", minutes: 10 },
-    { title: "Flag what's fuzzy", kind: "reflect", minutes: 7 },
+    { title: "Flag what’s fuzzy", kind: "reflect", minutes: 7 },
   ],
 };
 

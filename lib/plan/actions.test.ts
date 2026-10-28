@@ -33,7 +33,7 @@ describe("planActions", () => {
     expect(await blockOf(PREP)).toMatchObject({ start: slot!.start, topic: { full: "Midterm" }, note: "Past paper, timed", placement: "authored" });
   });
 
-  it("moves a missed review after now, like Today's Reschedule at 11:40", async () => {
+  it("moves a missed review after now, like Today’s Reschedule at 11:40", async () => {
     const slot = await planActions.reschedule(RECURSION, { after: at("2026-10-27", "11:40") });
     expect(slot).toEqual({ start: at("2026-10-27", "11:45"), end: at("2026-10-27", "12:30") });
   });

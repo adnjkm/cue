@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-ink text-page hover:bg-ink-hover aria-expanded:bg-ink-hover",
         outline: "border-border bg-page text-ink hover:bg-wash aria-expanded:bg-wash",
-        secondary: "bg-control text-ink hover:bg-border aria-expanded:bg-border aria-pressed:bg-border",
+        secondary: "bg-control text-ink hover:bg-control-hover aria-expanded:bg-control-hover aria-pressed:bg-control-hover",
         ghost: "text-ink hover:bg-wash aria-expanded:bg-wash",
         destructive: "bg-ink text-page hover:bg-ink-hover",
         link: "text-graphite underline-offset-4 hover:text-ink hover:underline",

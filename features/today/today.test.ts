@@ -82,23 +82,23 @@ function facts(now: EpochMs, opts: { sessions?: StudySession[]; materials?: Bloc
 }
 
 describe("ruleBrief", () => {
-  it("writes Paper's brief at 10:12 on Tuesday", () => {
+  it("writes Paper’s brief at 10:12 on Tuesday", () => {
     expect(ruleBrief(facts(SEEDED))).toEqual({
       headline: "Three sessions today. Start with recursion.",
-      subline: "Your CSC148 midterm is in 10 days, so Cue moved this morning's review up. Everything you need is already pulled from yesterday's lecture.",
+      subline: "Your CSC148 midterm is in 10 days, so Cue moved this morning’s review up. Everything you need is already pulled from yesterday’s lecture.",
     });
   });
 
   it("says how to get material when the lecture has none", () => {
     expect(ruleBrief(facts(SEEDED, { materials: { materials: [], practice: { count: 0, topic: "Recursion & tree traversal" } } })).subline).toBe(
-      "Your CSC148 midterm is in 10 days, so Cue moved this morning's review up. Add slides or notes for yesterday's lecture and Cue opens them in the session.",
+      "Your CSC148 midterm is in 10 days, so Cue moved this morning’s review up. Add slides or notes for yesterday’s lecture and Cue opens them in the session.",
     );
   });
 
   it("names a missed session and how to move it", () => {
     expect(ruleBrief(facts(at("11:40")))).toEqual({
       headline: "Two of three sessions left. Next, memory & learning.",
-      subline: "This morning's review was missed. Pick Reschedule in the list to move it.",
+      subline: "This morning’s review was missed. Pick Reschedule in the list to move it.",
     });
   });
 
@@ -106,7 +106,7 @@ describe("ruleBrief", () => {
     expect(ruleBrief(facts(at("10:45"), { sessions: [running(review, at("10:31"))] })).headline).toBe("Three sessions today. Resume recursion.");
   });
 
-  it("moves on once a session is done, with the next block's own reason", () => {
+  it("moves on once a session is done, with the next block’s own reason", () => {
     expect(ruleBrief(facts(at("11:20"), { sessions: [completed(review)] }))).toEqual({
       headline: "Two of three sessions left. Next, memory & learning.",
       subline: "PSY100 meets more than once a week, so Cue added a mid-week review.",
@@ -135,7 +135,7 @@ describe("ruleBrief", () => {
     expect(ruleBrief({ ...empty, agendaCount: 1, later: wednesdayReview }).headline).toBe("No study sessions today.");
   });
 
-  it("builds the today.brief input the task's own schema accepts", () => {
+  it("builds the today.brief input the task’s own schema accepts", () => {
     const f = facts(SEEDED);
     const value = briefInput(f, ruleBrief(f));
     expect(value.nextTest).toEqual({ course: "CSC148", label: "Midterm", daysUntil: 10 });
@@ -160,7 +160,7 @@ describe("summary and card meta", () => {
     expect(summaryText(0, [])).toBe("0 blocks");
   });
 
-  it("reads Paper's meta line, and names the day for a later block", () => {
+  it("reads Paper’s meta line, and names the day for a later block", () => {
     expect(cardMeta(review, "upcoming", zone, SEEDED)).toBe("Next up · 10:30–11:15am · Review 1 day after lecture");
     expect(cardMeta(review, "now", zone, at("10:40"))).toBe("Now · 10:30–11:15am · Review 1 day after lecture");
     expect(cardMeta(wednesdayReview, "upcoming", zone, at("22:00"))).toBe("Next up · Wed 11:15am–12pm · Review after lecture");
@@ -176,7 +176,7 @@ function rowFacts(now: EpochMs, opts: { sessions?: StudySession[]; lectures?: Re
 const read = (f: RowFacts) => timelineRows(f).map((r) => `${r.time} ${r.course ?? ""} ${r.title} ${trailingText(r.trailing, f.now)}`);
 
 describe("timelineRows", () => {
-  it("draws Paper's four rows with the review current", () => {
+  it("draws Paper’s four rows with the review current", () => {
     const f = rowFacts(SEEDED);
     expect(read(f)).toEqual([
       "9am MAT137 Lecture — Integration by parts Transcript ready",

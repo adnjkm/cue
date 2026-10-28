@@ -26,12 +26,12 @@ const CSC148_L8: Line[] = [
   [at(2, 10), "Okay, today is trees. A tree is either empty, or a root with some subtrees."],
   [at(2, 26), "Every subtree is itself a tree, which is why everything today is recursive."],
   [at(2, 42), "Keep that definition in your head, we lean on it all hour."],
-  [at(15, 0), "Let's write size. One for the root, plus the size of each subtree."],
-  [at(15, 16), "And what's the size of an empty tree? Zero. That's the base case."],
+  [at(15, 0), "Let’s write size. One for the root, plus the size of each subtree."],
+  [at(15, 16), "And what’s the size of an empty tree? Zero. That’s the base case."],
   [at(15, 32), "Notice we check is_empty before we ever look at the root."],
   [at(24, 5), "Traversals. The only question is when you visit the root."],
   [at(24, 21), "Preorder visits the root first, then each subtree, left to right."],
-  [at(24, 37), "On our example that's A, B, D, E, C."],
+  [at(24, 37), "On our example that’s A, B, D, E, C."],
   [
     at(32, 14),
     "…and this is the part people lose marks on. If you forget the empty-tree check, every leaf calls into nothing. I will put a base-case question on the midterm.",
@@ -52,15 +52,15 @@ const MAT137_TUE: Line[] = [
   [at(0, 45), "Morning. Today is integration by parts, which is really just the product rule run backwards."],
   [at(6, 40), "Start from the derivative of u times v. Integrate both sides and you get the formula on slide 6."],
   [at(12, 15), "The skill here is choosing u. Pick the part that gets simpler when you differentiate it."],
-  [at(17, 5), "This is the exact setup from last year's Term Test 2. Same choice of u and dv."],
+  [at(17, 5), "This is the exact setup from last year’s Term Test 2. Same choice of u and dv."],
   [at(24, 30), "If you are not sure, write both choices down and see which integral you can actually do."],
-  [at(29, 30), "Okay, let's actually do one. The integral of x e to the x, dx."],
+  [at(29, 30), "Okay, let’s actually do one. The integral of x e to the x, dx."],
   [at(30, 2), "Which one is u? Think LIATE. x is algebraic, e to the x is exponential, so algebraic comes first."],
   [at(30, 41), "So u equals x, which means du is just dx. And dv is e to the x dx, so v is e to the x."],
   [at(31, 58), "Plug into the formula: x e to the x, minus the integral of e to the x dx."],
   [
     at(33, 20),
-    "If you pick u the other way around, the integral gets worse, not better. That's the number one mistake I see, so there will be one of these on Term Test 2.",
+    "If you pick u the other way around, the integral gets worse, not better. That’s the number one mistake I see, so there will be one of these on Term Test 2.",
     "hint",
   ],
   [at(35, 47), "So the answer is x e to the x minus e to the x, plus C. Always check by differentiating."],
@@ -75,7 +75,7 @@ const MAT137_TUE: Line[] = [
 const MAT137_TUE_REST_START = at(38, 6) + 600;
 const MAT137_TUE_REST: Line[] = [
   [MAT137_TUE_REST_START, "The same trick comes back, we just apply it a second time to the leftover integral."],
-  [at(42, 10), "u is x squared, so du is 2x dx, and we're left with an integral of x e to the x, which we just did."],
+  [at(42, 10), "u is x squared, so du is 2x dx, and we’re left with an integral of x e to the x, which we just did."],
   [at(46, 50), "So the answer is e to the x times x squared minus 2x plus 2, plus C."],
   [at(49, 20), "Problem Set 5, questions 3 to 6, use exactly this technique."],
 ];
@@ -87,7 +87,7 @@ const ECO101_L7: Line[] = [
   [at(4, 47), "Gasoline is the classic inelastic good. Restaurant meals are elastic."],
   [at(18, 40), "Let me draw this. Same price rise, P1 to P2, on a flat curve and on a steep one."],
   [at(18, 56), "On the flat one quantity falls a lot. On the steep one it barely moves."],
-  [at(19, 12), "That's the whole picture of elastic versus inelastic."],
+  [at(19, 12), "That’s the whole picture of elastic versus inelastic."],
   [at(31, 10), "Half of you will look at a steep line and write ‘inelastic’. Read the percentages, not the picture.", "hint"],
   [at(31, 26), "A straight line has one slope, but its elasticity changes as you move along it."],
   [at(31, 42), "This will be on the midterm, I promise you."],
@@ -187,7 +187,7 @@ export const lecturesSample: SampleFragment<"lectures" | "segments" | "links" | 
   const tueSegments = segments(L.mat137Tue, matLines, tt2Hint, 12_000);
 
   const links: RelatedLink[] = [
-    link(L.mat137Tue, at(33, 20), { kind: "assessment", eventId: E.mat137TermTest2, label: "Term Test 2", at: ctx.at(5, "18:00", 2) }, "Term Test 2", "Nov 13 · Prof. Chen says this will be on it", "hint"),
+    link(L.mat137Tue, at(33, 20), { kind: "assessment", eventId: E.mat137TermTest2, label: "Term Test 2", at: ctx.at(5, "18:00", 2) }, "Term Test 2", "13 Nov · Prof. Chen says this will be on it", "hint"),
     link(
       L.mat137Tue,
       at(31, 58),

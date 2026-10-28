@@ -1,5 +1,6 @@
 import type { StudyBlock } from "@/lib/domain";
 import { fmtDuration, weekdayOf } from "@/lib/time";
+import { plural } from "@/lib/plural";
 
 const SHORT_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -56,7 +57,7 @@ export function blockReasonText(block: StudyBlock, style: "trailing" | "sentence
   switch (anchor.kind) {
     case "review": {
       const d = block.why.offsetDays;
-      return d <= 0 ? "Review after lecture" : `Review ${d} day${d === 1 ? "" : "s"} after lecture`;
+      return d <= 0 ? "Review after lecture" : `Review ${plural(d, "day")} after lecture`;
     }
     case "midweek":
       return "Mid-week review";

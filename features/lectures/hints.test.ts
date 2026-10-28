@@ -37,11 +37,11 @@ const ctx: LinkContext = { lectureId: LECTURE, timeZone: ZONE, professor: "Prof.
 const seg = (seq: number, atMs: number, text: string, flag?: Segment["flag"]): Segment => ({ lectureId: LECTURE, seq, chunkSeq: seq, atMs, endMs: atMs + 12_000, raw: text.toLowerCase(), text, ...(flag ? { flag } : {}) });
 const window = [
   seg(8, ms(31, 58), "Plug into the formula: x e to the x, minus the integral of e to the x dx."),
-  seg(9, ms(33, 20), "If you pick u the other way around, the integral gets worse, not better. That's the number one mistake I see, so there will be one of these on Term Test 2."),
+  seg(9, ms(33, 20), "If you pick u the other way around, the integral gets worse, not better. That’s the number one mistake I see, so there will be one of these on Term Test 2."),
 ];
 
 describe("coursework catalog", () => {
-  it("numbers assessments by date and materials after files, with the prompt's lines", () => {
+  it("numbers assessments by date and materials after files, with the prompt’s lines", () => {
     expect(catalogInput(work, ZONE)).toEqual({
       assessments: [
         { id: "A1", label: "Problem Set 5", kind: "deadline", when: "Thu, Oct 29" },
@@ -85,7 +85,7 @@ describe("mention resolution", () => {
     });
     expect(card("A2", null, null)).toEqual({
       title: "Term Test 2",
-      meta: "Nov 13 · mentioned in this lecture",
+      meta: "13 Nov · mentioned in this lecture",
       target: { kind: "assessment", eventId: "evt_tt2", label: "Term Test 2", at: termTest.start },
     });
   });
@@ -109,11 +109,11 @@ describe("hint dedupe", () => {
     mentions: [{ ref: "M1", quote: "plug into the formula", title: null, part: "Q3–Q6", note: "same technique" }],
   };
 
-  it("flags the segment that holds the quote and adds the hint's card", () => {
+  it("flags the segment that holds the quote and adds the hint’s card", () => {
     const r = applyHints(ctx, work, window, out);
     expect(r.flags).toEqual([{ seq: 9, flag: { by: "model", assessment: { label: "Term Test 2", eventId: "evt_tt2" } } }]);
     expect(r.links.map((l) => [l.atMs, l.title, l.meta, l.why])).toEqual([
-      [ms(33, 20), "Term Test 2", "Nov 13 · Prof. Chen says this will be on it", "hint"],
+      [ms(33, 20), "Term Test 2", "13 Nov · Prof. Chen says this will be on it", "hint"],
       [ms(31, 58), "Problem Set 5, Q3–Q6", "Due Thursday · same technique", "mention"],
     ]);
   });
@@ -121,7 +121,7 @@ describe("hint dedupe", () => {
   it("changes nothing when the next window repeats the same quote and mention", () => {
     const first = applyHints(ctx, work, window, out);
     const flagged = window.map((s) => ({ ...s, ...(first.flags.find((f) => f.seq === s.seq) ? { flag: first.flags.find((f) => f.seq === s.seq)!.flag } : {}) }));
-    const again = applyHints(ctx, work, flagged, { ...out, hints: [...out.hints, { quote: "That's the number one mistake I see", assessment: null }] }, { existingLinks: new Set(first.links.map((l) => l.id)) });
+    const again = applyHints(ctx, work, flagged, { ...out, hints: [...out.hints, { quote: "That’s the number one mistake I see", assessment: null }] }, { existingLinks: new Set(first.links.map((l) => l.id)) });
     expect(again).toEqual({ flags: [], links: [] });
   });
 

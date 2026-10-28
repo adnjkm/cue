@@ -115,7 +115,7 @@ function useSuggestions(scope: AskScope): string[] {
       return [...(wrong ? [`Why not ${wrong}?`] : []), `Why is ${key} right?`, "Explain it more simply", "Show a similar example"];
     }
     case "study":
-      return ["Explain this in simpler words", "Quiz me on this", "What's most likely on the test?"];
+      return ["Explain this in simpler words", "Quiz me on this", "What’s most likely on the test?"];
     case "liveLecture":
       return ["What did I just miss?", "Explain the last example"];
     case "lecture":

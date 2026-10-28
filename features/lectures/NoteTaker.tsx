@@ -122,11 +122,11 @@ function EngineNotice({ choice, onChoose }: { choice: EngineChoice; onChoose: (e
   );
 }
 
-const FAILURE: Record<Extract<View, { kind: "failed" }>["reason"], { title: string; detail: string; retry: string }> = {
-  micDenied: { title: "Cue can't hear your microphone.", detail: "Allow microphone access for this site, then try again.", retry: "Try again" },
+const FAILURE: Record<Extract<View, { kind: "failed" }>["reason"], { title: string; detail: string; retry?: string }> = {
+  micDenied: { title: "Cue can’t hear your microphone.", detail: "Allow microphone access for this site, then try again.", retry: "Try again" },
   noMic: { title: "No microphone was found.", detail: "Connect a microphone or headset, then try again.", retry: "Try again" },
-  noBackend: { title: "This browser can't run the speech model.", detail: "Open Cue in a recent Chrome or Edge, or use the demo transcript.", retry: "Try again" },
-  download: { title: "The speech model didn't download.", detail: "Check your connection, then try again. Anything recorded so far is kept.", retry: "Try again" },
+  noBackend: { title: "This browser can’t run the speech model.", detail: "Open Cue in a recent Chrome or Edge, or use the demo transcript." },
+  download: { title: "The speech model didn’t download.", detail: "Check your connection, then try again. Anything recorded so far is kept.", retry: "Try again" },
   runtime: { title: "Transcription stopped.", detail: "Your audio is saved on this device. Try again to continue where it stopped.", retry: "Try again" },
 };
 
@@ -295,7 +295,8 @@ export function NoteTaker({
           <div className="flex items-center gap-3">{time}</div>
         ))}
       <div className="flex items-center gap-3 max-md:ml-auto">
-        {view.kind === "ready" || view.kind === "failed" ? (
+        {/* A browser that cannot run the speech model cannot start recording either; the notice offers the demo transcript instead. */}
+        {view.kind === "failed" && view.reason === "noBackend" ? null : view.kind === "ready" || view.kind === "failed" ? (
           <Button
             onClick={() => {
               if (view.kind === "failed") recorder.reset();
@@ -303,7 +304,7 @@ export function NoteTaker({
             }}
             variant={showEnd ? "secondary" : "default"}
           >
-            {view.kind === "failed" ? FAILURE[view.reason].retry : "Start recording"}
+            {view.kind === "failed" ? (FAILURE[view.reason].retry ?? "Try again") : "Start recording"}
           </Button>
         ) : (
           <Button variant="secondary" aria-keyshortcuts="p" disabled={!canPause} focusableWhenDisabled onClick={togglePause}>
@@ -418,7 +419,7 @@ export function NoteTaker({
         {rec.aiError && attached && (
           <p role="alert" className="pt-2 text-sm leading-5">
             <span className="text-ink">{errorCopy(rec.aiError).title}</span>{" "}
-            <span className="text-graphite">{rec.aiError.kind === "budget" ? "Recording continues. Lines stay as heard and questions pause until the cap is raised." : "Lines stay as heard until Cue's model answers again."}</span>
+            <span className="text-graphite">{rec.aiError.kind === "budget" ? "Recording continues. Lines stay as heard and questions pause until the cap is raised." : "Lines stay as heard until Cue’s model answers again."}</span>
           </p>
         )}
       </div>
@@ -430,7 +431,7 @@ export function NoteTaker({
       ref={root}
       tabIndex={-1}
       data-testid={tid.main}
-      className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 outline-none max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(16px,env(safe-area-inset-bottom))]"
+      className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 outline-none max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-4"
     >
       <Toolbar title={lectureTitle(lecture)}>{controls}</Toolbar>
       <Columns main={transcript} mainLabel="Transcript" related={<RelatedList links={liveLinks} style="live" />} relatedCount={links.length} />

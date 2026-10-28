@@ -8,7 +8,7 @@ const at = (time: string, d = day) => zone.at(d, time as WallTime);
 const span = (a: string, b: string) => ({ start: at(a), end: at(b) });
 
 describe("Paper time formats", () => {
-  it("formats times like Today's timeline", () => {
+  it("formats times like Today’s timeline", () => {
     expect(fmtTime(at("09:00"), zone)).toBe("9am");
     expect(fmtTime(at("10:30"), zone)).toBe("10:30am");
     expect(fmtTime(at("12:00"), zone)).toBe("12pm");

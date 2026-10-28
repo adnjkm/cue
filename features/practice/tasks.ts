@@ -6,6 +6,7 @@ import type { Option, Passage } from "@/lib/domain";
 import { MOCK_KEY, MOCK_QUESTIONS, mockCheck, mockGenerate, mockSolve } from "./mocks";
 import { generatedQuestion, normalizeLabel, paperChunkRead, solveOutput } from "./schema";
 import type { GenerateInput, PaperChunkRead } from "./types";
+import { plural } from "@/lib/plural";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -173,7 +174,7 @@ export const practiceTasks = defineTasks("practice", {
     prompt: ({ course, focus, style, passages, count, note }) => ({
       system: GENERATE_SYSTEM,
       user: [
-        `Write ${count} new question${count === 1 ? "" : "s"}${course ? ` for ${course}` : ""} about ${focus}.`,
+        `Write ${plural(count, "new question")}${course ? ` for ${course}` : ""} about ${focus}.`,
         ...(note ? [`The student asked for: “${note}”`] : []),
         "",
         ...exampleQuestions(style),

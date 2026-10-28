@@ -15,18 +15,17 @@ const MODES: { value: AskMode; label: string; tip: string }[] = [
 
 function ModeSwitch({ value, onChange, disabled }: { value: AskMode; onChange: (m: AskMode) => void; disabled?: boolean }) {
   return (
-    <div role="radiogroup" aria-label="Answer mode" className="flex items-center gap-0.5">
+    <div role="group" aria-label="Answer mode" className="flex items-center gap-0.5">
       {MODES.map((m) => (
         <Tooltip key={m.value}>
           <TooltipTrigger
             render={
               <button
                 type="button"
-                role="radio"
-                aria-checked={value === m.value}
+                aria-pressed={value === m.value}
                 disabled={disabled}
                 onClick={() => onChange(m.value)}
-                className="h-6 cursor-pointer rounded-sm px-2.5 text-sm leading-4 text-graphite transition-colors duration-[120ms] ease-standard hover:text-ink aria-checked:bg-control aria-checked:font-medium aria-checked:text-ink disabled:cursor-default disabled:opacity-40"
+                className="h-6 cursor-pointer rounded-sm px-2.5 text-sm leading-4 text-graphite transition-colors duration-[120ms] ease-standard hover:text-ink aria-pressed:bg-control aria-pressed:font-medium aria-pressed:text-ink disabled:cursor-default disabled:opacity-40"
               />
             }
           >

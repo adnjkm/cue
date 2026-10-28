@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { AgendaDay } from "./Agenda";
 import { ItemPopover, type Subject } from "./ItemPopover";
 import { blockName, deadlineTitle, eventName, lookSuffix, MONTH_SHORT, testChipTitle, WEEKDAY_SHORT, type DayItems } from "./model";
+import { plural } from "@/lib/plural";
 
 /** One month chip: deadlines and tests outlined, study blocks filled, notes as plain text (calendar.md 3). */
 type Chip = { id: string; kind: "due" | "study" | "note"; label: string; name: string; state?: string; subject?: Subject };
@@ -102,7 +103,7 @@ export function MonthGrid({ days, dayList, month, zone, now, today, narrow }: { 
                 tabIndex: tabbable ? 0 : -1,
                 onFocus: () => setActive(day),
                 "aria-current": isToday ? ("date" as const) : undefined,
-                "aria-label": `${fmtDay(day, zone, "long")}${chips.length ? `, ${chips.length} item${chips.length === 1 ? "" : "s"}` : ""}`,
+                "aria-label": `${fmtDay(day, zone, "long")}${chips.length ? `, ${plural(chips.length, "item")}` : ""}`,
               };
               const number = isToday ? <span className="rounded-xs bg-ink px-1.5 text-page">{label}</span> : <span className={outside ? "text-graphite" : "text-ink"}>{label}</span>;
               return (

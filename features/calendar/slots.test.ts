@@ -70,7 +70,7 @@ describe("extra work for a deadline at its largest effort", () => {
     expect(extraWorkSlot(input, event("evt_sample_csc148_due_a1_w7d3"), NOW)).toBeNull();
   });
 
-  it("recognises the added block as this deadline's work and not another's", () => {
+  it("recognises the added block as this deadline’s work and not another’s", () => {
     const anchor = { kind: "custom" as const, key: "k3j9", course: a2.courseId };
     const at = { start: Date.parse("2026-10-27T11:15:00-04:00") as EpochMs, end: Date.parse("2026-10-27T12:15:00-04:00") as EpochMs };
     const s = setup(NOW, (i) => ({ ...i, overrides: [...i.overrides, { blockId: ids.block(anchor), placement: { kind: "authored", block: { anchor, at, topic: extraWorkTopic(a2) } }, updatedAt: NOW }] }));

@@ -15,6 +15,7 @@ import { parseIcs } from "./ics";
 import { ImportError, type ImportProposal } from "./proposal";
 import { expandTimetable, termAround } from "./timetable";
 import { shortDay } from "./model";
+import { plural } from "@/lib/plural";
 
 /** The import's UI states (architecture 5.2): idle, reading, preview, committing; failure returns to idle with the reason. */
 type Step =
@@ -25,7 +26,6 @@ type Step =
 const ACCEPT = ".ics,text/calendar,application/pdf,image/png,image/jpeg,image/webp";
 const isIcs = (f: File) => /\.ics$/i.test(f.name) || f.type === "text/calendar";
 const isTimetable = (f: File) => /\.(pdf|png|jpe?g|webp)$/i.test(f.name) || /^(application\/pdf|image\/(png|jpeg|webp))$/.test(f.type);
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 async function read(file: File, zone: Zone, now: EpochMs, signal: AbortSignal): Promise<ImportProposal> {
   const importId = ids.importBatch();
@@ -98,7 +98,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
       });
     } catch {
       setStep({ ...step, committing: false });
-      toast.add({ title: "Couldn't save the schedule. Try Add again; nothing was changed.", timeout: 0 });
+      toast.add({ title: "Couldn’t save the schedule. Try Add again; nothing was changed.", timeout: 0 });
     }
   }
 
@@ -160,7 +160,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
         )}
 
         {preview && (
-          <div className="flex max-h-[min(420px,50dvh)] flex-col gap-4 overflow-y-auto">
+          <div className="flex max-h-[min(420px,50dvh)] flex-col gap-4 overflow-y-auto overscroll-contain">
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-3 text-sm leading-5 text-graphite">
                 Found {plural(preview.proposal.courses.length, "course")}. Uncheck any you don&apos;t want.

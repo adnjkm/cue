@@ -340,7 +340,7 @@ function KeepEnd({ text, end }: { text: string; end: string }) {
   );
 }
 
-const BASE = "relative flex h-full w-full cursor-pointer flex-col items-start rounded-xs text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard focus-visible:outline-offset-1 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-[160ms]";
+const BASE = "relative flex h-full w-full cursor-pointer flex-col items-start rounded-xs text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard focus-visible:outline-offset-1";
 const LINE = "block w-full truncate";
 
 /** Clips the block's lines inside the button, so the button itself can carry a hit area larger than its box. */

@@ -189,7 +189,7 @@ describe("history, pins and imports", () => {
     expect(["rule true", "unplaced"]).toContain(replaced);
   });
 
-  it("keeps an authored block's text when its time changes", () => {
+  it("keeps an authored block’s text when its time changes", () => {
     const sample = samplePlanInput({ now: Date.parse("2026-10-27T14:12:00Z"), zone: ZONE });
     const prep = sample.overrides.find((o) => o.placement?.kind === "authored" && o.placement.block.note)!;
     if (prep.placement?.kind !== "authored") throw new Error("expected an authored override");
@@ -199,7 +199,7 @@ describe("history, pins and imports", () => {
     expect(block).toMatchObject({ start: sat, topic: { full: "Midterm", short: "Midterm" }, note: "Past paper, timed", placement: "authored" });
   });
 
-  it("removes exactly an import's blocks on Undo", () => {
+  it("removes exactly an import’s blocks on Undo", () => {
     const imp = "imp_new" as ImportId;
     const newCourse = Array.from({ length: 4 }, (_, i): CalendarEvent => {
       const start = zone.at(addDays("2026-10-19" as LocalDate, i * 7 + 1), "16:00" as never);

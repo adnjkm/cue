@@ -13,6 +13,7 @@ import { SampleSemesterButton } from "@/components/cue/sample";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { blockFromSession } from "./data";
 import { tid } from "./testids";
+import { plural } from "@/lib/plural";
 
 const DAY_MS = 86_400_000;
 const PAST_SHOWN = 8;
@@ -38,12 +39,12 @@ function Row({ lead, course, title, titleHref, trailing, action, current }: { le
       aria-current={current ? "time" : undefined}
       className="flex flex-wrap items-center gap-x-0 gap-y-1 border-b border-rule py-3.5 max-md:gap-x-3 md:flex-nowrap"
     >
-      <span className="w-24 shrink-0 text-sm leading-5 text-ink max-md:w-auto">{lead}</span>
+      <span className="w-24 shrink-0 text-sm leading-5 text-ink tabular-nums max-md:w-auto">{lead}</span>
       <span className="w-[84px] shrink-0 max-md:w-auto">{course && <CourseChip code={course} />}</span>
       <Link href={titleHref} className="min-w-0 flex-1 text-sm leading-5 text-pretty text-ink underline-offset-4 hover:underline max-md:basis-full">
         {title}
       </Link>
-      <span className="w-[180px] shrink-0 text-right text-sm leading-5 text-graphite max-md:w-auto max-md:text-left">{trailing}</span>
+      <span className="w-[180px] shrink-0 text-right text-sm leading-5 text-graphite tabular-nums max-md:w-auto max-md:text-left">{trailing}</span>
       {action && <span className="flex shrink-0 justify-end md:ml-6 max-md:ml-auto">{action}</span>}
     </li>
   );
@@ -59,10 +60,6 @@ function Section({ id, label, summary, children }: { id: string; label: string; 
       {children}
     </section>
   );
-}
-
-function count(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
 /** /study (inside the browse shell's main): the next seven days of planned sessions with Start, and the sessions already studied. */
@@ -115,7 +112,7 @@ export function StudyIndex() {
     <div data-testid={tid.index} className="flex flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
       <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Study sessions</h1>
 
-      <Section id="study-upcoming" label="Next 7 days" summary={upcoming.length ? `${count(upcoming.length, "session")} · ${fmtDuration(upcomingMs)}` : undefined}>
+      <Section id="study-upcoming" label="Next 7 days" summary={upcoming.length ? `${plural(upcoming.length, "session")} · ${fmtDuration(upcomingMs)}` : undefined}>
         {upcoming.length === 0 ? (
           <p className="py-4 text-sm leading-5 text-graphite">Nothing planned for the next 7 days. Add lectures or deadlines on the calendar and Cue plans around them.</p>
         ) : (
@@ -154,7 +151,7 @@ export function StudyIndex() {
         )}
       </Section>
 
-      <Section id="study-past" label="Past sessions" summary={past.length ? `${count(past.length, "session")} · ${fmtDuration(studiedMs)} studied` : undefined}>
+      <Section id="study-past" label="Past sessions" summary={past.length ? `${plural(past.length, "session")} · ${fmtDuration(studiedMs)} studied` : undefined}>
         {past.length === 0 ? (
           <p className="py-4 text-sm leading-5 text-graphite">Sessions you start show up here with the time you studied.</p>
         ) : (

@@ -168,7 +168,7 @@ export function Intake() {
             {phase.detail && <p className="text-sm leading-5 text-graphite">{phase.detail}</p>}
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            {phase.retry && <Button onClick={() => void run()}>Retry</Button>}
+            {phase.retry && <Button onClick={() => void run()}>Try again</Button>}
             <Button variant={phase.retry ? "secondary" : "default"} onClick={() => input.current?.click()}>
               Choose another file
             </Button>

@@ -22,7 +22,7 @@ describe("guideBlockDraft", () => {
     expect(guideBlockDraft.safeParse(figure(levels([3.5, 6]))).success).toBe(false);
   });
 
-  it("keeps a code block's indentation and line breaks, dropping a wrapping fence and a stray marker", () => {
+  it("keeps a code block’s indentation and line breaks, dropping a wrapping fence and a stray marker", () => {
     const block = guideBlockDraft.parse({
       kind: "code",
       lang: "Python",

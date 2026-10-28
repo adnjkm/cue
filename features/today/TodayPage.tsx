@@ -126,7 +126,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
     try {
       moved = await planActions.reschedule(block.id, { after: now });
     } catch {
-      toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again.", timeout: 0, onClose: returnFocusTo(unmoved) });
+      toast.add({ title: "Couldn’t move this block.", description: "Reload the page and try again.", timeout: 0, onClose: returnFocusTo(unmoved) });
       return;
     }
     const openCalendar = { children: "Open calendar", onClick: () => router.push(href.calendar({ view: "day", date: plan.zone.dayOf(now) })) };
@@ -158,7 +158,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
             () => focus(unmoved),
             () => {
               toast.add({
-                title: "Couldn't move it back.",
+                title: "Couldn’t move it back.",
                 description: "That time now overlaps another event. Open the calendar to pick a slot.",
                 timeout: 0,
                 actionProps: openCalendar,

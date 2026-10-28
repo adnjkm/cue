@@ -70,7 +70,7 @@ describe("numberFootnotes", () => {
     expect(footnoteParts(footnotes[1].sources).map((p) => p.text)).toEqual(["Lecture 7 slides 6–8.", "Used in Problem Set 4, Q1."]);
   });
 
-  it("numbers a code block's footnote in sequence with the blocks around it", () => {
+  it("numbers a code block’s footnote in sequence with the blocks around it", () => {
     const code: GuideBlockDraft = { kind: "code", lang: "python", text: "def f():\n    return 1", caption: "A method.", refs: [{ passage: "S3" }] };
     const withCode = numberFootnotes([drafts[0], code, drafts[2], { ...code, refs: [] }, drafts[5]], passages);
     expect(withCode.blocks.map((b) => (b.kind === "formula" ? b.noteRefs : b.refs))).toEqual([[1], [2], [3], [], [4]]);

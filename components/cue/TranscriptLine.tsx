@@ -32,7 +32,7 @@ export function TranscriptLine({
         <time className="w-11 shrink-0 text-sm leading-5 text-graphite tabular-nums">{fmtStamp(atMs)}</time>
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className={cn("max-w-[32em] text-sm leading-5", state === "live" ? "text-graphite" : "text-ink")}>{text}</p>
+        <p className={cn("max-w-[32em] text-sm leading-5 text-pretty", state === "live" ? "text-graphite" : "text-ink")}>{text}</p>
         {state === "flagged" && flagLabel && <p className="text-sm leading-4 font-medium text-ink">{flagLabel}</p>}
       </div>
       {actions}

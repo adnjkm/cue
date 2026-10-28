@@ -24,7 +24,7 @@ export default async function lectures(t) {
   await expect(progress).toHaveAttribute("aria-valuetext", "38 minutes 12 seconds of 50 minutes");
   await expect(page.getByText("38:12 of 50:00", { exact: true })).toBeVisible();
   await expect(log.locator("li time")).toHaveText(["0:45", "6:40", "12:15", "17:05", "24:30", "29:30", "30:02", "30:41", "31:58", "33:20", "35:47", "37:10"]);
-  await expect(row("29:30")).toContainText("Okay, let's actually do one. The integral of x e to the x, dx.");
+  await expect(row("29:30")).toContainText("Okay, let’s actually do one. The integral of x e to the x, dx.");
   await expect(row("33:20")).toHaveAttribute("data-state", "flagged");
   await expect(row("33:20")).toContainText("Flagged · on Term Test 2");
   await expect(log.getByRole("listitem").last()).toHaveText(/^Live…the same trick comes back/);
@@ -33,7 +33,7 @@ export default async function lectures(t) {
   const firstCard = page.getByTestId(tid.related).getByRole("listitem").first();
   await expect(firstCard).toContainText("33:20");
   await expect(firstCard).toContainText("Term Test 2");
-  await expect(firstCard).toContainText("Nov 13 · Prof. Chen says this will be on it");
+  await expect(firstCard).toContainText("13 Nov · Prof. Chen says this will be on it");
   await expect(firstCard.locator('[data-state="emphasized"]')).toHaveCount(1);
   await expect(page.getByTestId(tid.related).getByRole("listitem")).toHaveCount(5);
   await page.mouse.move(700, 800);

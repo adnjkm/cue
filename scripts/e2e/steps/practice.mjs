@@ -34,10 +34,10 @@ export default async function practice(t) {
   await expect(choices.getByRole("button")).toHaveCount(4);
   await expect(choices.getByRole("button").nth(1)).toContainText("D, E, B, C, A");
   await expect(choices.getByRole("button").nth(1)).toContainText("Your answer · correct");
-  await expect(choices.getByRole("button").nth(2)).toContainText("That's inorder");
+  await expect(choices.getByRole("button").nth(2)).toContainText("That’s inorder");
   await expect(choices.getByRole("button").nth(3)).toContainText("Reversed preorder");
   const solution = page.getByTestId(tid.solution);
-  await expect(solution.locator("dt")).toHaveText(["B's subtree", "C's subtree", "Root"]);
+  await expect(solution.locator("dt")).toHaveText(["B’s subtree", "C’s subtree", "Root"]);
   await expect(solution.locator("dd")).toHaveText(["D, E, then B", "C", "A"]);
   await expect(solution.getByText("So the order is D, E, B, C, A.")).toBeVisible();
   await expect(solution.getByText("The original exam had no answer key; Cue wrote this from Lecture 8.")).toBeVisible();
@@ -143,7 +143,7 @@ export default async function practice(t) {
   await expect(page.getByTestId(t.tid.shell.main).getByRole("alert")).toContainText("That link to write questions is broken.");
 
   await page.goto("/practice/set_not_on_this_device");
-  await expect(page.getByRole("main")).toContainText("This practice set isn't on this device.");
+  await expect(page.getByRole("main")).toContainText("This practice set isn’t on this device.");
 
   await migratedHarness(t);
 
@@ -201,7 +201,7 @@ async function migratedHarness(t) {
   const intake = page.getByTestId(tid.intake);
   await expect(intake.getByRole("alert")).toContainText("Cue is busy right now.", { timeout: 20_000 });
   await expect(intake.getByRole("alert")).toContainText("Try again in a moment.");
-  await page.getByRole("button", { name: "Retry" }).click();
+  await page.getByRole("button", { name: "Try again" }).click();
   await expect(intake.getByRole("status")).toContainText("Finding questions");
   await expect(intake.getByRole("progressbar", { name: "Upload progress" })).toBeVisible();
   await t.shot("practice-upload");

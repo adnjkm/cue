@@ -36,7 +36,7 @@ export function LectureScreen({ id, focusAtMs }: { id: LectureId | null; focusAt
       <main data-testid={tid.main} className="flex flex-1 flex-col px-10 pt-7 pb-8 max-md:px-4 max-md:pt-4">
         <h1 className="sr-only">Lecture not found</h1>
         <EmptyState
-          title="This lecture isn't on this device."
+          title="This lecture isn’t on this device."
           detail="Lecture notes live in the browser that recorded them. Open Lecture notes to find your lectures or record a new one."
           actions={
             <Link href={href.lectures()} className={buttonVariants()}>

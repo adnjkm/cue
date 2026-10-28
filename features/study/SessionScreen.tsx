@@ -255,7 +255,7 @@ function SessionScreen({
       <BudgetNotice error={planError} />
     ) : (
       <ErrorLine
-        title="Couldn't write a plan."
+        title="Couldn’t write a plan."
         detail={errorCopy(planError).detail ?? errorCopy(planError).title}
         action={
           <Button variant="secondary" size="sm" onClick={() => loadPlan(block, prefs.pomodoro, { retry: true })}>
@@ -350,7 +350,7 @@ function SessionScreen({
         <AskPanel {...askProps} shortcut="/" className="hidden w-80 shrink-0 lg:flex xl:w-[360px]" />
       </div>
 
-      <div className="sticky bottom-0 -mx-4 mt-auto bg-page px-4 pt-2 pb-[max(16px,env(safe-area-inset-bottom))] md:hidden">
+      <div className="sticky bottom-0 -mx-4 mt-auto bg-page px-4 pt-2 pb-4 md:hidden">
         <Button variant="secondary" size="lg" data-ask aria-haspopup="dialog" aria-expanded={ask === "drawer"} aria-keyshortcuts="/" onClick={() => setAsk("drawer")} className="w-full">
           Ask
         </Button>
@@ -366,7 +366,7 @@ function SessionScreen({
             <SheetTitle className="text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</SheetTitle>
             <SheetDescription className="sr-only">{ASK_SCOPE}</SheetDescription>
           </SheetHeader>
-          {ask === "sheet" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-[max(16px,env(safe-area-inset-bottom))]" />}
+          {ask === "sheet" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-4" />}
         </SheetContent>
       </Sheet>
       <Drawer open={ask === "drawer"} onOpenChange={(open) => setAsk(open ? "drawer" : null)}>
@@ -375,7 +375,7 @@ function SessionScreen({
             <DrawerTitle className="text-left text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</DrawerTitle>
             <DrawerDescription className="sr-only">{ASK_SCOPE}</DrawerDescription>
           </DrawerHeader>
-          {ask === "drawer" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-[max(16px,env(safe-area-inset-bottom))]" />}
+          {ask === "drawer" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-4" />}
         </DrawerContent>
       </Drawer>
       <AddMaterialDialog open={adding} onOpenChange={setAdding} {...(block.courseId ? { courseId: block.courseId } : {})} />

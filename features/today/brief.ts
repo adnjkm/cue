@@ -71,7 +71,7 @@ function relativeDay(day: LocalDate, today: LocalDate, zone: Zone): string {
   return WEEKDAYS[zone.weekday(day) - 1];
 }
 
-const possessive = (day: string) => (day === "today" ? "today's" : `${day}'s`);
+const possessive = (day: string) => (day === "today" ? "today’s" : `${day}’s`);
 
 function inDays(n: number): string {
   return n <= 0 ? "today" : n === 1 ? "tomorrow" : `in ${n} days`;
@@ -113,7 +113,7 @@ function reasonSentence(b: StudyBlock, f: BriefFacts, today: LocalDate): string 
   switch (anchor.kind) {
     case "review":
       if (!testIn || !b.why.boostedBy) return undefined;
-      return anchor.n === 2 ? `${testIn}, so Cue moved ${when}'s review up.` : `${testIn}, so Cue gave ${when}'s review extra time.`;
+      return anchor.n === 2 ? `${testIn}, so Cue moved ${when}’s review up.` : `${testIn}, so Cue gave ${when}’s review extra time.`;
     case "testPrep":
       return testIn ? `${testIn}. This is prep ${anchor.index} of ${anchor.of}.` : `This is prep ${anchor.index} of ${anchor.of} for ${b.topic.full}.`;
     case "work": {
@@ -175,7 +175,7 @@ export function ruleBrief(f: BriefFacts): Brief {
       missed.length > 0
         ? `${cap(countWord(missed.length))} ${plural(missed.length, "session")} missed today.`
         : total === 1
-          ? "Today's session is done."
+          ? "Today’s session is done."
           : total === 2
             ? "Both sessions done."
             : `All ${countWord(total)} sessions done.`;

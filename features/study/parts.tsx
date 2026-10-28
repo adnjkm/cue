@@ -139,7 +139,7 @@ export function PlanDrawer({ rows, onSelect, className }: { rows: readonly StepR
             Session plan
           </DrawerTitle>
         </DrawerHeader>
-        <div ref={listRef} className="overflow-y-auto px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+        <div ref={listRef} className="overflow-y-auto px-4 pb-4">
           <PlanList
             rows={rows}
             labelId={titleId}
@@ -183,7 +183,7 @@ export function MomentCard({ at, quote, examHint, onOpen }: { at: TranscriptRef;
       onClick={onOpen}
       className="flex w-full shrink-0 cursor-pointer gap-4 rounded-sm bg-fill px-5 py-4 text-left text-sm leading-5 transition-colors duration-[120ms] ease-standard hover:bg-control"
     >
-      <span className="w-10 shrink-0 text-graphite">{fmtStamp(at.atMs)}</span>
+      <span className="w-10 shrink-0 text-graphite tabular-nums">{fmtStamp(at.atMs)}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-1 text-ink">“{quote}”</span>
       <span className="sr-only">{examHint ? "Exam hint. " : ""}Opens the transcript here.</span>
     </button>

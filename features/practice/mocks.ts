@@ -89,7 +89,7 @@ const MOCK_SOLUTIONS: Record<string, SolveOutput> = {
       { label: "Multiply", text: "4 · 2 · 1 = 8" },
     ],
     conclusion: "So f(4) returns 8.",
-    whyNot: { A: "That's 4!, stepping down by 1", C: "Stops after the first call", D: "Adds instead of multiplying" },
+    whyNot: { A: "That’s 4!, stepping down by 1", C: "Stops after the first call", D: "Adds instead of multiplying" },
     resources: [],
   },
   "2": {
@@ -100,7 +100,7 @@ const MOCK_SOLUTIONS: Record<string, SolveOutput> = {
       { label: "Solve", text: "n / 2ᵏ = 1 gives k = log₂ n" },
     ],
     conclusion: "So the worst case is O(log n).",
-    whyNot: { A: "That's the best case", C: "That's linear search", D: "That's the cost of sorting first" },
+    whyNot: { A: "That’s the best case", C: "That’s linear search", D: "That’s the cost of sorting first" },
     resources: [],
   },
   "3": {
@@ -111,7 +111,7 @@ const MOCK_SOLUTIONS: Record<string, SolveOutput> = {
       { label: "Head", text: "move head to the new node" },
     ],
     conclusion: "So the cost is O(1).",
-    whyNot: { B: "Nothing is being halved", C: "That's inserting at the end without a tail", D: "No nested traversal happens" },
+    whyNot: { B: "Nothing is being halved", C: "That’s inserting at the end without a tail", D: "No nested traversal happens" },
     resources: [],
   },
   "4": {
@@ -155,7 +155,7 @@ export function mockSolve(question: SolveQuestion, passageIds: readonly string[]
       { label: "Check", text: "each option against it" },
     ],
     conclusion: `So the answer is ${answer}.`,
-    whyNot: Object.fromEntries(labels.filter((l) => l !== answer).map((l) => [l, "Doesn't satisfy the stem"])),
+    whyNot: Object.fromEntries(labels.filter((l) => l !== answer).map((l) => [l, "Doesn’t satisfy the stem"])),
     resources: passageIds.slice(0, 3),
   };
 }
@@ -205,7 +205,7 @@ const TREES: Written[] = [
     explanation: "Preorder prints a node before either of its subtrees, so the root comes first.",
     steps: [{ label: "Preorder", text: "the first value printed is the root" }],
     conclusion: "So A is the root.",
-    whyNot: { B: "That's the root's left child", C: "That's a leaf", D: "That's the last value printed" },
+    whyNot: { B: "That’s the root’s left child", C: "That’s a leaf", D: "That’s the last value printed" },
   },
   {
     prompt: "To free every node of a tree so that no node is freed before its children, which traversal do you use?",
@@ -241,7 +241,7 @@ const BIG_O: Written[] = [
       { label: "Solve", text: "2ᵏ = n gives k = log₂ n" },
     ],
     conclusion: "So it runs O(log n) times.",
-    whyNot: { A: "The count grows with n", C: "That's adding 1 each time", D: "There is no inner loop" },
+    whyNot: { A: "The count grows with n", C: "That’s adding 1 each time", D: "There is no inner loop" },
   },
   {
     prompt: "Which is the tightest big-O bound for 3n² + 100n + 7?",
@@ -262,7 +262,7 @@ const BIG_O: Written[] = [
     explanation: "A dict hashes the key and jumps to its slot, so the cost does not grow with n on average.",
     steps: [{ label: "Hashing", text: "one hash, then one slot to check" }],
     conclusion: "So a lookup is O(1) on average.",
-    whyNot: { B: "That's a balanced search tree", C: "That's scanning a list", D: "No nested work happens" },
+    whyNot: { B: "That’s a balanced search tree", C: "That’s scanning a list", D: "No nested work happens" },
   },
   {
     prompt: "A function calls itself twice on an input of size n − 1 and does constant work otherwise. What is its running time?",
@@ -274,7 +274,7 @@ const BIG_O: Written[] = [
       { label: "Total", text: "about 2ⁿ calls" },
     ],
     conclusion: "So it runs in O(2ⁿ).",
-    whyNot: { A: "That's one call per level", B: "That's a loop inside a loop", D: "That's halving, not shrinking by one" },
+    whyNot: { A: "That’s one call per level", B: "That’s a loop inside a loop", D: "That’s halving, not shrinking by one" },
   },
 ];
 
@@ -290,7 +290,7 @@ const ELASTICITY: Written[] = [
       { label: "Divide", text: "25 ÷ 10 = 2.5" },
     ],
     conclusion: "So the elasticity is 2.5, which is elastic.",
-    whyNot: { A: "Divides price by quantity", C: "That's the quantity change alone", D: "That's 25% written as a fraction" },
+    whyNot: { A: "Divides price by quantity", C: "That’s the quantity change alone", D: "That’s 25% written as a fraction" },
   },
   {
     prompt: "Demand for insulin is inelastic. If its price rises, what happens to total revenue?",

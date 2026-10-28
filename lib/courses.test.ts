@@ -39,7 +39,7 @@ describe("courseActions", () => {
 });
 
 describe("prefs", () => {
-  it("merges each owner's slice over its defaults", async () => {
+  it("merges each owner’s slice over its defaults", async () => {
     expect((await readPrefs("study")).pomodoro).toEqual({ focusMin: 25, breakMin: 5 });
     await setPrefs("lectures", { parakeetConsentAt: 5 as EpochMs });
     await setPrefs("lectures", { engine: "demo" });

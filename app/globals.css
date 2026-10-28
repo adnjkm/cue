@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 /*
  * Cue palette: the exact OKLCH conversions of Paper's hex tokens (the table is in docs/design/practice.md
  * section 7). scripts/check-tokens.mjs rejects any other color syntax in app code.
@@ -17,6 +15,8 @@
   --line: oklch(87.44% 0.0081 106.57);
   --rule: oklch(92.96% 0.0067 106.53);
   --control: oklch(92.41% 0.004 106.48);
+  /* The secondary controls' hover and open fill. The same value as --line today, but a hover fill is not a border. */
+  --control-hover: var(--line);
   --fill: oklch(95.1% 0.0053 106.5);
   --wash: oklch(97.23% 0.004 106.47);
 
@@ -38,15 +38,8 @@
   --border: var(--line);
   --input: oklch(64% 0.0072 106.6);
   --ring: var(--ink);
-  --chart-1: var(--ink);
-  --chart-2: var(--graphite);
-  --chart-3: var(--guide);
-  --chart-4: var(--line);
-  --chart-5: var(--control);
   --sidebar: var(--page);
   --sidebar-foreground: var(--graphite);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--page);
   --sidebar-accent: var(--wash);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--rule);
@@ -74,6 +67,7 @@
   --color-guide: var(--guide);
   --color-rule: var(--rule);
   --color-control: var(--control);
+  --color-control-hover: var(--control-hover);
   --color-fill: var(--fill);
   --color-wash: var(--wash);
 
@@ -81,15 +75,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -405,12 +392,30 @@
   }
 }
 
+/* Reduced motion removes movement, not feedback: overlays still fade, but nothing slides, scales or turns,
+   and the decorative loops and the mascot stand still. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-enter-blur: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-exit-blur: 0 !important;
+    transition-property: color, background-color, border-color, opacity !important;
     scroll-behavior: auto !important;
+  }
+  .animate-spin,
+  .animate-rise,
+  .animate-breathe,
+  .mascot-waving,
+  .mascot-waving * {
+    animation: none !important;
   }
 }

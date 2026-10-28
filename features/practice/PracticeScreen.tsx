@@ -27,6 +27,7 @@ import { eyebrow, provenance, sectionLabel, topicsOf, visibleQuestions } from ".
 import { Chevron, CropFigure, OptionRow, QuestionBar, ResourceRow, TreeFigure } from "./parts";
 import { tid } from "./testids";
 import { onwardTarget, reduceView, type ViewAction } from "./view";
+import { plural } from "@/lib/plural";
 
 const ALL = "__all__";
 
@@ -212,7 +213,7 @@ function GenerationStatus({ state, setId }: { state: GenerationState | undefined
     return (
       <ErrorLine
         className="shrink-0 flex-nowrap whitespace-nowrap max-md:order-first max-md:w-full max-md:whitespace-normal"
-        title="None of the new questions passed Cue's checks."
+        title="None of the new questions passed Cue’s checks."
         action={
           <Button variant="secondary" size="sm" onClick={() => retryGeneration(setId)}>
             Try again
@@ -226,8 +227,8 @@ function GenerationStatus({ state, setId }: { state: GenerationState | undefined
 
 function announce(state: GenerationState | undefined): string {
   if (!state) return "";
-  if (state.status === "writing") return state.kept > 0 ? `Cue wrote ${state.kept} question${state.kept === 1 ? "" : "s"} so far.` : "Cue is writing questions.";
-  if (state.status === "done") return `Cue wrote ${state.kept} question${state.kept === 1 ? "" : "s"}${state.dropped > 0 ? ` and dropped ${state.dropped} that failed its checks` : ""}.`;
+  if (state.status === "writing") return state.kept > 0 ? `Cue wrote ${plural(state.kept, "question")} so far.` : "Cue is writing questions.";
+  if (state.status === "done") return `Cue wrote ${plural(state.kept, "question")}${state.dropped > 0 ? ` and dropped ${state.dropped} that failed its checks` : ""}.`;
   return state.title;
 }
 
@@ -239,7 +240,7 @@ function Frame({ heading, controls, children, footer, onKeyDown, rootRef }: { he
       ref={rootRef}
       tabIndex={-1}
       onKeyDown={onKeyDown}
-      className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 outline-none max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(12px,env(safe-area-inset-bottom))]"
+      className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 outline-none max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-3"
     >
       <header className="flex min-h-8 shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h1 className="min-w-0 truncate text-lg leading-6 font-normal tracking-display text-ink max-md:w-full max-md:whitespace-normal">{heading}</h1>
@@ -260,7 +261,7 @@ function Writing({ data }: { data: SetData }) {
   const headline = writing
     ? `Cue is writing questions from ${writtenFrom(set)}.`
     : failed?.budget
-      ? "Cue couldn't write these questions."
+      ? "Cue couldn’t write these questions."
       : failed
         ? failed.title
         : `None of the questions Cue wrote from ${writtenFrom(set)} passed its checks.`;
@@ -564,7 +565,7 @@ function Screen({ data }: { data: SetData }) {
         <Sheet open={asking} onOpenChange={setAsking}>
           <SheetContent
             side={phone ? "bottom" : "right"}
-            className="p-6 data-[side=bottom]:h-[85dvh] data-[side=bottom]:rounded-t-lg data-[side=bottom]:px-4 data-[side=bottom]:pb-[max(16px,env(safe-area-inset-bottom))] data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]"
+            className="p-6 data-[side=bottom]:h-[85dvh] data-[side=bottom]:rounded-t-lg data-[side=bottom]:px-4 data-[side=bottom]:pb-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Ask why</SheetTitle>
@@ -615,7 +616,7 @@ export function MissingSet() {
   return (
     <main className="flex flex-1 flex-col gap-6 px-10 pt-7 max-md:px-4 max-md:pt-4">
       <EmptyState
-        title="This practice set isn't on this device."
+        title="This practice set isn’t on this device."
         detail="Practice sets live in the browser that made them. Upload the paper again to practice it here."
         actions={
           <Link href={href.practice()} className={buttonVariants({ variant: "secondary" })}>

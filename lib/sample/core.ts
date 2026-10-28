@@ -25,7 +25,7 @@ function studyChat(ctx: SampleContext): ChatMessage[] {
       thread,
       courseId: SAMPLE.courses.csc148,
       role: "assistant",
-      text: "Not quite. Reversing preorder gives root-last, but it also flips the order of the children, so it isn't postorder.\n\nFor deleting, postorder is the right call: you remove the children before the parent, so nothing points into freed nodes. Prof. Liu makes the same point at 41:05.",
+      text: "Not quite. Reversing preorder gives root-last, but it also flips the order of the children, so it isn’t postorder.\n\nFor deleting, postorder is the right call: you remove the children before the parent, so nothing points into freed nodes. Prof. Liu makes the same point at 41:05.",
       citations: [
         { kind: "page", materialId: SAMPLE.materials.csc148L8Slides, doc: { kind: "slides", title: "Lecture 8 slides", lectureNumber: 8 }, page: 17, title: "Postorder traversal" },
         { kind: "transcript", lectureId: SAMPLE.lectures.csc148Lecture8, courseId: SAMPLE.courses.csc148, lectureNumber: 8, atMs: at(41, 5), toMs: at(41, 53) },

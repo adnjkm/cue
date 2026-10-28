@@ -16,7 +16,7 @@ const inelastic = panel([13.3, 7.5], [20, 0.25]);
 const labels = (g: ReturnType<typeof levelsGeometry>) => g.labels.map((l) => `${l.text}@${l.x},${l.y}`);
 
 describe("levelsGeometry reproduces study-guide.md 3.3", () => {
-  it("computes the elastic panel's quantities from the line: Q2 10.03 at x 150.25, Q1 26.68 at x 316.75", () => {
+  it("computes the elastic panel’s quantities from the line: Q2 10.03 at x 150.25, Q1 26.68 at x 316.75", () => {
     const g = levelsGeometry(elastic);
     expect(g.quantities[1]).toBeCloseTo(10.025, 9);
     expect(g.quantities[0]).toBeCloseTo(26.675, 9);
@@ -24,7 +24,7 @@ describe("levelsGeometry reproduces study-guide.md 3.3", () => {
     expect(g.xs[0]).toBeCloseTo(316.75, 9);
   });
 
-  it("computes the inelastic panel's quantities: Q2 16.07 at x 210.72, Q1 17.00 at x 219.97", () => {
+  it("computes the inelastic panel’s quantities: Q2 16.07 at x 210.72, Q1 17.00 at x 219.97", () => {
     const g = levelsGeometry(inelastic);
     expect(g.quantities[1]).toBeCloseTo(16.07, 2);
     expect(g.quantities[0]).toBeCloseTo(17.0, 2);
@@ -32,7 +32,7 @@ describe("levelsGeometry reproduces study-guide.md 3.3", () => {
     expect(g.xs[0]).toBeCloseTo(219.97, 2);
   });
 
-  it("draws the elastic panel in Paper's paint order", () => {
+  it("draws the elastic panel in Paper’s paint order", () => {
     const g = levelsGeometry(elastic);
     expect(g.strokes.map((s) => `${s.kind} ${s.d}`)).toEqual([
       "axis M50 12V204H420",
@@ -62,7 +62,7 @@ describe("levelsGeometry reproduces study-guide.md 3.3", () => {
     expect(labels(close).filter((l) => l.startsWith("P1") || l.startsWith("P2"))).toEqual(["P1 P2@40,118"]);
   });
 
-  it("stays fluid: a 311px chart moves only the plot's right edge, so labels keep their 12px positions", () => {
+  it("stays fluid: a 311px chart moves only the plot’s right edge, so labels keep their 12px positions", () => {
     const g = levelsGeometry(elastic, 311);
     expect(g.width).toBe(311);
     expect(g.height).toBe(FRAME.height);

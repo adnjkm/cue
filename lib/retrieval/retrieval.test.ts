@@ -42,7 +42,7 @@ function lexical(courseId: string, text: string, k = 8): Passage[] {
 }
 
 describe("retrieval on the sample semester, lexical only", () => {
-  it("ranks the study chat's three sources in the top 8", () => {
+  it("ranks the study chat’s three sources in the top 8", () => {
     const labels = lexical("CSC148", "Is postorder just preorder backwards? For A2 I need to delete subtrees.").map((p) => sourceLabel(p.ref, "chip"));
     expect(labels).toEqual(expect.arrayContaining(["Slide 17", "Transcript 41:05", "A2 handout §3"]));
   });

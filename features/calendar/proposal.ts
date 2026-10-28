@@ -1,5 +1,6 @@
 import { ids, type CalendarEvent, type CourseId, type EpochMs, type EffortSize, type ImportBatch, type ImportId, type LocalDate, type TestWeight, type Topic, type Zone } from "@/lib/domain";
 import { fmtRange, fmtTime, parseDay, weekdayOf } from "@/lib/time";
+import { plural } from "@/lib/plural";
 
 /** One course an import found: a checkbox row in the preview, and the events written when it stays checked. */
 export interface ProposedCourse {
@@ -106,7 +107,6 @@ export function shortDay(day: LocalDate): string {
 
 const shortDate = (t: EpochMs, zone: Zone) => shortDay(zone.dayOf(t));
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 /** The preview row for one course: its main weekly pattern, what else it found, and its dated items. */
 export function proposeCourse(id: CourseId, events: readonly CalendarEvent[], zone: Zone, extra?: { title?: string; instructor?: string }): ProposedCourse {
@@ -153,10 +153,10 @@ export class ImportError extends Error {
       kind === "empty"
         ? "That file has no classes or events in it. Export the calendar again with events included, or try a timetable PDF."
         : kind === "noClasses"
-          ? "Cue couldn't find any classes in that file. Try a sharper screenshot of your weekly timetable, or an .ics file."
+          ? "Cue couldn’t find any classes in that file. Try a sharper screenshot of your weekly timetable, or an .ics file."
           : kind === "unsupported"
           ? "Cue reads .ics calendars, PDFs and PNG or JPG screenshots. Export your timetable as one of those and try again."
-          : "Couldn't read that file. Try a PDF or an .ics file.",
+          : "Couldn’t read that file. Try a PDF or an .ics file.",
     );
     this.name = "ImportError";
   }

@@ -70,7 +70,8 @@ export function catalogInput(work: Coursework, timeZone: string) {
 function fmtWhen(t: number, timeZone: string, style: "monthDay" | "weekday" | "weekdayLong"): string {
   const opts: Intl.DateTimeFormatOptions =
     style === "monthDay" ? { month: "short", day: "numeric" } : style === "weekday" ? { weekday: "short", month: "short", day: "numeric" } : { weekday: "long" };
-  return new Intl.DateTimeFormat("en-US", { ...opts, timeZone }).format(t);
+  // The prompt keeps the US form it was written with; what a student reads uses the day-month order of the rest of the app.
+  return new Intl.DateTimeFormat(style === "monthDay" ? "en-GB" : "en-US", { ...opts, timeZone }).format(t);
 }
 
 const words = (s: string) =>

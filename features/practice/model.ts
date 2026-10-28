@@ -1,4 +1,5 @@
 import { gradeOf, type Attempt, type Grade, type PracticeSet, type Question, type QuestionId, type Solution, type SourceRef } from "@/lib/domain";
+import { plural } from "@/lib/plural";
 
 export type TileState = "current" | "correct" | "missed" | "unanswered" | "checking";
 
@@ -54,7 +55,7 @@ export function eyebrow(q: Question): string {
   const parts = [`Question ${q.number}`];
   if (q.origin.kind === "generated") parts.push("Written by Cue");
   parts.push("Multiple choice");
-  if (q.marks) parts.push(`${q.marks} mark${q.marks === 1 ? "" : "s"}`);
+  if (q.marks) parts.push(plural(q.marks, "mark").replace(" ", "\u00A0"));
   return parts.join(" · ");
 }
 

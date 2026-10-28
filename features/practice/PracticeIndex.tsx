@@ -10,6 +10,7 @@ import { CourseChip, ErrorLine, SectionLabel } from "@/components/cue";
 import { openGenerated } from "./generation";
 import { Intake } from "./Intake";
 import { parseGenerateParam } from "./scope";
+import { plural } from "@/lib/plural";
 
 interface Row {
   set: PracticeSet;
@@ -18,7 +19,7 @@ interface Row {
 }
 
 function progress({ total, answered }: Row): string {
-  if (answered === 0) return `${total} question${total === 1 ? "" : "s"}`;
+  if (answered === 0) return plural(total, "question");
   return `${answered} of ${total} answered`;
 }
 
@@ -71,7 +72,7 @@ function GenerateFromUrl() {
   }, [param, scope, router]);
   if (!param) return null;
   if (!scope) return <ErrorLine title="That link to write questions is broken." detail="Open the study guide section or chat answer again, and choose Quiz me from there." />;
-  if (failed) return <ErrorLine title="Couldn't set up those questions." detail="Reload the page to try again." />;
+  if (failed) return <ErrorLine title="Couldn’t set up those questions." detail="Reload the page to try again." />;
   return (
     <p role="status" className="text-sm leading-5 text-graphite">
       Setting up your questions…
@@ -101,7 +102,7 @@ export function PracticeIndex() {
         ? "Upload a past paper or a multiple-choice test. Cue turns it into practice, one question at a time, with a worked solution for each."
         : left === 0
           ? `Every question is answered. Upload another paper, or ask Cue to write more inside a set.`
-          : `${left} question${left === 1 ? "" : "s"} left to try across ${rows.length} set${rows.length === 1 ? "" : "s"}.`;
+          : `${plural(left, "question")} left to try across ${plural(rows.length, "set")}.`;
   return (
     <div className="flex w-full max-w-[1208px] flex-col gap-10 px-5 pt-6 pb-10 md:pt-[61px] md:pb-12 md:max-lg:px-10 lg:max-xl:pr-10 lg:max-xl:pl-12 xl:max-[1439px]:pr-12 xl:max-[1439px]:pl-16 min-[1440px]:pr-14 min-[1440px]:pl-20 max-md:gap-8">
       <header className="flex max-w-[1072px] flex-col gap-[14px]">

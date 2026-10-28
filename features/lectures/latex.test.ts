@@ -19,7 +19,7 @@ describe("latexToUnicode", () => {
 
   it("leaves prose with underscores and carets alone", () => {
     expect(latexToUnicode("Notice we check is_empty before we look at the root.")).toBe("Notice we check is_empty before we look at the root.");
-    expect(latexToUnicode("Okay, let's actually do one. The integral of x e to the x, dx.")).toBe("Okay, let's actually do one. The integral of x e to the x, dx.");
+    expect(latexToUnicode("Okay, let’s actually do one. The integral of x e to the x, dx.")).toBe("Okay, let’s actually do one. The integral of x e to the x, dx.");
   });
 
   it("keeps an unknown command rather than dropping words", () => {

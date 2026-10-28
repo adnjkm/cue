@@ -16,6 +16,7 @@ import { fmtRange, fmtTime } from "@/lib/time";
 import { eventTitle, shortDay, type BlockLook } from "./model";
 import { useNarrow } from "./narrow";
 import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
+import { plural } from "@/lib/plural";
 
 const DAY = 24 * 60 * 60_000;
 
@@ -57,7 +58,7 @@ export function ItemPopover({ subject, zone, now, trigger }: { subject: Subject;
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger {...trigger} />
         <DrawerContent aria-label={title}>
-          <div className="flex flex-col gap-3 px-5 pt-5 pb-[max(20px,env(safe-area-inset-bottom))] text-sm leading-5">{details}</div>
+          <div className="flex flex-col gap-3 px-5 pt-5 pb-5 text-sm leading-5">{details}</div>
         </DrawerContent>
       </Drawer>
     );
@@ -101,15 +102,28 @@ function BlockDetails({ block, status, look, zone, now, close }: { block: StudyB
     try {
       const slot = rescheduleSlot(await loadPlanInput(), block, status, Math.max(now, Date.now()) as EpochMs);
       if (!slot) {
-        const limit = block.anchor.kind === "work" ? "before it's due" : block.anchor.kind === "testPrep" ? "before the test" : "in the next 7 days";
+        const limit = block.anchor.kind === "work" ? "before it’s due" : block.anchor.kind === "testPrep" ? "before the test" : "in the next 7 days";
         setError(`No free ${minutes}-minute slot ${limit}. Mark it done, or clear some time and try again.`);
         return;
       }
+      const was = { start: block.start, end: block.end };
       await planActions.move(block.id, slot);
       close();
-      toast.add({ title: `Moved to ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.` });
+      const moved = toast.add({
+        title: `Moved to ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.`,
+        timeout: 0,
+        actionProps: {
+          children: "Undo",
+          onClick: () => {
+            toast.close(moved);
+            planActions.move(block.id, was).catch(() =>
+              toast.add({ title: "Couldn’t move it back.", description: "That time now overlaps another event. Pick a slot by hand.", timeout: 0 }),
+            );
+          },
+        },
+      });
     } catch {
-      setError("Couldn't move this block. Reload the page and try again.");
+      setError("Couldn’t move this block. Reload the page and try again.");
     } finally {
       setBusy(null);
     }
@@ -122,7 +136,7 @@ function BlockDetails({ block, status, look, zone, now, close }: { block: StudyB
       else await planActions.markDone(block.id);
       close();
     } catch {
-      setError("Couldn't save that. Reload the page and try again.");
+      setError(`${look === "done" ? "Couldn’t mark this block not done." : "Couldn’t mark this block done."} Reload the page and try again.`);
     } finally {
       setBusy(null);
     }
@@ -230,7 +244,7 @@ function PlannedFor({ anchor, kind, until, zone, empty }: { anchor: CalendarEven
 
 const MORE_EFFORT = { small: "medium", medium: "large" } as const;
 
-const NO_ROOM = (short: string) => `Cue couldn't fit another work block before ${short} is due. Move a block to make room, then try again.`;
+const NO_ROOM = (short: string) => `Cue couldn’t fit another work block before ${short} is due. Move a block to make room, then try again.`;
 
 function DeadlineDetails({ event, zone, now, close }: { event: Extract<CalendarEvent, { kind: "deadline" }>; zone: Zone; now: EpochMs; close: () => void }) {
   const [busy, setBusy] = useState(false);
@@ -246,7 +260,7 @@ function DeadlineDetails({ event, zone, now, close }: { event: Extract<CalendarE
         await db.events.put({ ...event, effort: MORE_EFFORT[event.effort] });
         const added = (await count()) - before;
         close();
-        toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : NO_ROOM(event.short) });
+        toast.add({ title: added > 0 ? `Cue planned ${plural(added, "more work block")} for ${event.short}.` : NO_ROOM(event.short) });
         return;
       }
       const slot = extraWorkSlot(await loadPlanInput(), event, Math.max(now, Date.now()) as EpochMs);
@@ -258,7 +272,7 @@ function DeadlineDetails({ event, zone, now, close }: { event: Extract<CalendarE
       await planActions.addCustom({ course: event.courseId, topic: extraWorkTopic(event), at: slot });
       toast.add({ title: `Cue planned another work block for ${event.short}: ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.` });
     } catch {
-      toast.add({ title: "Couldn't plan more time. Reload the page and try again.", timeout: 0 });
+      toast.add({ title: "Couldn’t plan more time. Reload the page and try again.", timeout: 0 });
     } finally {
       setBusy(false);
     }

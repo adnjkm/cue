@@ -47,7 +47,7 @@ describe("reduceView", () => {
     expect(reduceView(at(7), { type: "filter", topic: RT }, ctx)).toEqual(at(7, RT));
   });
 
-  it("jumps to the topic's first question when the filter hides the current one", () => {
+  it("jumps to the topic’s first question when the filter hides the current one", () => {
     expect(reduceView(at(7), { type: "filter", topic: BO }, ctx)).toEqual(at(5, BO));
     expect(reduceView(at(5, BO), { type: "filter", topic: null }, ctx)).toEqual(at(5));
   });

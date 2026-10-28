@@ -10,7 +10,7 @@ export default async function today(t) {
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
   await expect(
-    page.getByText("Your CSC148 midterm is in 10 days, so Cue moved this morning's review up. Everything you need is already pulled from yesterday's lecture.", { exact: true }),
+    page.getByText("Your CSC148 midterm is in 10 days, so Cue moved this morning’s review up. Everything you need is already pulled from yesterday’s lecture.", { exact: true }),
   ).toBeVisible();
 
   const card = page.getByTestId(tid.nextUp);

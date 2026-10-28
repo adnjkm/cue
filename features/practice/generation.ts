@@ -95,7 +95,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
     }
     case "section": {
       const section = await db.guideSections.get(brief.sectionId);
-      if (!section?.draft) throw new MissingMaterial("That study guide section hasn't been written yet. Write it in Study guides, then try again.");
+      if (!section?.draft) throw new MissingMaterial("That study guide section hasn’t been written yet. Write it in Study guides, then try again.");
       const ref: SourceRef = { kind: "section", courseId: brief.courseId, sectionId: section.id, title: section.title };
       const related = await retrieveMaterial(brief.courseId, `${section.title} ${section.draft.plainText}`.slice(0, 800), 6);
       return {
@@ -110,11 +110,11 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
     }
     case "message": {
       const message = await db.messages.get(brief.messageId);
-      if (!message) throw new MissingMaterial("That answer isn't on this device anymore.");
+      if (!message) throw new MissingMaterial("That answer isn’t on this device anymore.");
       const related = await retrieveMaterial(brief.courseId, message.text.slice(0, 800), 8);
       return {
         topic: set.title,
-        focus: `the ideas in this answer from the student's study chat: “${message.text.slice(0, 1500)}”`,
+        focus: `the ideas in this answer from the student’s study chat: “${message.text.slice(0, 1500)}”`,
         course: brief.courseId,
         style: (await courseStyle(set)).slice(0, 4),
         passages: withLead(null, related),
@@ -124,7 +124,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
     }
     case "similar": {
       const like = await db.questions.get(brief.questionId);
-      if (!like) throw new MissingMaterial("That question isn't on this device anymore.");
+      if (!like) throw new MissingMaterial("That question isn’t on this device anymore.");
       const related = await retrieveMaterial(set.courseId, `${like.topic} ${like.prompt}`.slice(0, 800), 6);
       return {
         topic: like.topic,
@@ -247,7 +247,7 @@ async function run(setId: SetId, brief: Brief, count?: number): Promise<void> {
   let topic: string | null = null;
   try {
     const set = await db.practiceSets.get(setId);
-    if (!set) throw new MissingMaterial("This practice set isn't on this device anymore.");
+    if (!set) throw new MissingMaterial("This practice set isn’t on this device anymore.");
     const questions = await db.questions.where("setId").equals(setId).sortBy("order");
     const attempts = new Map((await db.attempts.where("setId").equals(setId).toArray()).map((a) => [a.questionId, a]));
     const gathered = await gather(set, questions, attempts, brief);
@@ -301,7 +301,7 @@ async function run(setId: SetId, brief: Brief, count?: number): Promise<void> {
     else {
       // too_large names pages in its shared copy; here the size is the number of questions asked for.
       const detail = error.kind === "too_large" ? `${copy.title} Try fewer questions.` : [copy.title, copy.detail].filter(Boolean).join(" ");
-      publish(setId, { status: "failed", topic, kept, title: "Couldn't write questions.", detail, retry: copy.retry });
+      publish(setId, { status: "failed", topic, kept, title: "Couldn’t write questions.", detail, retry: copy.retry });
     }
   }
 }

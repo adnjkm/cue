@@ -170,7 +170,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
         <p className={TEXT}>
           Cue plans chapters for {course.code} from {from}, then writes each section with footnotes to the slide, page or lecture moment it came from.
         </p>
-        {outlineJob?.status === "failed" && <ErrorBox label="Couldn't plan this guide" error={outlineJob.error} className="self-stretch" />}
+        {outlineJob?.status === "failed" && <ErrorBox label="Couldn’t plan this guide" error={outlineJob.error} className="self-stretch" />}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Button disabled={planning} onClick={() => void writeThisGuide()}>
             Write this guide
@@ -226,7 +226,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
       />
       {body}
       {located && (
-        <div className="sticky bottom-0 z-10 -mx-5 mt-auto border-t border-rule bg-page px-5 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:hidden">
+        <div className="sticky bottom-0 z-10 -mx-5 mt-auto border-t border-rule bg-page px-5 pt-3 pb-3 md:hidden">
           <QuizAction courseId={courseId} sectionId={located.section.draft ? located.section.id : null} className="h-11 w-full" />
         </div>
       )}

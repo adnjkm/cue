@@ -76,7 +76,7 @@ describe("parseIcs on the timetable fixture", () => {
 });
 
 describe("parseIcs on other shapes", () => {
-  it("reads UTC times and floating times in the student's zone", () => {
+  it("reads UTC times and floating times in the student’s zone", () => {
     const p = parse(
       wrap(`
 BEGIN:VEVENT
@@ -120,7 +120,7 @@ END:VEVENT`),
 
   it("says how to recover from a file it cannot use", () => {
     expect(() => parse("this is not a calendar")).toThrow(ImportError);
-    expect(() => parse("this is not a calendar")).toThrow("Couldn't read that file. Try a PDF or an .ics file.");
+    expect(() => parse("this is not a calendar")).toThrow("Couldn’t read that file. Try a PDF or an .ics file.");
     expect(() => parse(wrap(""))).toThrow(/has no classes or events/);
   });
 });

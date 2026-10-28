@@ -77,7 +77,7 @@ export default async function study(t) {
 
   const composer = page.getByPlaceholder("Ask anything about Lecture 8…");
   const answers = thread.getByRole("article");
-  await expect(page.getByRole("radio", { name: "Quick" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("button", { name: "Quick", exact: true })).toHaveAttribute("aria-pressed", "true");
   await recordReplies();
   await composer.fill("Why does preorder visit the root first?");
   await composer.press("Enter");
@@ -90,8 +90,8 @@ export default async function study(t) {
   await expect(label).toHaveText("Slide 17 of 32");
   await expect(page.getByRole("tab", { name: "Slides" })).toHaveAttribute("aria-selected", "true");
 
-  await page.getByRole("radio", { name: "Deep" }).click();
-  await expect(page.getByRole("radio", { name: "Deep" })).toHaveAttribute("aria-checked", "true");
+  await page.getByRole("button", { name: "Deep", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Deep", exact: true })).toHaveAttribute("aria-pressed", "true");
   await recordReplies();
   await composer.fill("Why is postorder the right order for deleting a subtree?");
   await composer.press("Enter");

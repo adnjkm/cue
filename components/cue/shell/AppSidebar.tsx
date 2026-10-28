@@ -16,13 +16,13 @@ function DockedSidebar() {
   const badges = useLiveBadges();
   return (
     <Sidebar collapsible="icon">
-      <div className={collapsed ? "flex h-full flex-col justify-between px-2.5 pt-7 pb-6" : "flex h-full flex-col justify-between px-5 pt-7 pb-6"}>
+      <aside aria-label="Sidebar" className={collapsed ? "flex h-full flex-col justify-between px-2.5 pt-7 pb-6" : "flex h-full flex-col justify-between px-5 pt-7 pb-6"}>
         <AppNav collapsed={collapsed} wave={!isMobile} badges={badges} onNavigate={isMobile ? () => setOpenMobile(false) : undefined} />
         <div className="flex flex-col gap-2">
           {!collapsed && <SpendMeter />}
           <DataMenu collapsed={collapsed} />
         </div>
-      </div>
+      </aside>
     </Sidebar>
   );
 }

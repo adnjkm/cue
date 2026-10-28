@@ -95,7 +95,7 @@ const draft: PlanDraft = {
     step("Re-read key slides", "reread", 8, { slides: { from: 12, to: 17 }, check: "Why does preorder need the empty-tree check first?" }),
     step("Explain it back", "explain", 10, { source: "S1" }),
     step("Practice questions", "practice", 15),
-    step("Flag what's fuzzy", "reflect", 7),
+    step("Flag what’s fuzzy", "reflect", 7),
   ],
   moment: "F1",
 };
@@ -116,7 +116,7 @@ describe("plan normalization", () => {
     expect(normalizeMinutes([5, 8, 10, 12, 5], 40)).toEqual([5, 8, 10, 12, 5]);
   });
 
-  it("rescales Paper's 45-minute split to the 40 focus minutes of a 45-minute block", () => {
+  it("rescales Paper’s 45-minute split to the 40 focus minutes of a 45-minute block", () => {
     expect(normalizeMinutes([5, 8, 10, 15, 7], 40)).toEqual([5, 7, 9, 13, 6]);
   });
 
@@ -175,7 +175,7 @@ describe("step transitions", () => {
       { title: "Re-read key slides", state: "current", meta: "Slides 12–17 · 8 min" },
       { title: "Explain it back", state: "upcoming" },
       { title: "Practice questions", state: "upcoming" },
-      { title: "Flag what's fuzzy", state: "upcoming" },
+      { title: "Flag what’s fuzzy", state: "upcoming" },
     ]);
     const view = timerView(s, at(13, 12), DEFAULT_POMODORO);
     expect([view.text, view.fraction]).toEqual(["31:48 left", 0.29]);
@@ -206,12 +206,12 @@ describe("step transitions", () => {
     expect(timerView(resumed, at(20), DEFAULT_POMODORO).text).toBe("31:48 left");
   });
 
-  it("shows the break inside the block and then time's up", () => {
+  it("shows the break inside the block and then time’s up", () => {
     const s = sessionTransitions.nextStep(started, at(5));
     expect(timerView(s, at(26), DEFAULT_POMODORO).text).toBe("Break · 4:00 left");
     expect(timerView(s, at(30), DEFAULT_POMODORO).text).toBe("15:00 left");
-    expect(timerView(s, at(45), DEFAULT_POMODORO)).toMatchObject({ text: "Time's up", fraction: 1, over: true });
-    expect(endSummary(s, at(45))).toBe("3 steps left · time's up");
+    expect(timerView(s, at(45), DEFAULT_POMODORO)).toMatchObject({ text: "Time’s up", fraction: 1, over: true });
+    expect(endSummary(s, at(45))).toBe("3 steps left · time’s up");
   });
 
   it("jumps back to a done step and completes the session from the last step", () => {
@@ -226,7 +226,7 @@ describe("step transitions", () => {
     expect(sessionTransitions.nextStep(all, at(40)).state.status).toBe("completed");
   });
 
-  it("shows a finished session's steps as done or skipped, with none current", () => {
+  it("shows a finished session’s steps as done or skipped, with none current", () => {
     const ended = finishSession(sessionTransitions.nextStep(started, at(5)), at(20));
     const rows = stepRows(plan, { step: null, stepsDone: ended.stepsDone });
     expect(rows.map((r) => [r.state, r.meta])).toEqual([
@@ -300,21 +300,21 @@ describe("where the viewer opens", () => {
   const plan = buildPlan(draft, ctx);
   const src = { deck: { ref: deckPage1 }, lecture: { ref: { ...ctx.flagged[0].ref, atMs: 0 } }, reading: null, handout: null };
 
-  it("opens on the next step's slides, the plan's reading and the moment's time", () => {
+  it("opens on the next step’s slides, the plan’s reading and the moment’s time", () => {
     const v = defaultViewer(src, plan, 0);
     expect([v.tab, viewerLabel(v, 32), tabLabel("textbook", v)]).toEqual(["slides", "Slide 12 of 32", "Textbook §5.2"]);
     expect(viewerLabel({ ...v, tab: "transcript" }, 32)).toBe("Transcript · 32:14");
     expect(availableTabs(v)).toEqual(["slides", "transcript", "textbook"]);
   });
 
-  it("restores a started session's place and honours ?tab=", () => {
+  it("restores a started session’s place and honours ?tab=", () => {
     const saved = { tab: "slides" as const, ref: { ...deckPage1, page: 14 } };
     expect(viewerLabel(defaultViewer(src, plan, 1, { saved }), 32)).toBe("Slide 14 of 32");
     expect(defaultViewer(src, plan, 1, { tab: "transcript" }).tab).toBe("transcript");
     expect(defaultViewer(src, plan, 1, { tab: "handout" }).tab).toBe("slides");
   });
 
-  it("moves to a step's material on Next step and stays put for a step with none", () => {
+  it("moves to a step’s material on Next step and stays put for a step with none", () => {
     const v = defaultViewer(src, plan, 0);
     const moved = stepSlide(v, 2, 32);
     expect(viewerForStep(moved, plan.steps[3])).toBe(moved);

@@ -9,7 +9,7 @@ export class UnreadableError extends Error {}
 /** One sentence for any file that can't be opened, so every importer gives the same way forward. A rejected type keeps its own message. */
 export function fileProblem(e: unknown, fileName?: string): string {
   if (e instanceof UnreadableError) return e.message;
-  return `Couldn't open ${fileName ?? "that file"}. It may be damaged or password-protected. Export it again, or choose another file.`;
+  return `Couldn’t open ${fileName ?? "that file"}. It may be damaged or password-protected. Export it again, or choose another file.`;
 }
 
 function toBlob(canvas: HTMLCanvasElement, quality = 0.8): Promise<Blob> {

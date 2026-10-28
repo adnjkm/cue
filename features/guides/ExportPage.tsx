@@ -49,7 +49,7 @@ export function ExportPage({ courseParam }: { courseParam: string }) {
   }, [router, back]);
 
   return (
-    <div data-guide-print="" data-testid={tid.print} className="min-h-0 flex-1 overflow-y-auto print:overflow-visible">
+    <main data-guide-print="" data-testid={tid.print} className="min-h-0 flex-1 overflow-y-auto print:overflow-visible">
       <style>{PRINT_CSS}</style>
       <div className="mx-auto flex max-w-[680px] flex-col gap-10 px-4 pt-7 pb-12 md:px-0 print:p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -84,6 +84,6 @@ export function ExportPage({ courseParam }: { courseParam: string }) {
           );
         })}
       </div>
-    </div>
+    </main>
   );
 }

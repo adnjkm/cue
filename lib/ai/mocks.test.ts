@@ -33,7 +33,7 @@ describe("every registered task", () => {
     });
   }
 
-  it("registers the shared tasks, and every other task under its workstream's prefix", () => {
+  it("registers the shared tasks, and every other task under its workstream’s prefix", () => {
     const names = Object.keys(registry);
     const shared = ["ask", "embed", "material.read"];
     expect(names).toEqual(expect.arrayContaining([...shared, "practice.check", "practice.generate", "practice.parse", "practice.solve"]));

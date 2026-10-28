@@ -66,7 +66,7 @@ export function SectionView({ section, sources }: { section: GuideSection; sourc
   return (
     <article aria-labelledby={headingId} aria-busy={writing || undefined} className="flex min-w-0 flex-1 flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h2 id={headingId} className="text-lg leading-7 font-normal tracking-display text-ink">
+        <h2 id={headingId} className="text-lg leading-7 font-medium tracking-display text-ink">
           {section.title}
         </h2>
         <p role="status" className="text-sm leading-5 text-graphite empty:hidden">
@@ -83,7 +83,7 @@ export function SectionView({ section, sources }: { section: GuideSection; sourc
       </div>
       {failed && (
         <ErrorBox
-          label={section.draft ? "Couldn't rewrite this section" : "Couldn't write this section"}
+          label={section.draft ? "Couldn’t rewrite this section" : "Couldn’t write this section"}
           error={error}
           onRetry={() => void writeSection(section.id, { rewrite: true })}
         />

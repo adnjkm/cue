@@ -16,6 +16,7 @@ import { refsFor } from "@/lib/retrieval";
 import { sourceLabel } from "@/lib/sources";
 import { fmtCountdown, fmtDuration, fmtStamp } from "@/lib/time";
 import { normalizeMinutes, type PlanDraft } from "./shape";
+import { plural } from "@/lib/plural";
 
 export type PageRef = Extract<SourceRef, { kind: "page" }>;
 export type TranscriptRef = Extract<SourceRef, { kind: "transcript" }>;
@@ -148,7 +149,7 @@ export interface TimerView {
 function spoken(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(s / 60);
-  const parts = [m ? `${m} minute${m === 1 ? "" : "s"}` : "", s % 60 ? `${s % 60} second${s % 60 === 1 ? "" : "s"}` : ""].filter(Boolean);
+  const parts = [m ? plural(m, "minute") : "", s % 60 ? plural(s % 60, "second") : ""].filter(Boolean);
   return parts.join(" ") || "0 seconds";
 }
 
@@ -156,7 +157,7 @@ export function timerView(session: StudySession, now: EpochMs, pomodoro: Pomodor
   const clock = sessionClock(session, now, pomodoro);
   const paused = session.state.status === "paused";
   const pct = (f: number) => Math.round(Math.min(1, Math.max(0, f)) * 100) / 100;
-  if (clock.phase === "over") return { fraction: 1, text: "Time's up", valueText: "Time's up", over: true, milestone: "Time's up." };
+  if (clock.phase === "over") return { fraction: 1, text: "Time’s up", valueText: "Time’s up", over: true, milestone: "Time’s up." };
   const prefix = paused ? "Paused · " : "";
   if (clock.phase === "break") {
     const breakMs = pomodoro.breakMin * MIN;
@@ -206,9 +207,9 @@ export function endSummary(session: StudySession, now: EpochMs): string {
   const total = session.plan?.steps.length ?? 0;
   const after = Math.max(0, total - session.step - 1);
   const leftMs = session.minutes * MIN - sessionElapsedMs(session.state, now);
-  const left = leftMs > 0 ? fmtCountdown(leftMs) : "time's up";
-  if (total === 0) return leftMs > 0 ? `${left} left` : "Time's up";
-  return after === 0 ? `Last step · ${leftMs > 0 ? `${left} left` : left}` : `${after} step${after === 1 ? "" : "s"} left · ${left}`;
+  const left = leftMs > 0 ? fmtCountdown(leftMs) : "time’s up";
+  if (total === 0) return leftMs > 0 ? `${left} left` : "Time’s up";
+  return after === 0 ? `Last step · ${leftMs > 0 ? `${left} left` : left}` : `${plural(after, "step")} left · ${left}`;
 }
 
 export function finishedSummary(session: StudySession): string {

@@ -94,7 +94,7 @@ describe("periods", () => {
     expect(shiftDate("month", "2026-01-15" as LocalDate, -1)).toBe("2025-12-15");
   });
 
-  it("reads the period from the focused date, as Paper's split week reads October", () => {
+  it("reads the period from the focused date, as Paper’s split week reads October", () => {
     expect(periodLabel("2026-10-27" as LocalDate, zone, false)).toBe("October 2026");
     expect(periodLabel("2026-10-27" as LocalDate, zone, true)).toBe("Oct 2026");
   });

@@ -138,7 +138,7 @@ function RelatedCard({ link, emphasized, arriving }: { link: RelatedLink; emphas
         <span className="text-sm leading-5 font-medium text-ink">{link.title}</span>
         <span className="text-sm leading-4 text-graphite">{link.meta}</span>
       </span>
-      <Chevron className="text-graphite transition-transform duration-[120ms] ease-standard group-hover/card:translate-x-0.5" />
+      <Chevron className="text-graphite" />
     </>
   );
   const className = cn(

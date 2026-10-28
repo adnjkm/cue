@@ -58,8 +58,8 @@ describe("fenceBareCode", () => {
 
 describe("solveOutput", () => {
   it("normalizes the answer label and turns an empty conclusion into none", () => {
-    const out = solveOutput.parse({ answer: " b) ", explanation: "Because.", steps: [{ label: "Root", text: "A" }], conclusion: "  ", whyNot: { A: "That's preorder" }, resources: ["S1"] });
-    expect(out).toEqual({ answer: "B", explanation: "Because.", steps: [{ label: "Root", text: "A" }], conclusion: undefined, whyNot: { A: "That's preorder" }, resources: ["S1"] });
+    const out = solveOutput.parse({ answer: " b) ", explanation: "Because.", steps: [{ label: "Root", text: "A" }], conclusion: "  ", whyNot: { A: "That’s preorder" }, resources: ["S1"] });
+    expect(out).toEqual({ answer: "B", explanation: "Because.", steps: [{ label: "Root", text: "A" }], conclusion: undefined, whyNot: { A: "That’s preorder" }, resources: ["S1"] });
   });
 
   it("rejects a step without a label, so the solution never shows a blank label slot", () => {

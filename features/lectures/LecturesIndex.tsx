@@ -135,7 +135,7 @@ export function LecturesIndex() {
                         {r.live && <span aria-hidden="true" className="size-2 rounded-full bg-ink" />}
                         {r.trailing}
                       </span>
-                      <Chevron className="text-graphite transition-transform duration-[120ms] ease-standard group-hover/row:translate-x-0.5 max-md:hidden" />
+                      <Chevron className="text-graphite max-md:hidden" />
                     </Link>
                   </li>
                 ))}
