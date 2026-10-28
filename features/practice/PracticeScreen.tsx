@@ -10,6 +10,7 @@ import { useShortcuts } from "@/lib/prefs";
 import { gradeOf, threadKey, type PracticeSet, type Question, type QuestionId, type SetId } from "@/lib/domain";
 import { topicMatch } from "@/lib/plan";
 import { href } from "@/lib/routes";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { BudgetNotice, EmptyState, ErrorLine, Prose, SectionLabel } from "@/components/cue";
@@ -134,7 +135,7 @@ function SolutionPanel({
             )
           ) : (
             <div aria-busy="true" className="flex w-full flex-col gap-3">
-              <p className="text-graphite">Working it out with Nemotron Ultra…</p>
+              <p className="text-graphite">Working it out…</p>
               <div aria-hidden="true" className="flex w-full max-w-[56ch] flex-col gap-2">
                 {[100, 86, 64].map((w, i) => (
                   <span key={w} className="h-2.5 animate-breathe rounded-[3px] bg-control" style={{ width: `${w}%`, animationDelay: `${i * 120}ms` }} />
@@ -232,6 +233,7 @@ function announce(state: GenerationState | undefined): string {
 
 /** Toolbar, scrolling body and question bar: Paper's three rows, shared by a set with questions and one still being written. */
 function Frame({ heading, controls, children, footer, onKeyDown, rootRef }: { heading: string; controls?: ReactNode; children: ReactNode; footer: ReactNode; onKeyDown?: (e: React.KeyboardEvent) => void; rootRef?: React.Ref<HTMLDivElement> }) {
+  useDocumentTitle(heading);
   return (
     <div
       ref={rootRef}

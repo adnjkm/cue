@@ -69,11 +69,9 @@ export function SectionView({ section, sources }: { section: GuideSection; sourc
         <h2 id={headingId} className="text-lg leading-7 font-normal tracking-display text-ink">
           {section.title}
         </h2>
-        {writing && (
-          <p role="status" className="text-sm leading-5 text-graphite">
-            {job?.status === "writing" ? (job.from ? `Writing this section from ${job.from}.` : "Writing this section.") : "Reading the course material for this section…"}
-          </p>
-        )}
+        <p role="status" className="text-sm leading-5 text-graphite empty:hidden">
+          {writing ? (job?.status === "writing" ? (job.from ? `Writing this section from ${job.from}.` : "Writing this section.") : "Reading the course material for this section…") : null}
+        </p>
         {stale.stale && (
           <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm leading-5 text-graphite">
             <span>{stale.because}. Rewrite this section?</span>

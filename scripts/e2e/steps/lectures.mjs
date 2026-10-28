@@ -4,7 +4,7 @@ import { tid } from "../../../features/lectures/testids.ts";
 export default async function lectures(t) {
   const { page, expect } = t;
   const status = page.getByRole("status");
-  const log = page.getByRole("log", { name: "Live transcript" });
+  const log = page.getByRole("list", { name: "Live transcript" });
   const row = (stamp) => log.getByRole("listitem").filter({ has: page.locator("time", { hasText: new RegExp(`^${stamp}$`) }) });
 
   await t.clock.setSystemTime("2026-10-27T09:47:30-04:00");

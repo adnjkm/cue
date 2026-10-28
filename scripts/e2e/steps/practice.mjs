@@ -199,7 +199,7 @@ async function migratedHarness(t) {
   await page.goto("/practice");
   await page.getByLabel("Choose a paper").setInputFiles(t.fixture("practice/sample-quiz.pdf"));
   const intake = page.getByTestId(tid.intake);
-  await expect(intake.getByRole("alert")).toContainText("Nemotron is busy right now.", { timeout: 20_000 });
+  await expect(intake.getByRole("alert")).toContainText("Cue is busy right now.", { timeout: 20_000 });
   await expect(intake.getByRole("alert")).toContainText("Try again in a moment.");
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(intake.getByRole("status")).toContainText("Finding questions");

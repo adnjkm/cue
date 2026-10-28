@@ -72,7 +72,7 @@ describe("restoredError", () => {
   };
 
   it("keeps the copy of a kind that needs no server fact", () => {
-    expect(copy("rate_limited", undefined)).toEqual({ title: "Nemotron is busy right now.", detail: "Try again in a moment.", retry: true });
+    expect(copy("rate_limited", undefined)).toEqual({ title: "Cue is busy right now.", detail: "Try again in a moment.", retry: true });
   });
 
   it("takes a budget error's cap from the current spend", () => {

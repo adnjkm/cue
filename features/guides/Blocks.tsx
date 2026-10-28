@@ -11,7 +11,7 @@ import { Chart } from "./charts/Chart";
 type Footnotes = GuideDraft["footnotes"];
 
 const BOX = "rounded-sm px-6 py-5 max-md:p-4";
-const MEASURE = "max-w-[760px]";
+const MEASURE = "max-w-[32em]";
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;

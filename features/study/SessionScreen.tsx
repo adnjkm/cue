@@ -7,6 +7,7 @@ import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey } from "@/lib/chat";
 import { ids, type AskMode, type BlockId, type EpochMs, type PrefsByOwner, type SessionPlan, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
 import { usePrefs, useShortcuts } from "@/lib/prefs";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { href } from "@/lib/routes";
 import { fmtDay, fmtRange, useNow } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -126,6 +127,7 @@ function SessionScreen({
 }) {
   const router = useRouter();
   const shortcuts = useShortcuts();
+  useDocumentTitle(titleOf(block));
   const rootRef = useRef<HTMLElement>(null);
   const planLabelId = useId();
   const sourcesJob = useSourcesJob(block.id);
@@ -368,7 +370,7 @@ function SessionScreen({
         </SheetContent>
       </Sheet>
       <Drawer open={ask === "drawer"} onOpenChange={(open) => setAsk(open ? "drawer" : null)}>
-        <DrawerContent ref={drawerRef} initialFocus={() => composerIn(drawerRef.current)} className="h-[85dvh] border-rule data-[swipe-direction=down]:rounded-t-lg">
+        <DrawerContent ref={drawerRef} initialFocus={() => composerIn(drawerRef.current)} className="h-[85dvh] border-rule">
           <DrawerHeader className="px-4 pt-5 pb-0">
             <DrawerTitle className="text-left text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</DrawerTitle>
             <DrawerDescription className="sr-only">{ASK_SCOPE}</DrawerDescription>

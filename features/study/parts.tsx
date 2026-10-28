@@ -132,7 +132,7 @@ export function PlanDrawer({ rows, onSelect, className }: { rows: readonly StepR
       </DrawerTrigger>
       <DrawerContent
         initialFocus={() => listRef.current?.querySelector<HTMLElement>("button[tabindex='0']") ?? true}
-        className="border-rule data-[swipe-direction=down]:rounded-t-lg"
+        className="border-rule"
       >
         <DrawerHeader className="px-4 pt-5 pb-3">
           <DrawerTitle id={titleId} className="text-left text-sm leading-4 font-normal tracking-caps text-graphite uppercase">

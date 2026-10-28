@@ -135,7 +135,7 @@ function EmptySchedule({ onAdd, month, gutter }: { onAdd: () => void; month: boo
         <h2 className="text-lg leading-6 font-normal tracking-display text-ink">Add your schedule</h2>
         <p className="max-w-[40ch] text-sm leading-5 text-graphite">Upload a course timetable, a syllabus or an .ics file. Cue plans study time around it.</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Button onClick={onAdd}>Upload schedule</Button>
+          <Button onClick={onAdd}>Add schedule</Button>
           <SampleSemesterButton />
         </div>
       </div>

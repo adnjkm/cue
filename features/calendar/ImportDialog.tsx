@@ -87,7 +87,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
       onOpenChange(false);
       const id = toast.add({
         title: done.courses > 0 ? `Added ${plural(done.courses, "course")}. Cue planned ${plural(done.planned, "study block")}.` : `Added your busy time. Cue planned around it.`,
-        timeout: 10_000,
+        timeout: 0,
         actionProps: {
           children: "Undo",
           onClick: async () => {
@@ -98,7 +98,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
       });
     } catch {
       setStep({ ...step, committing: false });
-      toast.add({ title: "Couldn't save the schedule. Try Add again; nothing was changed." });
+      toast.add({ title: "Couldn't save the schedule. Try Add again; nothing was changed.", timeout: 0 });
     }
   }
 

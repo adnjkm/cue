@@ -3,7 +3,7 @@ export default async function boot(t) {
   const { page, expect } = t;
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Add your schedule to plan today.");
-  await expect(page.getByRole("button", { name: "Upload calendar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add schedule" })).toBeVisible();
   await page.getByRole("button", { name: "Try the sample semester" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.", { timeout: 15_000 });
 

@@ -22,7 +22,7 @@ export function GuidesIndex() {
   }, [target, router]);
 
   return (
-    <div data-testid={tid.main} aria-busy={data === undefined || target !== null || undefined} className="flex flex-col gap-6 px-4 pt-6 pb-12 md:px-10 md:pt-7">
+    <div data-testid={tid.main} aria-busy={data === undefined || target !== null || undefined} className="flex flex-col gap-6 px-5 pt-6 pb-12 md:px-10 md:pt-7">
       <header className="flex min-h-8 items-center">
         <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Study guides</h1>
       </header>
@@ -33,7 +33,7 @@ export function GuidesIndex() {
           actions={
             <>
               <Link href={href.calendar({ add: true })} className={buttonVariants()}>
-                Upload calendar
+                Add schedule
               </Link>
               <SampleSemesterButton />
             </>

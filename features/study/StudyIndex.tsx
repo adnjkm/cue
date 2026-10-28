@@ -40,7 +40,7 @@ function Row({ lead, course, title, titleHref, trailing, action, current }: { le
     >
       <span className="w-24 shrink-0 text-sm leading-5 text-ink max-md:w-auto">{lead}</span>
       <span className="w-[84px] shrink-0 max-md:w-auto">{course && <CourseChip code={course} />}</span>
-      <Link href={titleHref} className="min-w-0 flex-1 truncate text-sm leading-5 text-ink underline-offset-4 hover:underline max-md:basis-full">
+      <Link href={titleHref} className="min-w-0 flex-1 text-sm leading-5 text-pretty text-ink underline-offset-4 hover:underline max-md:basis-full">
         {title}
       </Link>
       <span className="w-[180px] shrink-0 text-right text-sm leading-5 text-graphite max-md:w-auto max-md:text-left">{trailing}</span>
@@ -95,7 +95,7 @@ export function StudyIndex() {
           actions={
             <>
               <Link href={href.calendar({ add: true })} className={buttonVariants()}>
-                Upload calendar
+                Add schedule
               </Link>
               <SampleSemesterButton />
             </>

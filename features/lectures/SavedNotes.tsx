@@ -104,7 +104,7 @@ export function SavedNotes({
   const shown = needle ? ordered.filter((s) => (s.text ?? s.raw).toLowerCase().includes(needle)) : ordered;
 
   const summary = lecture.notes ? (
-    <p className="max-w-[64ch] px-4 text-sm leading-5 text-ink max-md:px-3">{lecture.notes.summary}</p>
+    <p className="max-w-[32em] px-4 text-sm leading-5 text-ink max-md:px-3">{lecture.notes.summary}</p>
   ) : job?.status === "failed" ? (
     <ErrorLine
       className="px-4"

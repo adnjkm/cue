@@ -179,11 +179,9 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
             Add material
           </Button>
         </div>
-        {planning && (
-          <p role="status" className="text-sm leading-5 text-graphite">
-            Planning chapters from {from}.
-          </p>
-        )}
+        <p role="status" className="text-sm leading-5 text-graphite empty:hidden">
+          {planning ? `Planning chapters from ${from}.` : null}
+        </p>
       </div>
     );
   }
@@ -216,7 +214,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
       onKeyDown={onSectionKey}
       data-testid={tid.main}
       aria-busy={!data || undefined}
-      className={cn("flex min-w-0 flex-col gap-6 px-4 pt-6 pb-12 outline-none md:px-10 md:pt-7", located && "max-md:pb-0")}
+      className={cn("flex min-w-0 flex-col gap-6 px-5 pt-6 pb-12 outline-none md:px-10 md:pt-7", located && "max-md:pb-0")}
     >
       <Toolbar
         courseId={courseId}
@@ -228,7 +226,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
       />
       {body}
       {located && (
-        <div className="sticky bottom-0 z-10 -mx-4 mt-auto border-t border-rule bg-page px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:hidden">
+        <div className="sticky bottom-0 z-10 -mx-5 mt-auto border-t border-rule bg-page px-5 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:hidden">
           <QuizAction courseId={courseId} sectionId={located.section.draft ? located.section.id : null} className="h-11 w-full" />
         </div>
       )}

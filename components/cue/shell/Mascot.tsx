@@ -1,15 +1,24 @@
-import { useId } from "react";
+"use client";
+
+import { useEffect, useId, useState } from "react";
 import { cn } from "@/lib/utils";
+
+/** Set once the first waving mascot mounts, so later mounts in the same page load show the resting pose. */
+let waved = false;
 
 /**
  * Paper's mascot: a smiling sphere drawn in the grayscale tokens. Decorative.
- * With `wave` it plays cue-mascot-wave once on mount: rolls in, grows limbs, waves, and drops back to this pose.
+ * With `wave` it plays cue-mascot-wave once per page load (not on every remount, such as returning from a focus screen): rolls in, grows limbs, waves, and drops back to this pose.
  * The keyframes are the `mascot-*` rules in app/globals.css, whose resting styles are the final pose.
  * It is drawn in the animation's 240×220 space and the viewBox crops that to the 26px box. The limbs and the
  * standing pose overflow the box; the clip-path stops the roll from crossing the wordmark on its left.
  */
 export function Mascot({ size = 26, wave = false, className }: { size?: number; wave?: boolean; className?: string }) {
   const gradient = `mascot-${useId()}`;
+  const [play] = useState(() => wave && !waved);
+  useEffect(() => {
+    if (play) waved = true;
+  }, [play]);
   return (
     <svg
       width={size}
@@ -17,7 +26,7 @@ export function Mascot({ size = 26, wave = false, className }: { size?: number; 
       viewBox="70 98 100 102"
       overflow="visible"
       aria-hidden="true"
-      className={cn(wave && "mascot-waving", className)}
+      className={cn(play && "mascot-waving", className)}
       style={{ flexShrink: 0, clipPath: "inset(-20px -20px -6px -8px)" }}
     >
       <defs>

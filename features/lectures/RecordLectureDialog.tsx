@@ -29,19 +29,25 @@ export function RecordLectureDialog({ open, onOpenChange, courses, suggested }: 
   const choice = prefs && base ? chooseEngine(prefs, base.sample !== undefined) : null;
   const typed = courses.length === 0;
 
+  /** The error is about the course field, so the field says so and takes focus. */
+  function fail(message: string, fieldId: string) {
+    setError(message);
+    requestAnimationFrame(() => document.getElementById(fieldId)?.focus());
+  }
+
   async function submit() {
     if (!prefs || !choice) return;
     setError(null);
     let course = courseId;
     if (typed) {
       if (!/[A-Za-z]{2,}\s*\d/.test(code)) {
-        setError("Enter a course code such as CSC148.");
+        fail("Enter a course code such as CSC148.", "record-course");
         return;
       }
       course = await courseActions.ensure(code, "manual");
     }
     if (!course) {
-      setError("Pick the course this lecture belongs to.");
+      fail("Pick the course this lecture belongs to.", "record-course-trigger");
       return;
     }
     setBusy(true);
@@ -81,13 +87,13 @@ export function RecordLectureDialog({ open, onOpenChange, courses, suggested }: 
           {typed ? (
             <Field>
               <FieldLabel htmlFor="record-course">Course code</FieldLabel>
-              <Input id="record-course" value={code} onChange={(e) => setCode(e.target.value)} placeholder="CSC148" autoComplete="off" />
+              <Input id="record-course" value={code} onChange={(e) => setCode(e.target.value)} placeholder="CSC148" autoComplete="off" aria-invalid={error ? true : undefined} aria-describedby={error ? "record-error" : undefined} />
             </Field>
           ) : (
             <Field>
               <FieldLabel id="record-course-label">Course</FieldLabel>
               <Select items={courses.map((c) => ({ value: c.id, label: c.title ? `${c.code} · ${c.title}` : c.code }))} value={courseId} onValueChange={(v) => setCourseId((v as CourseId | null) ?? null)}>
-                <SelectTrigger aria-labelledby="record-course-label" className="w-full">
+                <SelectTrigger id="record-course-trigger" aria-labelledby="record-course-label" aria-invalid={error ? true : undefined} aria-describedby={error ? "record-error" : undefined} className="w-full">
                   <SelectValue placeholder="Pick a course" />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,7 +113,7 @@ export function RecordLectureDialog({ open, onOpenChange, courses, suggested }: 
           </Field>
           <p className="text-sm leading-5 text-graphite">{engineLine}</p>
           {error && (
-            <p role="alert" className="text-sm leading-5 text-ink">
+            <p id="record-error" role="alert" className="text-sm leading-5 text-ink">
               {error}
             </p>
           )}

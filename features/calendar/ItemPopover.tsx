@@ -258,7 +258,7 @@ function DeadlineDetails({ event, zone, now, close }: { event: Extract<CalendarE
       await planActions.addCustom({ course: event.courseId, topic: extraWorkTopic(event), at: slot });
       toast.add({ title: `Cue planned another work block for ${event.short}: ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.` });
     } catch {
-      toast.add({ title: "Couldn't plan more time. Reload the page and try again." });
+      toast.add({ title: "Couldn't plan more time. Reload the page and try again.", timeout: 0 });
     } finally {
       setBusy(false);
     }

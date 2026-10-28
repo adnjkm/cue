@@ -65,7 +65,7 @@ async function boxes(page) {
     const b = await loc.boundingBox();
     return b ? [b.x, b.y, b.width, b.height].map((n) => Math.round(n * 10) / 10).join(" ") : "missing";
   };
-  const log = page.getByRole("log", { name: "Live transcript" });
+  const log = page.getByRole("list", { name: "Live transcript" });
   for (const [label, loc] of [
     ["h1", page.getByRole("heading", { level: 1 })],
     ["status", page.getByRole("status")],
@@ -210,7 +210,7 @@ await session(async (t, page) => {
   await page.keyboard.press("ArrowUp");
   check((await focused()) === "Flag the line at 35:47", "keyboard: ArrowUp moves to the previous line");
   await page.keyboard.press("Enter");
-  const row = page.getByRole("log").getByRole("listitem").filter({ hasText: "35:47" });
+  const row = page.getByRole("list", { name: "Live transcript" }).getByRole("listitem").filter({ hasText: "35:47" });
   await row.filter({ hasText: "Flagged by you" }).waitFor();
   check(true, "keyboard: Enter flags the focused line");
   await page.keyboard.press("f");
@@ -250,7 +250,7 @@ await session(
     await page.setViewportSize(NARROW);
     await page.goto(`/lectures/${t.sample.lectures.mat137Tue}`);
     await page.getByRole("status").filter({ hasText: "Paused" }).waitFor();
-    const row = page.getByRole("log").getByRole("listitem").filter({ hasText: "35:47" });
+    const row = page.getByRole("list", { name: "Live transcript" }).getByRole("listitem").filter({ hasText: "35:47" });
     const flag = row.getByRole("button", { name: "Flag the line at 35:47" });
     const hidden = await flag.evaluate((b) => [getComputedStyle(b).opacity, getComputedStyle(b).pointerEvents]);
     check(hidden[0] === "0" && hidden[1] === "none", `touch: the flag action starts hidden and ignores taps (${hidden})`);

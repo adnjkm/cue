@@ -8,6 +8,7 @@ import { href } from "@/lib/routes";
 import { useOpenSource } from "@/lib/sources";
 import { currentZone, fmtStamp, zoneOf } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { SectionLabel, TranscriptLine } from "@/components/cue";
 import { Item } from "@/components/ui/item";
@@ -45,6 +46,7 @@ export function Chevron({ className }: { className?: string }) {
 
 /** The 32-high toolbar of both views: title left; status, time and actions right. At 375 it wraps to two rows. */
 export function Toolbar({ title, children }: { title: string; children: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <header className="flex shrink-0 items-center justify-between gap-x-6 gap-y-2 md:min-h-8 max-md:flex-col max-md:items-stretch">
       <div className="flex min-w-0 items-center gap-2">
@@ -52,7 +54,7 @@ export function Toolbar({ title, children }: { title: string; children: ReactNod
           {title}
         </h1>
       </div>
-      <div className="flex shrink-0 items-center gap-3 max-md:min-h-8">{children}</div>
+      <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2 max-md:min-h-8">{children}</div>
     </header>
   );
 }
@@ -141,7 +143,7 @@ function RelatedCard({ link, emphasized, arriving }: { link: RelatedLink; emphas
   );
   const className = cn(
     // Item's outline-none hides the global ring, and an emphasized card's border is already ink, so focus needs the ring back.
-    "group/card flex-nowrap gap-4 px-4 py-3 text-left transition-[background-color,transform] duration-100 ease-standard hover:bg-wash focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink focus-visible:outline-solid active:scale-[0.98] [a]:hover:bg-wash",
+    "group/card flex-nowrap gap-4 px-4 py-3 text-left transition-colors duration-100 ease-standard hover:bg-wash focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink focus-visible:outline-solid [a]:hover:bg-wash",
     emphasized ? "border-ink" : "border-border",
     arriving && "animate-in fade-in-0 slide-in-from-top-1 duration-200",
   );
@@ -256,7 +258,7 @@ export function NoticeRow({ title, detail, action }: { title: string; detail?: R
     <li className="flex flex-col items-start gap-3 rounded-sm bg-fill px-4 py-3 max-md:px-3">
       <div className="flex flex-col">
         <p className="text-sm leading-5 text-ink">{title}</p>
-        {detail && <p className="text-sm leading-5 text-graphite">{detail}</p>}
+        {detail && <p className="max-w-[32em] text-sm leading-5 text-graphite">{detail}</p>}
       </div>
       {action && <div className="flex flex-wrap gap-2">{action}</div>}
     </li>

@@ -79,7 +79,7 @@ function TodaySkeleton() {
   );
 }
 
-/** No calendar yet: the next-up card's slot becomes an Empty holding the two ways in. "Upload calendar" stays a button because the boot step asserts the role. */
+/** No calendar yet: the next-up card's slot becomes an Empty holding the two ways in. "Add schedule" stays a button because the boot step asserts the role. */
 function FirstRun({ onStart }: { onStart: () => void }) {
   const router = useRouter();
   return (
@@ -90,7 +90,7 @@ function FirstRun({ onStart }: { onStart: () => void }) {
           {/* Capture runs before the sample button's own handler, so focus can follow the data in. */}
           <EmptyContent className="max-w-none gap-2 max-md:items-stretch md:w-auto md:flex-row" onClickCapture={onStart}>
             <Button className="max-md:h-11" onClick={() => router.push(href.calendar({ add: true }))}>
-              Upload calendar
+              Add schedule
             </Button>
             <SampleSemesterButton className="max-md:h-11" />
           </EmptyContent>
@@ -126,7 +126,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
     try {
       moved = await planActions.reschedule(block.id, { after: now });
     } catch {
-      toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again.", onClose: returnFocusTo(unmoved) });
+      toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again.", timeout: 0, onClose: returnFocusTo(unmoved) });
       return;
     }
     const openCalendar = { children: "Open calendar", onClick: () => router.push(href.calendar({ view: "day", date: plan.zone.dayOf(now) })) };
@@ -134,6 +134,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
       toast.add({
         title: `No free ${minutes} slot in the next 7 days.`,
         description: "Open the calendar to move this block by hand.",
+        timeout: 0,
         actionProps: openCalendar,
         onClose: returnFocusTo(unmoved),
       });
@@ -147,6 +148,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
     const landed: FocusTarget = day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" };
     const movedToast = toast.add({
       title: `Moved to ${when}.`,
+      timeout: 0,
       onClose: returnFocusTo(landed),
       actionProps: {
         children: "Undo",
@@ -158,6 +160,7 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
               toast.add({
                 title: "Couldn't move it back.",
                 description: "That time now overlaps another event. Open the calendar to pick a slot.",
+                timeout: 0,
                 actionProps: openCalendar,
                 onClose: returnFocusTo(landed),
               });

@@ -137,18 +137,21 @@ export function Intake() {
         <>
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-base leading-5 text-ink">{dragging ? "Drop to read it" : "Drop a past paper or multiple-choice test here"}</p>
-            <p className="text-sm leading-5 text-graphite">PDF, or photos of the pages. Nemotron reads scans and diagrams too, and keeps the multiple-choice questions.</p>
+            <p className="text-sm leading-5 text-graphite">PDF, or photos of the pages. Cue reads scans and diagrams too, and keeps the multiple-choice questions.</p>
           </div>
           <Button className="shrink-0" onClick={() => input.current?.click()}>
             Choose files
           </Button>
         </>
       )}
+      <p role="status" className="sr-only">
+        {phase.status === "reading" ? `Reading page ${phase.page} of ${phase.total}` : phase.status === "parsing" ? `Finding questions, part ${Math.min(phase.done + 1, phase.total)} of ${phase.total}` : null}
+      </p>
       {busy && (
         <>
-          <div role="status" aria-live="polite" className="flex w-full min-w-0 flex-col gap-1">
+          <div className="flex w-full min-w-0 flex-col gap-1">
             <p className="text-base leading-5 text-ink">{phase.status === "reading" ? `Reading page ${phase.page} of ${phase.total}` : `Finding questions · part ${Math.min(phase.done + 1, phase.total)} of ${phase.total}`}</p>
-            <p className="text-sm leading-5 text-graphite">{phase.status === "reading" ? "Turning each page into an image Nemotron can read." : "Nemotron Super VL reads three pages at a time."}</p>
+            <p className="text-sm leading-5 text-graphite">{phase.status === "reading" ? "Turning each page into an image Cue can read." : "Cue reads three pages at a time."}</p>
             <div role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} className="mt-2 h-0.5 w-full max-w-[360px] overflow-hidden rounded-[1px] bg-rule">
               <span className="block h-full origin-left bg-ink transition-transform duration-[400ms] ease-standard" style={{ transform: `scaleX(${Math.min(1, progress)})` }} />
             </div>

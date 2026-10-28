@@ -48,7 +48,7 @@ try {
   await page.getByRole("dialog").getByRole("button", { name: "Start recording" }).click();
   const started = Date.now();
   for (;;) {
-    const text = (await page.getByRole("log", { name: "Live transcript" }).innerText()).toLowerCase();
+    const text = (await page.getByRole("list", { name: "Live transcript" }).innerText()).toLowerCase();
     const status = await page.getByRole("status").innerText();
     if (/term test (2|two)/.test(text)) {
       ok = true;

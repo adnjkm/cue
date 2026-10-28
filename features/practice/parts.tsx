@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type KeyboardEvent, type SVGProps } from "react";
+import { Check } from "lucide-react";
 import { db, useLive } from "@/lib/db";
 import type { Attempt, BlobId, Option, Question, QuestionId, SourceRef, TreeNode } from "@/lib/domain";
 import { gradeOf } from "@/lib/domain";
@@ -239,6 +240,8 @@ export function QuestionBar({
                     )}
                   >
                     {q.number}
+                    {/* A correct tile differs from an unanswered one only by a 1.15:1 fill, so it also carries a check. */}
+                    {state === "correct" && <Check aria-hidden="true" className="absolute right-[3px] bottom-[3px] size-2.5" strokeWidth={2} />}
                     {/* 3px inside the 1px border puts the dot 4px from the tile's outer corner, as the spec measures it. */}
                     {generated &&<span aria-hidden="true" className={cn("absolute top-[3px] right-[3px] size-1 rounded-full", state === "current" ? "bg-page" : "bg-graphite")} />}
                   </button>

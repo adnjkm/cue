@@ -46,8 +46,9 @@ export function AddMaterialDialog({
   const chosenCourse = course ?? courseId ?? courses[0]?.id ?? null;
 
   async function add() {
-    if (!file || !chosenCourse) return;
     setError(null);
+    if (!file) return setError("Choose a file to add.");
+    if (!chosenCourse) return setError("Pick a course for this file.");
     setProgress("Opening the file");
     try {
       const id = await ingestFile(file, { courseId: chosenCourse, kind, ...(title.trim() ? { title: title.trim() } : {}) }, (p) => setProgress(p.message));
@@ -110,18 +111,16 @@ export function AddMaterialDialog({
             Title (optional)
             <Input id={titleId} value={title} placeholder="Lecture 8 slides" onChange={(e) => setTitle(e.target.value)} />
           </label>
-          {progress && (
-            <p role="status" className="text-sm leading-5 text-graphite">
-              {progress}
-            </p>
-          )}
+          <p role="status" className="text-sm leading-5 text-graphite empty:hidden">
+            {progress}
+          </p>
           {error && <ErrorLine title={error} />}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button disabled={!file || !chosenCourse || progress !== null} onClick={add}>
+          <Button disabled={progress !== null} onClick={add}>
             Add
           </Button>
         </DialogFooter>

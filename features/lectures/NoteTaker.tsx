@@ -99,7 +99,7 @@ function EngineNotice({ choice, onChoose }: { choice: EngineChoice; onChoose: (e
         detail={`${choice.why === "sample" ? "The sample semester replays a recorded lecture, so your microphone stays off." : "Cue replays a recorded lecture instead of listening to your microphone."} To transcribe your own lectures, Cue downloads NVIDIA Parakeet once (${mb(PARAKEET_WEIGHTS.webgpu.bytes)}) and runs it on this device.`}
         action={
           <Button variant="secondary" onClick={() => onChoose("parakeet")}>
-            Use Parakeet instead
+            Use my microphone
           </Button>
         }
       />
@@ -377,9 +377,7 @@ export function NoteTaker({
           const seq = revealFlag(e, flagButtons.current);
           if (seq !== null) setRovingSeq(seq);
         }}
-        role="log"
         aria-labelledby="live-transcript-label"
-        aria-live="off"
         className="flex min-h-0 shrink flex-col gap-1.5 overflow-y-auto overscroll-contain max-h-[max(240px,calc(100%-434px))] max-lg:max-h-none max-lg:flex-1"
       >
         {ordered.map((s) => (
@@ -420,7 +418,7 @@ export function NoteTaker({
         {rec.aiError && attached && (
           <p role="alert" className="pt-2 text-sm leading-5">
             <span className="text-ink">{errorCopy(rec.aiError).title}</span>{" "}
-            <span className="text-graphite">{rec.aiError.kind === "budget" ? "Recording continues. Lines stay as heard and questions pause until the cap is raised." : "Lines stay as heard until Nemotron answers again."}</span>
+            <span className="text-graphite">{rec.aiError.kind === "budget" ? "Recording continues. Lines stay as heard and questions pause until the cap is raised." : "Lines stay as heard until Cue's model answers again."}</span>
           </p>
         )}
       </div>

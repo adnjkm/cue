@@ -88,7 +88,7 @@ export function Composer({
         submit();
       }}
       className={cn(
-        "rounded-sm border border-border bg-page transition-colors duration-[120ms] ease-standard has-[textarea:focus-visible]:border-ink",
+        "rounded-sm border border-input bg-page transition-colors duration-[120ms] ease-standard has-[textarea:focus-visible]:border-ink",
         layout === "stacked" ? "flex flex-col gap-3 p-3.5" : "flex items-center gap-3 py-3 pr-3 pl-4",
         blocked && "opacity-60",
         className,
@@ -108,7 +108,7 @@ export function Composer({
             submit();
           }
         }}
-        className="field-sizing-content max-h-40 min-w-0 flex-1 resize-none bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-graphite disabled:cursor-not-allowed"
+        className="field-sizing-content max-h-40 min-w-0 flex-1 resize-none bg-transparent text-[1rem] leading-5 text-ink outline-none placeholder:text-graphite md:text-sm md:leading-5 disabled:cursor-not-allowed"
       />
       {layout === "stacked" ? (
         <div className="flex items-center justify-between gap-3">
