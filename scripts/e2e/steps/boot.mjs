@@ -14,9 +14,16 @@ export default async function boot(t) {
 
   await expect(page.getByTestId(t.tid.shell.spend)).toHaveCount(0);
   await page.getByRole("button", { name: "Data", exact: true }).click();
-  await expect(page.getByRole("menuitem", { name: "Load sample semester" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Replace with sample semester…" })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "Reset all data" })).toBeVisible();
-  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menuitemcheckbox", { name: "Keyboard shortcuts" })).toBeChecked();
+  // Loading the sample over stored data asks first, and cancelling keeps the data.
+  await page.getByRole("menuitem", { name: "Replace with sample semester…" }).click();
+  const replace = page.getByRole("alertdialog", { name: "Replace your data with the sample semester?" });
+  await expect(replace).toContainText("can’t be undone");
+  await replace.getByRole("button", { name: "Cancel" }).click();
+  await expect(replace).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
 
   await page.goto(`/practice/${t.sample.sets.csc148Midterm2024}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("CSC148 · 2024 Midterm");

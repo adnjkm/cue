@@ -5,7 +5,7 @@ import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey, type ChatHandle } from "@/lib/chat";
 import type { CalendarEvent, EngineId, EpochMs, Lecture, RelatedLink, Segment } from "@/lib/domain";
 import { lectureElapsedMs } from "@/lib/domain";
-import { setPrefs } from "@/lib/prefs";
+import { setPrefs, useShortcuts } from "@/lib/prefs";
 import { fmtStamp } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -174,6 +174,7 @@ export function NoteTaker({
   const [showAnswer, setShowAnswer] = useState(false);
   const answerChat = latestExchange(chat, () => setShowAnswer(true));
 
+  const shortcuts = useShortcuts();
   const root = useRef<HTMLElement>(null);
   const answer = useRef<HTMLDivElement>(null);
   const { ref: listRef, stuck, onScroll: onListScroll, toEnd, hold } = useStickToEnd<HTMLOListElement>();
@@ -244,7 +245,7 @@ export function NoteTaker({
       } else if (editing && root.current?.contains(editing)) root.current.focus({ preventScroll: true });
       return;
     }
-    if (editing) return;
+    if (editing || !shortcuts) return;
     const key = e.key.toLowerCase();
     if (key === "p") togglePause();
     else if (key === "j") toEnd("smooth");

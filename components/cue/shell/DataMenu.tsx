@@ -5,7 +5,9 @@ import { Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SampleScenario } from "@/lib/domain";
 import { currentZone } from "@/lib/time";
+import { setPrefs, useShortcuts } from "@/lib/prefs";
 import { resetAll, seedSampleSemester } from "@/lib/sample";
+import { hasStoredData, ReplaceDataDialog, useHasData } from "@/components/cue/sample";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 /** `?sampleScenario=liveLecture` loads the paused-lecture variant, which the walkthrough's lecture step needs. */
 function scenarioFromUrl(): SampleScenario {
@@ -26,6 +28,9 @@ function scenarioFromUrl(): SampleScenario {
 /** Sidebar footer menu: load the sample semester or wipe everything stored in this browser. */
 export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmReplace, setConfirmReplace] = useState(false);
+  const hasData = useHasData();
+  const shortcuts = useShortcuts();
   const [busy, setBusy] = useState(false);
 
   async function run(task: () => Promise<unknown>) {
@@ -36,6 +41,8 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
       setBusy(false);
     }
   }
+
+  const loadSample = () => run(() => seedSampleSemester({ now: Date.now(), zone: currentZone(), scenario: scenarioFromUrl() }));
 
   return (
     <>
@@ -53,16 +60,24 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-56">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => run(() => seedSampleSemester({ now: Date.now(), zone: currentZone(), scenario: scenarioFromUrl() }))}>Load sample semester</DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => ((await hasStoredData()) ? setConfirmReplace(true) : void loadSample())}>
+              {hasData ? "Replace with sample semester…" : "Load sample semester"}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setConfirmReset(true)}>Reset all data</DropdownMenuItem>
           </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem checked={shortcuts} onCheckedChange={(on) => void setPrefs("foundation", { shortcuts: on })}>
+            Keyboard shortcuts
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Reset all data?</AlertDialogTitle>
-            <AlertDialogDescription>This deletes every course, event, lecture, practice paper and guide stored in this browser.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This deletes every course, event, recording, uploaded file, study session, practice set and guide in this browser. It can’t be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -77,6 +92,7 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ReplaceDataDialog open={confirmReplace} onOpenChange={setConfirmReplace} onConfirm={() => void loadSample()} />
     </>
   );
 }

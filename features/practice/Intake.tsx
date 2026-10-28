@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { AiError, errorCopy } from "@/lib/ai";
 import { courseActions } from "@/lib/courses";
 import { ids, type RenderedPage } from "@/lib/domain";
-import { renderPages, sha256Hex, toPageImage, UnreadableError } from "@/lib/materials";
+import { fileProblem, renderPages, sha256Hex, toPageImage } from "@/lib/materials";
 import { href } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,12 +30,12 @@ interface Job {
 }
 
 function failure(e: unknown): Extract<Phase, { status: "error" }> {
-  if (e instanceof UnreadableError) return { status: "error", title: "Couldn't read that file.", detail: "Use a PDF, PNG or JPG that isn't password protected.", retry: false };
   if (e instanceof AiError) {
     const copy = errorCopy(e);
     return { status: "error", title: copy.title, detail: copy.detail, retry: copy.retry };
   }
-  return { status: "error", title: "Couldn't read that file.", detail: e instanceof Error ? `${e.message} Try again, or choose another file.` : undefined, retry: true };
+  // Retrying the same unreadable file cannot work, so the only way forward is another file.
+  return { status: "error", title: fileProblem(e), retry: false };
 }
 
 /**

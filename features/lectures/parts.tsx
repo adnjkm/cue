@@ -46,9 +46,9 @@ export function Chevron({ className }: { className?: string }) {
 /** The 32-high toolbar of both views: title left; status, time and actions right. At 375 it wraps to two rows. */
 export function Toolbar({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <header className="flex shrink-0 items-center justify-between gap-x-6 gap-y-2 md:h-8 max-md:flex-col max-md:items-stretch">
+    <header className="flex shrink-0 items-center justify-between gap-x-6 gap-y-2 md:min-h-8 max-md:flex-col max-md:items-stretch">
       <div className="flex min-w-0 items-center gap-2">
-        <h1 title={title} className="min-w-0 truncate text-lg leading-6 font-normal tracking-display text-ink">
+        <h1 className="min-w-0 text-lg leading-6 font-normal tracking-display text-pretty text-ink">
           {title}
         </h1>
       </div>
@@ -273,7 +273,8 @@ export function useStickToEnd<T extends HTMLElement>() {
   };
   const toEnd = (behavior: ScrollBehavior = "auto") => {
     const el = ref.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior });
+    // A script-driven smooth scroll ignores the global reduced-motion rule, so it is turned off here.
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: behavior === "smooth" && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : behavior });
   };
   /** Stops following the end, for a jump to an earlier moment. */
   const hold = () => setStuck(false);

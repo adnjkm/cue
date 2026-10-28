@@ -298,6 +298,10 @@ async function run(setId: SetId, brief: Brief, count?: number): Promise<void> {
     const error = e instanceof AiError ? e : new AiError("upstream", String(e));
     const copy = errorCopy(error);
     if (error.kind === "budget") publish(setId, { status: "failed", topic, kept, title: copy.title, ...(copy.detail ? { detail: copy.detail } : {}), retry: false, budget: error });
-    else publish(setId, { status: "failed", topic, kept, title: "Couldn't write questions.", detail: [copy.title, copy.detail].filter(Boolean).join(" "), retry: copy.retry });
+    else {
+      // too_large names pages in its shared copy; here the size is the number of questions asked for.
+      const detail = error.kind === "too_large" ? `${copy.title} Try fewer questions.` : [copy.title, copy.detail].filter(Boolean).join(" ");
+      publish(setId, { status: "failed", topic, kept, title: "Couldn't write questions.", detail, retry: copy.retry });
+    }
   }
 }

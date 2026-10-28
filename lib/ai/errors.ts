@@ -34,8 +34,12 @@ export function errorCopy(e: AiError): { title: string; detail?: string; retry: 
   switch (e.kind) {
     case "budget":
       return e.capUsd === undefined
-        ? { title: "The spending cap can't be checked, so Cue paused model calls.", retry: false }
-        : { title: `The ${fmtUsd(e.capUsd)} spending cap is reached.`, detail: "Cue stops calling Nemotron until the cap is raised.", retry: false };
+        ? {
+            title: "The spending cap can't be checked, so Cue paused model calls.",
+            detail: "Set SPEND_CAP_USD to a number in .env.local (on Vercel, also add the Upstash Redis keys), then restart the server.",
+            retry: false,
+          }
+        : { title: `The ${fmtUsd(e.capUsd)} spending cap is reached.`, detail: "To keep going, raise SPEND_CAP_USD in .env.local and restart the server.", retry: false };
     case "rate_limited":
       return { title: "Nemotron is busy right now.", detail: "Try again in a moment.", retry: true };
     case "offline":
@@ -47,7 +51,7 @@ export function errorCopy(e: AiError): { title: string; detail?: string; retry: 
     case "bad_output":
       return { title: "Nemotron's answer didn't come through cleanly.", retry: true };
     case "bad_input":
-      return { title: "The server refused that request.", retry: false };
+      return { title: "The server refused that request.", detail: "Reload the page and try again.", retry: true };
     case "aborted":
       return { title: "Stopped.", retry: true };
     case "upstream":

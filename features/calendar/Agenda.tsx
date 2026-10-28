@@ -92,7 +92,7 @@ export function AgendaDay({ items, zone, now, today }: { items: DayItems; zone: 
                     "data-kind": "block",
                     className: cn(
                       ROW,
-                      t.look === "missed" ? "border-dashed border-border bg-page hover:bg-wash" : t.look === "done" ? "bg-wash text-graphite hover:bg-control" : "bg-fill hover:bg-control",
+                      t.look === "missed" ? "border-dashed border-border bg-page hover:bg-wash" : t.look === "done" ? "bg-wash text-graphite hover:bg-fill" : "bg-fill hover:bg-control",
                       "data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]",
                     ),
                     children: (

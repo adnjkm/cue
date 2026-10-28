@@ -6,6 +6,12 @@ const PAGE_GROUND = "oklch(100% 0 0)";
 
 export class UnreadableError extends Error {}
 
+/** One sentence for any file that can't be opened, so every importer gives the same way forward. A rejected type keeps its own message. */
+export function fileProblem(e: unknown, fileName?: string): string {
+  if (e instanceof UnreadableError) return e.message;
+  return `Couldn't open ${fileName ?? "that file"}. It may be damaged or password-protected. Export it again, or choose another file.`;
+}
+
 function toBlob(canvas: HTMLCanvasElement, quality = 0.8): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new UnreadableError("Could not encode the page"))), "image/jpeg", quality));
 }
@@ -70,7 +76,7 @@ export async function renderPages(file: File, opts?: { maxPages?: number; widthP
     opts?.onPage?.(1, 1);
     return [{ index: 1, image: await toBlob(canvas), width: canvas.width, height: canvas.height, text: "" }];
   }
-  throw new UnreadableError(`${file.name} is not a PDF, PNG or JPG.`);
+  throw new UnreadableError(`${file.name} is not a PDF, PNG, JPG or WEBP.`);
 }
 
 export function blobToDataUrl(blob: Blob): Promise<string> {

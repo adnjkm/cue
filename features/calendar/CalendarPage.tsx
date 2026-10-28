@@ -79,7 +79,7 @@ function CalendarScreen() {
     <div
       data-testid={tid.main}
       className={cn(
-        "flex h-dvh min-h-[480px] flex-col px-10 pt-7 pb-8 max-[899px]:px-6 max-md:h-[calc(100dvh-56px)] max-md:px-5 max-md:pt-4 max-md:pb-0",
+        "flex h-dvh flex-col px-10 pt-7 pb-8 max-[899px]:px-6 max-md:h-[calc(100dvh-56px)] max-md:px-5 max-md:pt-4 max-md:pb-0",
         view === "month" && !narrow ? "gap-6" : "gap-2",
       )}
     >

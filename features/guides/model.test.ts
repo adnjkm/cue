@@ -78,13 +78,17 @@ describe("restoredError", () => {
   it("takes a budget error's cap from the current spend", () => {
     expect(copy("budget", { mode: "token-factory", embedder: null, spend: { spentUsd: 30.02, capUsd: 30 } })).toEqual({
       title: "The $30 spending cap is reached.",
-      detail: "Cue stops calling Nemotron until the cap is raised.",
+      detail: "To keep going, raise SPEND_CAP_USD in .env.local and restart the server.",
       retry: false,
     });
   });
 
   it("says the cap can't be checked only when Token Factory reports no spend", () => {
-    expect(copy("budget", { mode: "token-factory", embedder: null })).toEqual({ title: "The spending cap can't be checked, so Cue paused model calls.", retry: false });
+    expect(copy("budget", { mode: "token-factory", embedder: null })).toEqual({
+      title: "The spending cap can't be checked, so Cue paused model calls.",
+      detail: "Set SPEND_CAP_USD to a number in .env.local (on Vercel, also add the Upstash Redis keys), then restart the server.",
+      retry: false,
+    });
   });
 
   it("gives no reason for a budget error while the status is unknown or in a mode without a cap", () => {

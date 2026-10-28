@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { errorCopy } from "@/lib/ai";
 import { useChat } from "@/lib/chat";
+import { useShortcuts } from "@/lib/prefs";
 import { gradeOf, threadKey, type PracticeSet, type Question, type QuestionId, type SetId } from "@/lib/domain";
 import { topicMatch } from "@/lib/plan";
 import { href } from "@/lib/routes";
@@ -193,9 +194,9 @@ function GenerationStatus({ state, setId }: { state: GenerationState | undefined
   if (state?.status === "failed") {
     return (
       <ErrorLine
-        className="shrink-0 flex-nowrap whitespace-nowrap max-md:order-first max-md:w-full max-md:whitespace-normal"
+        className="max-w-[26rem] min-w-0 max-md:order-first max-md:w-full max-md:max-w-none"
         title={state.title}
-        detail={state.budget ? undefined : state.detail?.split(/(?<=\.) /)[0]}
+        detail={state.detail}
         action={
           state.retry ? (
             <Button variant="secondary" size="sm" onClick={() => retryGeneration(setId)}>
@@ -312,6 +313,7 @@ function Writing({ data }: { data: SetData }) {
 
 function Screen({ data }: { data: SetData }) {
   const router = useRouter();
+  const shortcuts = useShortcuts();
   const root = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLElement>(null);
   const askColumn = useRef<HTMLElement>(null);
@@ -389,6 +391,8 @@ function Screen({ data }: { data: SetData }) {
     if (BAR_KEYS.has(e.key) && t.closest(`[data-testid=${tid.bar}]`)) return;
     if (e.key === "ArrowLeft") return dispatch({ type: "step", by: -1 });
     if (e.key === "ArrowRight") return dispatch({ type: "step", by: 1 });
+    // Single-character shortcuts (WCAG 2.1.4) can be turned off in the Data menu; arrows, Enter and Escape stay.
+    if (e.key.length === 1 && !shortcuts) return;
     if (e.key === "?") {
       e.preventDefault();
       if (asking && wide) askColumn.current?.querySelector("textarea")?.focus();

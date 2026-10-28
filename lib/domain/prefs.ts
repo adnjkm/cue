@@ -11,7 +11,7 @@ export type SampleScenario = "default" | "liveLecture";
 
 /** One typed slice per owner. lib/prefs is the only writer; lint lets features/<x> write only slice "<x>". */
 export interface PrefsByOwner {
-  foundation: { zone: TimeZone; plan: PlanPrefs; sample?: { seededAt: EpochMs; scenario: SampleScenario } };
+  foundation: { zone: TimeZone; plan: PlanPrefs; /** Single-key shortcuts; on unless false. */ shortcuts?: boolean; sample?: { seededAt: EpochMs; scenario: SampleScenario } };
   today: Record<string, never>;
   calendar: Record<string, never>;
   lectures: { engine: EngineId; parakeetConsentAt?: EpochMs };

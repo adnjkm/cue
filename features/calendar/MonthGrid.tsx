@@ -201,7 +201,7 @@ function ChipItem({ chip, zone, now, tabbable }: { chip: Chip; zone: Zone; now: 
             : chip.state === "missed"
               ? "border border-dashed border-border bg-page px-1.5 py-px text-graphite hover:bg-wash"
               : chip.state === "done"
-                ? "bg-wash px-[7px] py-0.5 text-graphite hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]"
+                ? "bg-wash px-[7px] py-0.5 text-graphite hover:bg-fill data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]"
                 : "bg-fill px-[7px] py-0.5 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]",
         ),
         children: chip.label,

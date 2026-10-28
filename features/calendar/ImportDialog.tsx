@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/toast";
 import { ai, AiError, errorCopy } from "@/lib/ai";
 import { ids, type CourseId, type EpochMs, type Zone } from "@/lib/domain";
-import { renderPages, sha256Hex, toPageImage, UnreadableError } from "@/lib/materials";
+import { fileProblem, renderPages, sha256Hex, toPageImage } from "@/lib/materials";
 import { commitImport } from "./commit";
 import { parseIcs } from "./ics";
 import { ImportError, type ImportProposal } from "./proposal";
@@ -43,8 +43,7 @@ function failure(e: unknown): { title: string; detail?: string } {
     const copy = errorCopy(e);
     return { title: copy.title, detail: copy.retry ? `${copy.detail ?? ""} Choose the file again to retry.`.trim() : copy.detail };
   }
-  if (e instanceof UnreadableError) return { title: "Couldn't read that file. Try a PDF or an .ics file." };
-  return { title: "Couldn't read that file. Try a PDF or an .ics file." };
+  return { title: fileProblem(e) };
 }
 
 /** "Add schedule": an .ics file, or a timetable image or PDF read by Nemotron, previewed per course before anything is written. */

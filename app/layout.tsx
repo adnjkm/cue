@@ -25,7 +25,7 @@ export const viewport: Viewport = { themeColor: "oklch(100% 0 0)", colorScheme: 
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={timeless.variable}>
+    <html lang="en" className={`${timeless.variable} max-md:scroll-pt-16 max-md:scroll-pb-20`}>
       <body className="relative">
         <div className="isolate">
           <TooltipProvider>{children}</TooltipProvider>

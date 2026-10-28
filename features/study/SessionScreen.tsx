@@ -6,7 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type R
 import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey } from "@/lib/chat";
 import { ids, type AskMode, type BlockId, type EpochMs, type PrefsByOwner, type SessionPlan, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
-import { usePrefs } from "@/lib/prefs";
+import { usePrefs, useShortcuts } from "@/lib/prefs";
 import { href } from "@/lib/routes";
 import { fmtDay, fmtRange, useNow } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -125,6 +125,7 @@ function SessionScreen({
   tab?: ViewerTab;
 }) {
   const router = useRouter();
+  const shortcuts = useShortcuts();
   const rootRef = useRef<HTMLElement>(null);
   const planLabelId = useId();
   const sourcesJob = useSourcesJob(block.id);
@@ -224,7 +225,7 @@ function SessionScreen({
   const askProps = { chat: chatHandle, label: askLabel, placeholder, courseId: block.courseId, prompts, onOpenSource: openSource };
 
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !shortcuts || isTyping(e.target)) return;
     const key = e.key.toLowerCase();
     if (key === "n" && live && plan) {
       e.preventDefault();
@@ -277,10 +278,10 @@ function SessionScreen({
       data-testid={tid.main}
       data-mode={mode}
       onKeyDown={onKeyDown}
-      className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 outline-none md:px-6 md:pb-6 lg:px-10 lg:pt-7 lg:pb-8 max-lg:overflow-y-auto"
+      className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 outline-none md:px-6 md:pb-6 lg:px-10 lg:pt-7 lg:pb-8 max-lg:overflow-y-auto max-md:scroll-pb-20"
     >
-      <header className="flex shrink-0 flex-wrap items-center gap-3 lg:h-8 lg:flex-nowrap">
-        <h1 title={titleOf(block)} className="min-w-0 flex-1 truncate text-lg leading-6 font-normal tracking-display text-ink">
+      <header className="flex shrink-0 flex-wrap items-center gap-3 lg:min-h-8 lg:flex-nowrap">
+        <h1 className="min-w-0 flex-1 text-lg leading-6 font-normal tracking-display text-pretty text-ink">
           {titleOf(block)}
         </h1>
         <Button variant="secondary" data-ask aria-haspopup="dialog" aria-expanded={ask === "sheet"} aria-keyshortcuts="/" onClick={() => setAsk("sheet")} className="max-md:hidden lg:hidden">

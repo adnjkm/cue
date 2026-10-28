@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { db, useLive } from "@/lib/db";
 import type { CourseId, MaterialId, MaterialKind } from "@/lib/domain";
-import { ingestFile } from "@/lib/materials";
+import { fileProblem, ingestFile } from "@/lib/materials";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -56,7 +56,7 @@ export function AddMaterialDialog({
       setFile(null);
       setTitle("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't read that file.");
+      setError(fileProblem(e, file.name));
     } finally {
       setProgress(null);
     }

@@ -130,7 +130,7 @@ export function LecturesIndex() {
                       className="group/row flex items-center gap-4 py-3.5 transition-colors duration-[120ms] ease-standard hover:bg-wash max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-1 md:-mx-3 md:px-3 md:rounded-sm"
                     >
                       <span className="w-24 shrink-0 text-sm leading-5 text-graphite tabular-nums">{r.day}</span>
-                      <span className="min-w-0 flex-1 truncate text-base leading-5 text-ink max-md:basis-full max-md:order-first">{r.title}</span>
+                      <span className="min-w-0 flex-1 truncate text-base leading-5 text-ink max-md:basis-full max-md:order-first max-md:whitespace-normal">{r.title}</span>
                       <span className={cn("flex shrink-0 items-center gap-1.5 text-sm leading-5 text-graphite", r.live && "font-medium text-ink")}>
                         {r.live && <span aria-hidden="true" className="size-2 rounded-full bg-ink" />}
                         {r.trailing}

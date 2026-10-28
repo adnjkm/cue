@@ -32,6 +32,11 @@ export function usePrefs<O extends Owner>(owner: O): PrefsByOwner[O] | undefined
   return useLive(() => readPrefs(owner), [owner]);
 }
 
+/** Single-key shortcuts (WCAG 2.1.4) are on unless the student turned them off in the Data menu. */
+export function useShortcuts(): boolean {
+  return usePrefs("foundation")?.shortcuts !== false;
+}
+
 /** The only writer of `prefs`. Lint lets features/<x> pass only the literal "<x>". */
 export async function setPrefs<O extends Owner>(owner: O, patch: Partial<PrefsByOwner[O]>): Promise<void> {
   await db.transaction("rw", db.prefs, async () => {

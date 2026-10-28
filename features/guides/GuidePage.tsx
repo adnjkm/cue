@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { db, useLive } from "@/lib/db";
 import { ids, type CourseId } from "@/lib/domain";
 import { href } from "@/lib/routes";
+import { useShortcuts } from "@/lib/prefs";
 import { useCourseSources } from "@/lib/sources";
 import { AddMaterialDialog } from "@/components/cue";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -50,11 +51,12 @@ function AddMaterialButton({ onClick }: { onClick: () => void }) {
 /** ] and [ page through sections only while focus is inside the guide's root, which takes focus on arrival, and never in a field or a popup. */
 function useSectionKeys(root: React.RefObject<HTMLElement | null>, courseId: CourseId, located: Located | null) {
   const router = useRouter();
+  const shortcuts = useShortcuts();
   useEffect(() => {
     root.current?.focus({ preventScroll: true });
   }, [root]);
   return (e: React.KeyboardEvent) => {
-    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || (e.key !== "]" && e.key !== "[")) return;
+    if (!shortcuts || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || (e.key !== "]" && e.key !== "[")) return;
     // Popups portal out of the root's DOM but their keys still bubble through it in React, and a dialog can
     // take a key before focus has moved into it.
     if (document.querySelector("[role=dialog], [role=alertdialog]")) return;

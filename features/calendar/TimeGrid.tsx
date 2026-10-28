@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { blockTitle } from "@/lib/plan";
@@ -40,6 +40,23 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
   const dueRef = useRef<HTMLDivElement>(null);
   const day = mode === "day";
   const minWidth = day ? undefined : gutter + 7 * MIN_COLUMN;
+  /** The scroller hides its scrollbar, so a fade at each edge with days beyond it says the week continues. */
+  const [more, setMore] = useState({ start: false, end: false });
+  const updateMore = useCallback(() => {
+    const el = hoursRef.current;
+    if (!el) return;
+    const start = el.scrollLeft > 1;
+    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setMore((m) => (m.start === start && m.end === end ? m : { start, end }));
+  }, []);
+  useEffect(() => {
+    const el = hoursRef.current;
+    if (!el) return;
+    updateMore();
+    const ro = new ResizeObserver(updateMore);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [updateMore, dayList.length]);
 
   useLayoutEffect(() => {
     const el = hoursRef.current;
@@ -94,7 +111,7 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
       role="table"
       aria-label={day ? longDay(dayList[0]) : `Week of ${longDay(dayList[0])}`}
       aria-busy={days ? undefined : true}
-      className="flex min-h-0 flex-1 flex-col"
+      className="relative flex min-h-0 flex-1 flex-col"
       onKeyDown={onKeyDown}
       onFocus={(e) => {
         const id = (e.target as HTMLElement).closest<HTMLElement>("[data-id]")?.dataset.id;
@@ -175,6 +192,7 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
           const x = e.currentTarget.scrollLeft;
           if (headRef.current) headRef.current.scrollLeft = x;
           if (dueRef.current) dueRef.current.scrollLeft = x;
+          updateMore();
         }}
         role="rowgroup"
         aria-label="Hours"
@@ -201,6 +219,8 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
           ))}
         </div>
       </div>
+      {more.start && <div aria-hidden className="pointer-events-none absolute inset-y-0 z-20 w-8 bg-linear-to-r from-page to-transparent" style={{ left: gutter }} />}
+      {more.end && <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-linear-to-l from-page to-transparent" />}
     </div>
   );
 }
@@ -385,7 +405,7 @@ function Item(props: { item: TimedItem; lines: 1 | 2; zone: Zone; now: EpochMs; 
           look === "missed"
             ? cn("border border-dashed border-border bg-page px-[7px] hover:bg-wash data-[popup-open]:border-ink", !day && "py-[3px]")
             : look === "done"
-              ? cn("bg-wash px-2 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1")
+              ? cn("bg-wash px-2 hover:bg-fill data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1")
               : cn("bg-fill px-2 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1"),
         ),
         children: (
