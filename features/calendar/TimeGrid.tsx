@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { EpochMs, LocalDate, Zone } from "@/lib/domain";
 import { ItemPopover } from "./ItemPopover";
 import { layoutLanes } from "./lanes";
-import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineItem, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type DueItem, type TimedItem } from "./model";
+import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type DueItem, type TimedItem } from "./model";
 
 const HOURS = Array.from({ length: 23 }, (_, i) => i + 1);
 /** Below this the week scrolls sideways under a sticky gutter instead of squeezing seven columns (calendar.md 5, responsive). */
@@ -133,7 +133,7 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
                       "flex h-6 min-w-0 cursor-pointer items-center rounded-xs border border-border bg-page px-[7px] text-left text-sm leading-4 font-medium text-ink transition-colors duration-[120ms] ease-standard hover:bg-wash focus-visible:outline-offset-1 data-[popup-open]:border-ink",
                       day && inRow ? "max-w-full shrink-0" : "w-full",
                     ),
-                    children: <DeadlineLabel text={deadlineItem(e, zone)} course={e.courseId} />,
+                    children: <span className="truncate">{deadlineTitle(e, zone)}</span>,
                   }}
                 />
               );
@@ -316,19 +316,6 @@ function KeepEnd({ text, end }: { text: string; end: string }) {
     <span className="flex min-w-0">
       <span className="truncate">{text}</span>
       {end && <span className="shrink-0 whitespace-pre">{end}</span>}
-    </span>
-  );
-}
-
-/**
- * `CSC148 A2 due 11:59pm`. When the column is too narrow the course code wraps out of the one visible line first,
- * so the due time stays readable; the popover and the accessible name keep the course.
- */
-function DeadlineLabel({ text, course }: { text: string; course: string }) {
-  return (
-    <span className="flex h-4 min-w-0 flex-row-reverse flex-wrap justify-end overflow-hidden">
-      <span className="min-w-0 truncate">{text}</span>
-      <span className="whitespace-pre">{`${course} `}</span>
     </span>
   );
 }

@@ -46,7 +46,7 @@ export default async function calendar(t) {
   await expect(week.getByRole("button")).toHaveCount(25);
   await expect(week.locator('[data-kind="lecture"]')).toHaveCount(8);
   await expect(week.locator('[data-kind="block"]')).toHaveCount(14);
-  await expect(week.locator('[data-kind="deadline"]')).toHaveCount(3);
+  await expect(week.locator('[data-kind="deadline"]')).toHaveText(["CSC148 A2 due 11:59pm", "ECO101 PS4 due 5pm", "PSY100 quiz due 12pm"]);
   const names = await week.getByRole("button").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
   for (const expected of PAPER_WEEK) {
     const matches = names.filter((n) => n === expected || n.startsWith(`${expected}, `));
