@@ -1,0 +1,5 @@
+1. **Need**: a "Skip to content" link as the first focusable element of `BrowseShell` (`components/cue/shell/AppSidebar.tsx`), visible on focus, targeting the main column.
+2. **Why**: `docs/design/today.md` section 5 puts it first in Today's tab order; without it a keyboard user tabs through the wordmark, six nav links and the Data menu before reaching the next-up card on every browse screen.
+3. **Proposed diff**: in `BrowseShell`, render `<a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 ...">Skip to content</a>` before `<DockedSidebar />`, and give `SidebarInset` `id="main" tabIndex={-1}` (with `outline-none` so the programmatic focus draws nothing).
+4. **Workaround in use**: none; Today's own content starts with the h1 (programmatically focusable, focused after "Try the sample semester") and its tab order runs chips, Start session, then each row.
+5. **Unblocks**: the keyboard path in today.md section 5 ("Tab order: skip link, wordmark, six nav links, …") on every browse screen.
