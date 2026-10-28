@@ -45,6 +45,19 @@ interface Context {
 const HISTORY = 12;
 const NONE: readonly ChatMessage[] = [];
 
+/**
+ * Writes a message stamped after its thread's newest row. The thread sorts by [thread+at], and seeded rows can be
+ * dated later than now, so a plain Date.now() would land a new question above them.
+ */
+export async function appendMessage(message: Omit<ChatMessage, "at">, now: number = Date.now()): Promise<ChatMessage> {
+  return db.transaction("rw", db.messages, async () => {
+    const newest = await db.messages.where("[thread+at]").between([message.thread, Dexie.minKey], [message.thread, Dexie.maxKey]).last();
+    const row: ChatMessage = { ...message, at: Math.max(now, (newest?.at ?? 0) + 1) as EpochMs };
+    await db.messages.put(row);
+    return row;
+  });
+}
+
 /** The context source and prompt facts per scope. A new scope is a change request to lib/chat. */
 async function contextFor(scope: AskScope, question: string, mode: AskMode): Promise<Context> {
   const latency = mode === "deep" ? "thorough" : "interactive";
@@ -145,7 +158,7 @@ export function useChat(opts: { thread: ThreadKey; scope: AskScope; defaultMode?
       setPending(null);
       if (!run || !text.trim()) return;
       const parsed = parseCitations(text, run.passages);
-      await db.messages.put({ id: ids.message(), thread, courseId: run.courseId, role: "assistant", text: parsed.text, citations: parsed.citations, mode: run.mode, at: Date.now() as EpochMs });
+      await appendMessage({ id: ids.message(), thread, courseId: run.courseId, role: "assistant", text: parsed.text, citations: parsed.citations, mode: run.mode });
     },
     [thread],
   );
@@ -202,7 +215,7 @@ export function useChat(opts: { thread: ThreadKey; scope: AskScope; defaultMode?
       const history = messages;
       void (async () => {
         const ctxCourse = scope.kind === "study" ? scope.courseId : null;
-        await db.messages.put({ id: ids.message(), thread, courseId: ctxCourse, role: "user", text: question, citations: [], mode, at: Date.now() as EpochMs });
+        await appendMessage({ id: ids.message(), thread, courseId: ctxCourse, role: "user", text: question, citations: [], mode });
         await run(question, history);
       })();
     },
