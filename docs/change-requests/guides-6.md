@@ -1,0 +1,5 @@
+1. **Need**: `cn` in `lib/utils.ts` to know the theme's custom tracking names, so `tracking-caps` passed in `className` replaces a component's base `tracking-display` instead of sitting beside it.
+2. **Why**: the guide's Contents sheet (375 to 1023) gave `SheetTitle` `tracking-caps`; `cn` kept both classes and `tracking-display` won in the CSS order, so the label measured -0.26px instead of 1.04px. Any shared component with a tracking in its base (`SheetTitle`, `DialogTitle`) has the same trap.
+3. **Proposed diff**: `import { createCn } from "cn/config"; export const cn = createCn({ extend: { theme: { tracking: ["caps", "display"] } } });` replacing `export { cn } from "cn"`. Checked in node: `cn("tracking-display text-ink", "tracking-caps text-graphite")` returns `tracking-caps text-graphite` (today it returns `tracking-display tracking-caps text-graphite`).
+4. **Workaround in use**: the sheet's `SheetTitle` is `sr-only` and names the dialog; the visible label is `ContentsNav`'s own `<p>`, the same element as the desktop column's.
+5. **Unblocks**: nothing failing today; it removes the trap for every workstream that restyles a shared title.
