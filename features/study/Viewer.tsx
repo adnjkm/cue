@@ -168,7 +168,7 @@ export function MaterialViewer({
       <div className="flex min-h-7 shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 items-center gap-2">
           <p aria-live="polite" className={LABEL}>
-            {viewer ? viewerLabel(viewer, slideCount) : "Material"}
+            {viewer && tabs.length > 0 ? viewerLabel(viewer, slideCount) : "Material"}
           </p>
           {viewer?.tab === "slides" && viewer.slides && (
             <span className="flex items-center">
