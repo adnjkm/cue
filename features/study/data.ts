@@ -18,7 +18,7 @@ import {
   type Zone,
 } from "@/lib/domain";
 import { usePlan } from "@/lib/plan";
-import { buildPlan, type ViewerState } from "./model";
+import { buildPlan, finishSession, type Advance, type ViewerState } from "./model";
 import { blockMinutes, gatherSources, planContext, planInput, type SessionSources } from "./sources";
 
 export type Job<T> = { status: "pending" } | { status: "ready"; value: T } | { status: "error"; error: AiError };
@@ -121,12 +121,13 @@ export function useSessionRow(id: BlockId): StudySession | null | undefined {
 /** On the whole second, the grid useNow ticks on, so a countdown never reads one second high. */
 const now = () => (Math.floor(Date.now() / 1000) * 1000) as EpochMs;
 
-async function change(id: BlockId, fn: (s: StudySession, at: EpochMs) => StudySession): Promise<void> {
-  await db.transaction("rw", db.sessions, async () => {
+async function change(id: BlockId, fn: (s: StudySession, at: EpochMs) => StudySession): Promise<StudySession | undefined> {
+  return db.transaction("rw", db.sessions, async () => {
     const s = await db.sessions.get(id);
-    if (!s) return;
+    if (!s) return undefined;
     const next = fn(s, now());
     if (next !== s) await db.sessions.put(next);
+    return next;
   });
 }
 
@@ -151,8 +152,10 @@ export const sessionActions = {
       const next = sessionTransitions.gotoStep(s, step, at);
       return next === s ? s : withViewer(next, viewer, at);
     }),
-  nextStep: (id: BlockId, viewer?: ViewerState) =>
+  /** Takes the kind the button showed, so a click lands as labelled even on the second time runs out. */
+  advance: (id: BlockId, kind: Advance, viewer?: ViewerState) =>
     change(id, (s, at) => {
+      if (kind === "finish") return finishSession(s, at);
       const next = sessionTransitions.nextStep(s, at);
       return next === s ? s : withViewer(next, viewer, at);
     }),

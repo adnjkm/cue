@@ -12,10 +12,13 @@ import {
   type StudyBlock,
 } from "@/lib/domain";
 import {
+  ADVANCE_LABEL,
+  advanceKind,
   availableTabs,
   buildPlan,
   defaultViewer,
   endSummary,
+  finishSession,
   focusMs,
   showRef,
   stepOverMs,
@@ -218,6 +221,17 @@ describe("step transitions", () => {
     expect(s.state.status).toBe("ended");
     const all = [0, 1, 2, 3].reduce((acc, i) => sessionTransitions.nextStep(sessionTransitions.gotoStep(acc, i, at(9)), at(9)), started);
     expect(sessionTransitions.nextStep(all, at(40)).state.status).toBe("completed");
+  });
+
+  it("reads Finish session on the last step and once time is up, and finishing ends the session there", () => {
+    const s = sessionTransitions.nextStep(started, at(5));
+    expect(ADVANCE_LABEL[advanceKind(s, at(44, 59), DEFAULT_POMODORO)]).toBe("Next step");
+    expect(ADVANCE_LABEL[advanceKind(s, at(50), DEFAULT_POMODORO)]).toBe("Finish session");
+    const finished = finishSession(s, at(50));
+    expect([finished.state.status, finished.step, finished.stepsDone]).toEqual(["ended", 1, [0, 1]]);
+    expect(finishSession(finished, at(51))).toBe(finished);
+    const last = sessionTransitions.gotoStep(s, 4, at(6));
+    expect(advanceKind(last, at(6), DEFAULT_POMODORO)).toBe("finish");
   });
 });
 

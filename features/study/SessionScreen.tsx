@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey } from "@/lib/chat";
-import { ids, type AskMode, type BlockId, type PrefsByOwner, type SessionPlan, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
+import { ids, type AskMode, type BlockId, type EpochMs, type PrefsByOwner, type SessionPlan, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
 import { usePrefs } from "@/lib/prefs";
 import { href } from "@/lib/routes";
 import { fmtDay, fmtRange, useNow } from "@/lib/time";
@@ -16,7 +16,22 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AskPanel } from "./AskPanel";
 import { loadPlan, loadSources, sessionActions, usePlanJob, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
-import { defaultViewer, endSummary, finishedSummary, showRef, stepOverMs, stepRows, timerView, viewerForStep, type StepRow, type ViewerState } from "./model";
+import {
+  ADVANCE_LABEL,
+  advanceKind,
+  defaultViewer,
+  endSummary,
+  finishedSummary,
+  isLive,
+  showRef,
+  stepOverMs,
+  stepRows,
+  timerView,
+  viewerForStep,
+  type Advance,
+  type StepRow,
+  type ViewerState,
+} from "./model";
 import { CheckRow, MomentCard, NextStepButton, PlanList, PlanSkeleton, PlanStrip } from "./parts";
 import { tid } from "./testids";
 import { MaterialViewer } from "./Viewer";
@@ -76,9 +91,9 @@ function TickingRows({ plan, at, live, prefs, children }: { plan: SessionPlan; a
   return children(stepRows(plan, at, live ? stepOverMs(live, now, prefs.pomodoro) : 0));
 }
 
-function NextStep({ live, prefs, isLast, onClick }: { live: StudySession; prefs: StudyPrefs; isLast: boolean; onClick: () => void }) {
-  const now = useNow("second");
-  return <NextStepButton label={isLast || timerView(live, now, prefs.pomodoro).over ? "Finish session" : "Next step"} onClick={onClick} />;
+function NextStep({ live, prefs, onAdvance }: { live: StudySession; prefs: StudyPrefs; onAdvance: (kind: Advance) => void }) {
+  const kind = advanceKind(live, useNow("second"), prefs.pomodoro);
+  return <NextStepButton label={ADVANCE_LABEL[kind]} onClick={() => onAdvance(kind)} />;
 }
 
 function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBlock; zone: Zone; row: StudySession | null; prefs: StudyPrefs; start: boolean; tab?: ViewerTab }) {
@@ -89,7 +104,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
   const planJob = usePlanJob(block.id);
   const sources = sourcesJob?.status === "ready" ? sourcesJob.value : null;
   const plan = row?.plan ?? (planJob?.status === "ready" ? planJob.value : undefined);
-  const mode = !row ? "preview" : row.state.status === "running" || row.state.status === "paused" ? "live" : "finished";
+  const mode = !row ? "preview" : isLive(row) ? "live" : "finished";
   const live = mode === "live" ? row : null;
   const needPlan = !row?.plan;
 
@@ -122,7 +137,6 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
   const stepIndex = live ? live.step : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
   const at: PlanAt = { step: stepIndex, stepsDone: row?.stepsDone ?? [] };
   const step = plan?.steps[stepIndex];
-  const isLast = !!plan && stepIndex >= plan.steps.length - 1;
 
   const [override, setOverride] = useState<ViewerState | null>(null);
   const viewer = override ?? (sources ? defaultViewer(sources, plan, stepIndex, { ...(tab ? { tab } : {}), ...(row ? { saved: row.viewer } : {}) }) : null);
@@ -146,12 +160,12 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
     if (live) void sessionActions.gotoStep(block.id, i, v ?? undefined);
     else setLocalStep(i);
   };
-  const next = async () => {
+  const advance = async (kind: Advance) => {
     if (!live || !plan) return;
-    const v = viewer ? viewerForStep(viewer, plan.steps[live.step + 1]) : null;
+    const v = kind === "next" && viewer ? viewerForStep(viewer, plan.steps[live.step + 1]) : null;
     if (v) setOverride(v);
-    await sessionActions.nextStep(block.id, v ?? undefined);
-    if (isLast) router.push(href.today());
+    const after = await sessionActions.advance(block.id, kind, v ?? undefined);
+    if (after && !isLive(after)) router.push(href.today());
   };
   const togglePause = () => void (live?.state.status === "paused" ? sessionActions.resume(block.id) : sessionActions.pause(block.id));
   const end = async () => {
@@ -185,7 +199,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
     const key = e.key.toLowerCase();
     if (key === "n" && live && plan) {
       e.preventDefault();
-      void next();
+      void advance(advanceKind(live, Date.now() as EpochMs, prefs.pomodoro));
     } else if (key === "p" && live) {
       e.preventDefault();
       togglePause();
@@ -289,7 +303,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
         >
           {plan?.moment && <MomentCard at={plan.moment.ref} quote={plan.moment.quote} examHint={plan.moment.examHint} onOpen={() => openSource(plan.moment!.ref)} />}
           {!plan && planError && <div className="xl:hidden">{planBody}</div>}
-          <CheckRow question={step?.check} action={live && plan ? <NextStep live={live} prefs={prefs} isLast={isLast} onClick={() => void next()} /> : undefined} />
+          <CheckRow question={step?.check} action={live && plan ? <NextStep live={live} prefs={prefs} onAdvance={(kind) => void advance(kind)} /> : undefined} />
         </MaterialViewer>
 
         <AskPanel

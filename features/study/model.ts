@@ -1,6 +1,7 @@
 import {
   sessionClock,
   sessionElapsedMs,
+  sessionTransitions,
   type EpochMs,
   type Passage,
   type PlanStep,
@@ -158,6 +159,25 @@ export function timerView(session: StudySession, now: EpochMs, pomodoro: Pomodor
     over: false,
     milestone: clock.leftMs <= 5 * MIN ? "5 minutes left." : "",
   };
+}
+
+export const isLive = (session: StudySession): boolean => session.state.status === "running" || session.state.status === "paused";
+
+export type Advance = "next" | "finish";
+
+export const ADVANCE_LABEL: Record<Advance, string> = { next: "Next step", finish: "Finish session" };
+
+/** The check row's button finishes the session on the last step, and on any step once time is up. */
+export function advanceKind(session: StudySession, now: EpochMs, pomodoro: PomodoroPrefs): Advance {
+  const last = session.step >= (session.plan?.steps.length ?? 0) - 1;
+  return last || sessionClock(session, now, pomodoro).phase === "over" ? "finish" : "next";
+}
+
+/** Finishing counts the step on screen as done, the same as Next step would. */
+export function finishSession(session: StudySession, now: EpochMs): StudySession {
+  if (!isLive(session)) return session;
+  const stepsDone = session.stepsDone.includes(session.step) ? session.stepsDone : [...session.stepsDone, session.step].sort((a, b) => a - b);
+  return sessionTransitions.end({ ...session, stepsDone }, now);
 }
 
 export function endSummary(session: StudySession, now: EpochMs): string {
