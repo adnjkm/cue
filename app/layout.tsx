@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Boot } from "@/components/cue/shell";
+import { Toaster } from "@/components/ui/toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const timeless = localFont({
@@ -13,16 +16,22 @@ const timeless = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Cue Practice",
-  description: "Drop in a past exam. NVIDIA Nemotron turns it into practice questions.",
+  title: "Cue",
+  description: "Plan your term, take lecture notes, study and practice with NVIDIA Nemotron.",
 };
 
-export const viewport: Viewport = { themeColor: "#FFFFFF", colorScheme: "light" };
+export const viewport: Viewport = { themeColor: "oklch(100% 0 0)", colorScheme: "light" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={timeless.variable}>
-      <body>{children}</body>
+      <body className="relative">
+        <div className="isolate">
+          <TooltipProvider>{children}</TooltipProvider>
+        </div>
+        <Toaster />
+        <Boot />
+      </body>
     </html>
   );
 }
