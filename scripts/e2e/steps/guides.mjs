@@ -30,6 +30,7 @@ export default async function guides(t) {
   await page.getByRole("link", { name: "Footnote 1", exact: true }).click();
   await expect(page.locator("#fn-1")).toBeFocused();
   await page.mouse.move(0, 0);
+  await expect(page.locator('[data-slot="tooltip-content"]')).toHaveCount(0);
   await page.evaluate(() => window.scrollTo(0, 0));
   await t.shot("guides");
 
