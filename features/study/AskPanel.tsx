@@ -48,6 +48,7 @@ export function AskPanel({
   prompts,
   onOpenSource,
   hideLabel = false,
+  shortcut,
   className,
 }: {
   chat: ChatHandle;
@@ -57,6 +58,8 @@ export function AskPanel({
   prompts: readonly string[];
   onOpenSource: (ref: SourceRef) => boolean;
   hideLabel?: boolean;
+  /** The key that focuses this panel's composer, declared where the panel is on screen. */
+  shortcut?: string;
   className?: string;
 }) {
   const labelId = useId();
@@ -69,7 +72,7 @@ export function AskPanel({
   }, [messages.length, pending?.text, pending?.phase, error]);
 
   return (
-    <section aria-labelledby={labelId} data-composer-host className={cn("flex min-h-0 flex-col gap-6", className)}>
+    <section aria-labelledby={labelId} aria-keyshortcuts={shortcut} data-composer-host className={cn("flex min-h-0 flex-col gap-6", className)}>
       <div className={cn("flex flex-col items-start gap-1 pt-1.5", hideLabel && "sr-only")}>
         <SectionLabel id={labelId}>{label}</SectionLabel>
       </div>
@@ -99,7 +102,7 @@ export function AskPanel({
           }
         />
       </div>
-      <Composer chat={chat} modes placeholder={placeholder} label={label} className="shrink-0 pb-[max(14px,env(safe-area-inset-bottom))]" />
+      <Composer chat={chat} modes placeholder={placeholder} label={label} className="shrink-0" />
     </section>
   );
 }

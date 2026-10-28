@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AddMaterialDialog, BudgetNotice, EmptyState, ErrorLine, SectionLabel } from "@/components/cue";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AskPanel } from "./AskPanel";
 import { loadPlan, loadSources, sessionActions, usePlanJob, useReviewLecture, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
@@ -40,9 +41,17 @@ import { MaterialViewer } from "./Viewer";
 
 type StudyPrefs = PrefsByOwner["study"];
 
+const ASK_SCOPE = "Answers cite the slides, transcript and notes for this session.";
+
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
+}
+
+/** The composer when it can take a question, so an opening chat lands the cursor there. */
+function composerIn(el: HTMLElement | null): HTMLElement | true {
+  const box = el?.querySelector("textarea");
+  return box && !box.disabled ? box : true;
 }
 
 function titleOf(block: StudyBlock): string {
@@ -163,13 +172,15 @@ function SessionScreen({
     if (live) void sessionActions.setViewer(block.id, v);
   };
 
-  const [askOpen, setAskOpen] = useState(false);
+  /** Below 1024 the chat lives in an overlay: a right Sheet from 768, a bottom Drawer below that. */
+  const [ask, setAsk] = useState<"sheet" | "drawer" | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const openSource = (ref: SourceRef): boolean => {
     const next = viewer && showRef(viewer, ref);
     if (!next) return false;
     setViewer(next);
-    setAskOpen(false);
+    setAsk(null);
     return true;
   };
 
@@ -210,6 +221,7 @@ function SessionScreen({
   );
   const { label: askLabel, placeholder } = askCopy(block, lectureNumber);
   const prompts = [step?.check, ...chat.suggestions.filter((s) => s !== "Quiz me on this")].filter((p): p is string => !!p).slice(0, 3);
+  const askProps = { chat: chatHandle, label: askLabel, placeholder, courseId: block.courseId, prompts, onOpenSource: openSource };
 
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
@@ -221,10 +233,11 @@ function SessionScreen({
       e.preventDefault();
       togglePause();
     } else if (key === "/") {
-      const box = [...(rootRef.current?.querySelectorAll<HTMLTextAreaElement>("[data-composer-host] textarea") ?? [])].find((t) => t.offsetParent !== null);
+      const visible = (sel: string) => [...(rootRef.current?.querySelectorAll<HTMLElement>(sel) ?? [])].find((el) => el.offsetParent !== null);
+      const box = visible("[data-composer-host] textarea");
       e.preventDefault();
       if (box) box.focus();
-      else setAskOpen(true);
+      else visible("[data-ask]")?.click();
     }
   };
 
@@ -264,12 +277,15 @@ function SessionScreen({
       data-testid={tid.main}
       data-mode={mode}
       onKeyDown={onKeyDown}
-      className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 outline-none md:px-6 lg:px-10 lg:pt-7 lg:pb-8 max-lg:overflow-y-auto"
+      className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 outline-none md:px-6 md:pb-6 lg:px-10 lg:pt-7 lg:pb-8 max-lg:overflow-y-auto"
     >
       <header className="flex shrink-0 flex-wrap items-center gap-3 lg:h-8 lg:flex-nowrap">
         <h1 title={titleOf(block)} className="min-w-0 flex-1 truncate text-lg leading-6 font-normal tracking-display text-ink">
           {titleOf(block)}
         </h1>
+        <Button variant="secondary" data-ask aria-haspopup="dialog" aria-expanded={ask === "sheet"} aria-keyshortcuts="/" onClick={() => setAsk("sheet")} className="max-md:hidden lg:hidden">
+          Ask
+        </Button>
         {mode === "live" && live && <LiveControls session={live} prefs={prefs} onTogglePause={togglePause} onEnd={() => void end()} />}
         {mode === "preview" && (
           <>
@@ -328,54 +344,37 @@ function SessionScreen({
           <CheckRow question={step?.check} action={live && plan ? <NextStep live={live} prefs={prefs} onAdvance={(kind) => void advance(kind)} /> : undefined} />
         </MaterialViewer>
 
-        <AskPanel
-          chat={chatHandle}
-          label={askLabel}
-          placeholder={placeholder}
-          courseId={block.courseId}
-          prompts={prompts}
-          onOpenSource={openSource}
-          className="hidden w-80 shrink-0 lg:flex xl:w-[360px]"
-        />
+        <AskPanel {...askProps} shortcut="/" className="hidden w-80 shrink-0 lg:flex xl:w-[360px]" />
       </div>
 
-      <div className="sticky bottom-0 -mx-4 mt-auto bg-page px-4 pt-2 pb-[max(16px,env(safe-area-inset-bottom))] md:-mx-6 md:px-6 lg:hidden">
-        <button
-          type="button"
-          aria-keyshortcuts="/"
-          onClick={() => setAskOpen(true)}
-          className="flex h-12 w-full cursor-pointer items-center rounded-sm border border-border bg-page px-3.5 text-left text-sm leading-5 text-graphite transition-colors duration-[120ms] ease-standard hover:bg-wash"
-        >
-          <span className="min-w-0 truncate">{placeholder}</span>
-        </button>
+      <div className="sticky bottom-0 -mx-4 mt-auto bg-page px-4 pt-2 pb-[max(16px,env(safe-area-inset-bottom))] md:hidden">
+        <Button variant="secondary" size="lg" data-ask aria-haspopup="dialog" aria-expanded={ask === "drawer"} aria-keyshortcuts="/" onClick={() => setAsk("drawer")} className="w-full">
+          Ask
+        </Button>
       </div>
-      <Sheet open={askOpen} onOpenChange={setAskOpen}>
+      <Sheet open={ask === "sheet"} onOpenChange={(open) => setAsk(open ? "sheet" : null)}>
         <SheetContent
           ref={sheetRef}
-          initialFocus={() => {
-            const box = sheetRef.current?.querySelector("textarea");
-            return box && !box.disabled ? box : true;
-          }}
+          initialFocus={() => composerIn(sheetRef.current)}
           side="right"
-          className="gap-0 border-rule p-0 shadow-none data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]">
+          className="gap-0 border-rule p-0 shadow-none data-[side=right]:w-[400px] data-[side=right]:max-w-full data-[side=right]:sm:max-w-[400px]"
+        >
           <SheetHeader className="px-4 pt-5 pb-0">
             <SheetTitle className="text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</SheetTitle>
-            <SheetDescription className="sr-only">Answers cite the slides, transcript and notes for this session.</SheetDescription>
+            <SheetDescription className="sr-only">{ASK_SCOPE}</SheetDescription>
           </SheetHeader>
-          {askOpen && (
-            <AskPanel
-              chat={chatHandle}
-              label={askLabel}
-              placeholder={placeholder}
-              courseId={block.courseId}
-              prompts={prompts}
-              onOpenSource={openSource}
-              hideLabel
-              className="flex-1 px-4 pt-4"
-            />
-          )}
+          {ask === "sheet" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-[max(16px,env(safe-area-inset-bottom))]" />}
         </SheetContent>
       </Sheet>
+      <Drawer open={ask === "drawer"} onOpenChange={(open) => setAsk(open ? "drawer" : null)}>
+        <DrawerContent ref={drawerRef} initialFocus={() => composerIn(drawerRef.current)} className="h-[85dvh] border-rule data-[swipe-direction=down]:rounded-t-lg">
+          <DrawerHeader className="px-4 pt-5 pb-0">
+            <DrawerTitle className="text-left text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</DrawerTitle>
+            <DrawerDescription className="sr-only">{ASK_SCOPE}</DrawerDescription>
+          </DrawerHeader>
+          {ask === "drawer" && <AskPanel {...askProps} hideLabel className="flex-1 px-4 pt-4 pb-[max(16px,env(safe-area-inset-bottom))]" />}
+        </DrawerContent>
+      </Drawer>
       <AddMaterialDialog open={adding} onOpenChange={setAdding} {...(block.courseId ? { courseId: block.courseId } : {})} />
     </main>
   );
