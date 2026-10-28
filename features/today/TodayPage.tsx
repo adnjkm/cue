@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { SampleSemesterButton } from "@/components/cue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Empty, EmptyContent } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import type { EpochMs, PlanView, StudyBlock } from "@/lib/domain";
@@ -78,26 +79,22 @@ function TodaySkeleton() {
   );
 }
 
-/** No calendar yet: the two ways in. "Upload calendar" stays a button because the boot step asserts the role. */
+/** No calendar yet: the next-up card's slot becomes an Empty holding the two ways in. "Upload calendar" stays a button because the boot step asserts the role. */
 function FirstRun({ onStart }: { onStart: () => void }) {
   const router = useRouter();
   return (
     <Column>
       <Header headline="Add your schedule to plan today." subline="Upload a course timetable or any calendar file. Cue fits study sessions around it." />
       <Card className="gap-0 py-0">
-        <div className="flex flex-col gap-5 p-5 md:flex-row md:items-end md:justify-between md:gap-8 md:px-7 md:py-6">
-          <div className="flex min-w-0 flex-col gap-3.5">
-            <p className="text-sm leading-[18px] text-pretty text-graphite">An .ics file, a PDF or a screenshot of your timetable</p>
-            <h2 className="text-lg leading-6 font-normal tracking-[-0.01em] text-ink">Cue plans reviews, test prep and work blocks around your lectures.</h2>
-          </div>
+        <Empty className="gap-0 rounded-none p-5 md:min-h-[150px] md:px-7 md:py-6">
           {/* Capture runs before the sample button's own handler, so focus can follow the data in. */}
-          <div className="flex shrink-0 flex-wrap gap-2 max-md:flex-col" onClickCapture={onStart}>
+          <EmptyContent className="max-w-none gap-2 max-md:items-stretch md:w-auto md:flex-row" onClickCapture={onStart}>
             <Button className="max-md:h-11" onClick={() => router.push(href.calendar({ add: true }))}>
               Upload calendar
             </Button>
             <SampleSemesterButton className="max-md:h-11" />
-          </div>
-        </div>
+          </EmptyContent>
+        </Empty>
       </Card>
     </Column>
   );
