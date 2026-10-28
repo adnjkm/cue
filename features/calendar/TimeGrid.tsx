@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { EpochMs, LocalDate, Zone } from "@/lib/domain";
 import { ItemPopover } from "./ItemPopover";
 import { layoutLanes } from "./lanes";
-import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineItem, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type TimedItem } from "./model";
+import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineItem, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type DueItem, type TimedItem } from "./model";
 import { tid } from "./testids";
 
 const HOURS = Array.from({ length: 23 }, (_, i) => i + 1);
@@ -54,7 +54,8 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new period or Today resets the scroll, not each minute
   }, [scrollKey]);
 
-  const nav = useMemo(() => (days ?? []).map((d) => [...d.due.filter((e) => e.kind === "deadline").map((e) => e.id), ...d.timed.map((t) => t.id)]), [days]);
+  const due = useMemo(() => (days ?? []).map((d) => dueCell(d, day)), [days, day]);
+  const nav = useMemo(() => (days ?? []).map((d, col) => [...due[col].nav, ...d.timed.map((t) => t.id)]), [days, due]);
   const [active, setActive] = useState<string | null>(null);
   const flat = nav.flat();
   const fallback = days?.flatMap((d) => d.timed).find((t) => t.kind === "block" && t.look === "now")?.id ?? flat[0] ?? null;
@@ -86,6 +87,8 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
 
   const longDay = (d: LocalDate) => fmtDay(d, zone, "long");
   const dueRow = days?.some((d) => d.due.length > 0);
+  /** A cell with more than one line stacks from the top, 6px in, so the row is 12 + n * 24 + (n - 1) * 4 tall (calendar.md 5). */
+  const stacked = !day && due.some((c) => c.shown.length + (c.hidden > 0 ? 1 : 0) > 1);
 
   return (
     <div
@@ -109,37 +112,59 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
         </div>
       </div>
       <div ref={dueRef} className="shrink-0 overflow-hidden">
-        <div role="row" className="flex min-h-9 items-center border-b border-rule" style={{ minWidth }}>
+        <div role="row" className={cn("flex min-h-9 border-b border-rule", stacked ? "items-start" : "items-center")} style={{ minWidth }}>
           <div aria-hidden className="sticky left-0 z-10 shrink-0 self-stretch bg-page" style={{ width: gutter }} />
           {dayList.map((d, col) => {
-            const items = days?.[col];
+            const cell = due[col];
+            const chip = (e: DueItem, inRow: boolean) =>
+              e.kind === "note" ? (
+                <p key={e.id} className="truncate px-[7px] py-1 text-sm leading-4 text-graphite">
+                  {e.text}
+                </p>
+              ) : (
+                <ItemPopover
+                  key={e.id}
+                  subject={{ kind: "deadline", event: e }}
+                  zone={zone}
+                  now={now}
+                  trigger={{
+                    "aria-label": `${deadlineTitle(e, zone)}, ${longDay(d)}`,
+                    ...(inRow ? { "data-nav": `${col}:${cell.nav.indexOf(e.id)}`, "data-id": e.id, tabIndex: e.id === current ? 0 : -1 } : {}),
+                    "data-kind": "deadline",
+                    className: cn(
+                      "flex h-6 min-w-0 cursor-pointer items-center rounded-xs border border-border bg-page px-[7px] text-left text-sm leading-4 font-medium text-ink transition-colors duration-[120ms] ease-standard hover:bg-wash focus-visible:outline-offset-1 data-[popup-open]:border-ink",
+                      day && inRow ? "max-w-full shrink-0" : "w-full",
+                    ),
+                    children: <DeadlineLabel text={deadlineItem(e, zone)} course={e.courseId} />,
+                  }}
+                />
+              );
             return (
-              <div key={d} role="cell" aria-label={`Due ${longDay(d)}`} className={cn("flex min-w-0 flex-1 basis-0 gap-1 pr-1 pl-[5px]", day ? "flex-row flex-wrap" : "flex-col", dueRow && "py-[5px]")}>
-                {items?.due.map((e, i) =>
-                  e.kind === "note" ? (
-                    <p key={e.id} className="truncate px-[7px] py-1 text-sm leading-4 text-graphite">
-                      {e.text}
-                    </p>
-                  ) : (
-                    <ItemPopover
-                      key={e.id}
-                      subject={{ kind: "deadline", event: e }}
-                      zone={zone}
-                      now={now}
-                      trigger={{
-                        "aria-label": `${deadlineTitle(e, zone)}, ${longDay(d)}`,
-                        "data-nav": `${col}:${i}`,
-                        "data-kind": "deadline",
-                        "data-id": e.id,
-                        tabIndex: e.id === current ? 0 : -1,
-                        className: cn(
-                          "flex h-6 min-w-0 cursor-pointer items-center rounded-xs border border-border bg-page px-[7px] text-left text-sm leading-4 font-medium text-ink transition-colors duration-[120ms] ease-standard hover:bg-wash focus-visible:outline-offset-1 data-[popup-open]:border-ink",
-                          day ? "max-w-full shrink-0" : "w-full",
-                        ),
-                        children: <DeadlineLabel text={deadlineItem(e, zone)} course={e.courseId} />,
-                      }}
-                    />
-                  ),
+              <div key={d} role="cell" aria-label={`Due ${longDay(d)}`} className={cn("flex min-w-0 flex-1 basis-0 gap-1 pr-1 pl-[5px]", day ? "flex-row flex-wrap" : "flex-col", stacked ? "py-1.5" : dueRow && "py-[5px]")}>
+                {cell?.shown.map((e) => chip(e, true))}
+                {cell?.hidden > 0 && (
+                  <Popover>
+                    <PopoverTrigger
+                      data-nav={`${col}:${cell.nav.length - 1}`}
+                      data-id={cell.moreId}
+                      tabIndex={cell.moreId === current ? 0 : -1}
+                      aria-label={`+${cell.hidden} more due ${longDay(d)}`}
+                      className="h-4 cursor-pointer self-start rounded-xs px-2 text-left text-sm leading-4 text-graphite hover:text-ink focus-visible:outline-offset-1"
+                    >
+                      +{cell.hidden} more
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" sideOffset={8} className="w-[280px] max-w-[calc(100vw-32px)] gap-2 rounded-lg p-4 text-sm leading-5">
+                      <p className="leading-4 font-medium text-ink">{longDay(d)}</p>
+                      <ul className="flex flex-col gap-1">
+                        {days![col].due.map((e) => (
+                          <li key={e.id}>{chip(e, false)}</li>
+                        ))}
+                      </ul>
+                      <Link href={href.calendar({ view: "day", date: d })} className="self-start text-ink underline underline-offset-4">
+                        View day
+                      </Link>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
             );
@@ -174,13 +199,23 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
           </div>
           {dayList.map((d, col) => (
             <div key={d} role="cell" className="relative h-[1200px] min-w-0 flex-1 basis-0 border-l border-rule">
-              {days?.[col] && <DayColumn items={days[col]} col={col} dueCount={days[col].due.filter((e) => e.kind === "deadline").length} zone={zone} now={now} day={day} current={current} recording={recording} label={longDay(d)} />}
+              {days?.[col] && <DayColumn items={days[col]} col={col} dueCount={due[col].nav.length} zone={zone} now={now} day={day} current={current} recording={recording} label={longDay(d)} />}
             </div>
           ))}
         </div>
       </div>
     </div>
   );
+}
+
+/** A week due cell shows two items, then `+N more` under the second; day view lays every chip out in a row (calendar.md 5). */
+const DUE_CAP = 2;
+
+function dueCell(d: DayItems, day: boolean) {
+  const shown = day || d.due.length <= DUE_CAP ? d.due : d.due.slice(0, DUE_CAP);
+  const hidden = d.due.length - shown.length;
+  const moreId = `more:${d.day}`;
+  return { shown, hidden, moreId, nav: [...shown.flatMap((e) => (e.kind === "deadline" ? [e.id] : [])), ...(hidden > 0 ? [moreId] : [])] };
 }
 
 /** Where an item sits in its column, in minutes from the top; deadlines sit above the hours. */
