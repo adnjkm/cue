@@ -67,17 +67,46 @@ export default async function practice(t) {
   await expect(bar.getByRole("button", { name: "Question 1, correct" })).toBeFocused();
   await expect(page.getByText("Question 7 · Multiple choice · 2 marks")).toBeVisible();
 
+  const eyebrow = page.locator("article").getByText(/^Question \d+ · /);
+  await bar.getByRole("button", { name: "Question 8, not answered" }).click();
+  await expect(eyebrow).toHaveText(/^Question 8 · /);
+  await expect(bar.getByRole("button", { name: /^Question 8, current/ })).toBeFocused();
+  await page.keyboard.press("2");
+  await expect(choices.getByRole("button").nth(1)).toContainText(/Your answer · (correct|wrong|checking…)/);
+  const q8Resources = page.getByRole("list", { name: "Relevant resources" }).getByRole("button");
+  await expect(q8Resources).toHaveCount(3, { timeout: 15_000 });
+  await expect(q8Resources).toHaveText([/Lecture 8 slides · Slide \d+$/, /Lecture 8 slides · Slide \d+$/, /Lecture 8 slides · Slide \d+$/]);
+  await expect(solution).toContainText("The original exam had no answer key; Cue wrote this from Lecture 8.");
+  await solution.getByRole("button", { name: "Next unanswered" }).click();
+  await expect(eyebrow).toHaveText(/^Question 10 · /);
+
   await page.getByRole("combobox", { name: "Topic" }).click();
   await page.getByRole("option", { name: "Big-O & efficiency" }).click();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Topic" })).toBeFocused();
   await expect(bar.getByRole("button", { name: /^Question \d+,/ })).toHaveCount(5);
-  await expect(page.getByText("Question 5 · Multiple choice · 2 marks")).toBeVisible();
+  await expect(eyebrow).toHaveText(/^Question 10 · /);
+  await page.keyboard.press("ArrowRight");
+  await expect(eyebrow).toHaveText(/^Question 11 · /);
+  await page.keyboard.press("ArrowLeft");
+  await expect(eyebrow).toHaveText(/^Question 10 · /);
 
-  await page.getByRole("button", { name: "Ask why" }).click();
+  const askToggle = page.getByRole("button", { name: "Ask why" });
   const ask = page.getByRole("complementary", { name: "Ask why" });
-  await ask.getByRole("textbox", { name: "Ask about this question" }).fill("What is this question testing?");
-  await ask.getByRole("textbox", { name: "Ask about this question" }).press("Enter");
+  const composer = ask.getByRole("textbox", { name: "Ask about this question" });
+  await askToggle.click();
+  await expect(askToggle).toHaveAttribute("aria-pressed", "true");
+  await expect(composer).toBeFocused();
+  await composer.fill("What is this question testing?");
+  await composer.press("Enter");
   await expect(ask.getByRole("log")).toContainText("Here's", { timeout: 15_000 });
-  await page.getByRole("button", { name: "Ask why" }).click();
+  await composer.press("Escape");
+  await expect(ask).toHaveCount(0);
+  await expect(askToggle).toBeFocused();
+  await page.locator("main").first().click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("?");
+  await expect(composer).toBeFocused();
+  await askToggle.click();
   await expect(ask).toHaveCount(0);
 
   await page.getByRole("button", { name: "Write questions" }).first().click();
@@ -117,6 +146,11 @@ export default async function practice(t) {
 
   await migratedHarness(t);
 
+  await page.getByRole("combobox", { name: "Topic" }).click();
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/practice\/set_[\w-]+$/);
   await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/\/practice$/);
   await expect(page.getByRole("region", { name: "Written by Cue" }).getByRole("link", { name: /^ECO101 · Price elasticity of demand/ })).toBeVisible();

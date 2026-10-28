@@ -28,6 +28,17 @@ import { onwardTarget, reduceView, type ViewAction } from "./view";
 
 const ALL = "__all__";
 
+/** The bar's own roving keys; every other shortcut works with a tile focused. */
+const BAR_KEYS = new Set(["ArrowLeft", "ArrowRight", "Home", "End"]);
+
+/**
+ * Base UI keeps a closed Select's listbox mounted under a hidden positioner, and a closing popup stays visible
+ * through its exit animation with `data-closed`, so only a visible popup that is not closing counts.
+ */
+function overlayOpen(): boolean {
+  return [...document.querySelectorAll('[role="dialog"], [role="alertdialog"], [role="listbox"]')].some((el) => el.checkVisibility() && !el.closest("[data-closed]"));
+}
+
 function AskPanel({ question, onClose }: { question: Question; onClose?: () => void }) {
   const chat = useChat({ thread: threadKey.question(question.id), scope: { kind: "question", questionId: question.id } });
   return (
@@ -310,6 +321,8 @@ function Screen({ data }: { data: SetData }) {
   const router = useRouter();
   const root = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLElement>(null);
+  const askColumn = useRef<HTMLElement>(null);
+  const askToggle = useRef<HTMLButtonElement>(null);
   const wide = useMediaQuery("(min-width: 1280px)", true);
   const [asking, setAsking] = useState(false);
   const [writeOpen, setWriteOpen] = useState(false);
@@ -344,6 +357,11 @@ function Screen({ data }: { data: SetData }) {
     root.current?.focus({ preventScroll: true });
   }, []);
 
+  // The sheet below 1280 focuses its own composer; the column is not a dialog, so it is focused here.
+  useEffect(() => {
+    if (asking && wide) askColumn.current?.querySelector("textarea")?.focus();
+  }, [asking, wide]);
+
   if (!question) return <Writing data={data} />;
 
   const attempt = attempts.get(question.id);
@@ -354,6 +372,10 @@ function Screen({ data }: { data: SetData }) {
     return g.status === "answered" && g.correct;
   }).length;
   const leave = () => (window.history.length > 1 ? router.back() : router.push(href.practice()));
+  const closeAsk = () => {
+    if (askColumn.current?.contains(document.activeElement)) askToggle.current?.focus();
+    setAsking(false);
+  };
   const answer = (label: string) => {
     setAnsweredNow(question.id);
     void choose(question, label);
@@ -362,19 +384,20 @@ function Screen({ data }: { data: SetData }) {
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
     // A sheet or dialog can receive its Escape before focus has moved into it; the key is the overlay's, not ours.
-    if (document.querySelector('[role="dialog"], [role="alertdialog"], [role="listbox"]')) return;
+    if (overlayOpen()) return;
     const t = e.target as HTMLElement;
-    if (t.closest("input, textarea, select, [contenteditable], [role=listbox], [role=menu], [role=dialog]")) return;
-    if (e.key === "Escape") {
-      if (asking) setAsking(false);
-      else leave();
+    if (e.key === "Escape" && asking) {
+      closeAsk();
       return;
     }
-    if (t.closest(`[data-testid=${tid.bar}]`)) return;
+    if (t.closest("input, textarea, select, [contenteditable], [role=listbox], [role=menu], [role=dialog]")) return;
+    if (e.key === "Escape") return leave();
+    if (BAR_KEYS.has(e.key) && t.closest(`[data-testid=${tid.bar}]`)) return;
     if (e.key === "ArrowLeft") return dispatch({ type: "step", by: -1 });
     if (e.key === "ArrowRight") return dispatch({ type: "step", by: 1 });
     if (e.key === "?") {
       e.preventDefault();
+      if (asking && wide) askColumn.current?.querySelector("textarea")?.focus();
       setAsking(true);
       return;
     }
@@ -434,7 +457,7 @@ function Screen({ data }: { data: SetData }) {
         </SelectContent>
       </Select>
       <Tooltip>
-        <TooltipTrigger render={<Button variant="secondary" aria-pressed={asking} aria-keyshortcuts="?" onClick={() => setAsking((a) => !a)} />}>Ask why</TooltipTrigger>
+        <TooltipTrigger render={<Button ref={askToggle} variant="secondary" aria-pressed={asking} aria-keyshortcuts="?" onClick={() => setAsking((a) => !a)} />}>Ask why</TooltipTrigger>
         <TooltipContent>
           Ask about this question <Kbd>?</Kbd>
         </TooltipContent>
@@ -531,8 +554,8 @@ function Screen({ data }: { data: SetData }) {
           </article>
         </main>
         {asking && wide && (
-          <aside aria-label="Ask why" className="flex w-[360px] shrink-0 flex-col pt-4">
-            <AskPanel key={question.id} question={question} onClose={() => setAsking(false)} />
+          <aside ref={askColumn} aria-label="Ask why" className="flex w-[360px] shrink-0 flex-col pt-4">
+            <AskPanel key={question.id} question={question} onClose={closeAsk} />
           </aside>
         )}
       </div>
