@@ -30,10 +30,10 @@ export function LectureScreen({ id, focusAtMs }: { id: LectureId | null; focusAt
   const base = usePrefs("foundation");
   const rec = useRecorder();
 
-  if (!data || !prefs || !base) return <div data-testid={tid.main} aria-busy="true" className="flex-1" />;
+  if (!data || !prefs || !base) return <main data-testid={tid.main} aria-busy="true" className="flex-1" />;
   if (!data.lecture) {
     return (
-      <div data-testid={tid.main} className="flex flex-1 flex-col px-10 pt-7 pb-8 max-md:px-4 max-md:pt-4">
+      <main data-testid={tid.main} className="flex flex-1 flex-col px-10 pt-7 pb-8 max-md:px-4 max-md:pt-4">
         <h1 className="sr-only">Lecture not found</h1>
         <EmptyState
           title="This lecture isn't on this device."
@@ -44,7 +44,7 @@ export function LectureScreen({ id, focusAtMs }: { id: LectureId | null; focusAt
             </Link>
           }
         />
-      </div>
+      </main>
     );
   }
 

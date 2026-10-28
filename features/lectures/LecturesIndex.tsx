@@ -66,7 +66,7 @@ export function LecturesIndex() {
     return { lectures, courses: courses.sort((a, b) => a.id.localeCompare(b.id)), events, hints };
   }, []);
 
-  if (!data) return <main data-testid={tid.index} aria-busy="true" className="flex-1" />;
+  if (!data) return <div data-testid={tid.index} aria-busy="true" className="flex-1" />;
   const zone = zoneOf(currentZone());
   const eventsById = new Map(data.events.map((e) => [e.id, e]));
   const lecturesByEvent = new Set(data.lectures.flatMap((l) => (l.eventId ? [l.eventId] : [])));
@@ -95,7 +95,7 @@ export function LecturesIndex() {
     .filter((g) => g.rows.length > 0);
 
   return (
-    <main data-testid={tid.index} className="flex max-w-[1152px] flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
+    <div data-testid={tid.index} className="flex max-w-[1152px] flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
       <header className="flex min-h-8 flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Lecture notes</h1>
         {data.courses.length > 0 && <Button onClick={() => setRecording(true)}>Record a lecture</Button>}
@@ -145,6 +145,6 @@ export function LecturesIndex() {
         </div>
       )}
       {recording && <RecordLectureDialog open={recording} onOpenChange={setRecording} courses={data.courses} suggested={(happeningNow?.courseId as CourseId | undefined) ?? null} />}
-    </main>
+    </div>
   );
 }

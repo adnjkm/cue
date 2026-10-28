@@ -174,7 +174,7 @@ export function NoteTaker({
   const [showAnswer, setShowAnswer] = useState(false);
   const answerChat = latestExchange(chat, () => setShowAnswer(true));
 
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLElement>(null);
   const answer = useRef<HTMLDivElement>(null);
   const { ref: listRef, stuck, onScroll: onListScroll, toEnd, hold } = useStickToEnd<HTMLOListElement>();
   const flagButtons = useRef(new Map<number, HTMLButtonElement>());
@@ -427,7 +427,7 @@ export function NoteTaker({
   );
 
   return (
-    <div
+    <main
       ref={root}
       tabIndex={-1}
       data-testid={tid.main}
@@ -438,6 +438,6 @@ export function NoteTaker({
       <p aria-live="polite" className="sr-only">
         {attached ? rec.announcement : ""}
       </p>
-    </div>
+    </main>
   );
 }

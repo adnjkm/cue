@@ -209,7 +209,7 @@ export function SavedNotes({
   );
 
   return (
-    <div data-testid={tid.main} className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(16px,env(safe-area-inset-bottom))]">
+    <main data-testid={tid.main} className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(16px,env(safe-area-inset-bottom))]">
       <Toolbar title={lectureTitle(lecture)}>
         <StatusPill kind="saved" label="Saved" />
         <span className="text-sm leading-4 text-graphite tabular-nums">{wide ? whenText(lecture, event) : fmtStamp(lecture.state.status === "saved" ? lecture.state.capturedMs : 0)}</span>
@@ -234,6 +234,6 @@ export function SavedNotes({
         </div>
       </Toolbar>
       <Columns main={left} mainLabel="Notes" related={<RelatedList links={orderLinks(links, "saved")} style="saved" />} relatedCount={links.length} />
-    </div>
+    </main>
   );
 }

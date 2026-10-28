@@ -51,6 +51,8 @@ const ringOf = (el) => {
 
 async function shot(page, name, size = WIDE) {
   await page.setViewportSize(size);
+  const mains = await page.locator("main").count();
+  check(mains === 1, `${name}: one main landmark (${mains})`);
   await page.mouse.move(size.width / 2, size.height - 10);
   await page.waitForTimeout(150);
   await page.screenshot({ path: path.join(out, `${name}-${size.width}.png`), animations: "disabled" });
