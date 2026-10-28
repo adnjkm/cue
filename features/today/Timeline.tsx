@@ -57,7 +57,7 @@ function TrailingView({ trailing, onReschedule }: { trailing: Trailing; onResche
                 setBusy(false);
               }
             }}
-            className="pointer-events-auto relative h-auto rounded-xs border-0 p-0 align-baseline leading-[18px] after:absolute after:-inset-x-1 after:-inset-y-3 focus-visible:outline-offset-1"
+            className="pointer-events-auto relative h-auto rounded-xs border-0 p-0 align-baseline leading-[18px] after:absolute after:-inset-x-1 after:-inset-y-[13px] focus-visible:outline-offset-1"
           >
             Reschedule
           </Button>

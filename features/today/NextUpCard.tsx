@@ -38,7 +38,9 @@ function chipsFor(block: StudyBlock, materials: BlockMaterials, start: boolean):
   ];
 }
 
+/** 44px touch targets on phones without changing the 28px chips Paper draws. */
 const chipHit = "relative after:absolute after:-inset-y-2 after:inset-x-0 md:after:hidden";
+const press = "transition-[color,background-color,transform] motion-safe:active:scale-[0.98]";
 
 /** The next session with its materials and the one primary action on the screen. */
 export function NextUpCard({
@@ -85,7 +87,7 @@ export function NextUpCard({
             <ul aria-label="Materials" className="flex flex-wrap gap-2 max-md:gap-y-4">
               {chips.map((c) => (
                 <li key={c.key} className="flex">
-                  <Link href={c.href} className={cn(buttonVariants({ variant: "outline", size: "chip" }), "motion-safe:active:scale-[0.98]", chipHit)}>
+                  <Link href={c.href} className={cn(buttonVariants({ variant: "outline", size: "chip" }), press, chipHit)}>
                     {c.label}
                   </Link>
                 </li>
@@ -94,7 +96,7 @@ export function NextUpCard({
                 <li className="flex">
                   <Link
                     href={practiceHref}
-                    className={cn(buttonVariants({ variant: "ghost", size: "chip" }), "px-[9px] text-graphite hover:text-ink motion-safe:active:scale-[0.98]", chipHit)}
+                    className={cn(buttonVariants({ variant: "ghost", size: "chip" }), "px-[9px] text-graphite hover:text-ink", press, chipHit)}
                   >
                     + {practice.count} practice {practice.count === 1 ? "Q" : "Qs"}
                   </Link>
@@ -105,7 +107,7 @@ export function NextUpCard({
         </div>
         <Link
           href={href.study(block.id, { start: true })}
-          className={cn(buttonVariants(), "font-medium motion-safe:active:scale-[0.98] max-md:h-11 max-md:w-full")}
+          className={cn(buttonVariants(), "font-medium max-md:h-11 max-md:w-full", press)}
         >
           {inProgress ? "Resume session" : otherDay ? "Start early" : "Start session"}
           <ArrowRight size={12} strokeWidth={2.5} aria-hidden="true" />

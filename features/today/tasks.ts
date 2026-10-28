@@ -25,7 +25,7 @@ const briefOutput = z.object({
 
 type BriefInput = z.infer<typeof briefInput>;
 
-const BRIEF_SYSTEM = `You write the two-sentence brief at the top of Cue's Today screen. Cue is a study planner; the reader is a university student opening it to see what to do now.
+const BRIEF_SYSTEM = `You write the brief at the top of Cue's Today screen: a headline and a subline under it. Cue is a study planner; the reader is a university student who opened it to see what to do now.
 
 You receive today's study sessions in order (title, time, reason, status), the test that shaped the plan when there is one, and a rule-based draft that is already correct.
 

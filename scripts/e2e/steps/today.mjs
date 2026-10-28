@@ -69,5 +69,19 @@ export default async function today(t) {
   await expect(page.getByText("Moved to 11:45am.")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
 
+  await page.getByRole("button", { name: "Data", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Reset all data" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Reset all data" }).click();
+  const h1 = page.getByRole("heading", { level: 1 });
+  await expect(h1).toHaveText("Add your schedule to plan today.");
+  await expect(page.getByText("Upload a course timetable or any calendar file. Cue fits study sessions around it.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Upload calendar" }).click();
+  await expect(page).toHaveURL("/calendar?add=1");
+  await page.goBack();
+  await page.getByRole("button", { name: "Try the sample semester" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(h1).not.toHaveText("Add your schedule to plan today.", { timeout: 15_000 });
+  await expect(h1).toBeFocused();
+
   await t.checkNarrow();
 }
