@@ -213,14 +213,15 @@ function mockSection(input: SectionInput): GuideBlockDraft[] {
   if (passages.length === 0) {
     return [{ kind: "prose", text: `Cue found no course material about ${section.toLowerCase()} yet. Add the slides or notes that cover it, then rewrite this section.`, refs: [] }];
   }
+  const titleWords = section.toLowerCase().match(/[a-z]{4,}/g) ?? [];
+  const shown = codeSlides(passages).find((s) => s.body && titleWords.some((w) => s.heading.includes(w)));
+  const told = passages.filter((p) => p.id !== shown?.id);
   const blocks: GuideBlockDraft[] = [];
-  for (let i = 0; i < Math.min(passages.length, 6) && blocks.length < 3; i += 2) {
-    const group = passages.slice(i, i + 2);
+  for (let i = 0; i < Math.min(told.length, 6) && blocks.length < 3; i += 2) {
+    const group = told.slice(i, i + 2);
     const text = group.flatMap((p) => sentences(p.text).slice(0, 2)).join(" ");
     if (text) blocks.push({ kind: "prose", text, refs: cite(group.map((p) => p.id)) });
   }
-  const titleWords = section.toLowerCase().match(/[a-z]{4,}/g) ?? [];
-  const shown = codeSlides(passages).find((s) => s.body && titleWords.some((w) => s.heading.includes(w)));
   if (shown) blocks.splice(1, 0, { kind: "code", lang: "python", text: shown.code, caption: shown.body, refs: cite([shown.id]) });
   const hint = hints[0];
   const caution = passages.flatMap((p) => sentences(p.text).filter((s) => /\b(not|never|forget|mistake|instead)\b/i.test(s)).map((s) => ({ s, id: p.id })))[0];
