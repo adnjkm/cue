@@ -9,6 +9,7 @@ const FEATURES = WORKSTREAMS.filter((w) => w.key !== "foundation").map((w) => w.
 const BASE_UI = { group: ["@base-ui/react", "@base-ui/react/*"], message: "Use the shadcn components in @/components/ui." };
 const INTERNAL = { group: ["@/lib/*/internal", "@/lib/*/internal/**"], message: "lib modules expose their index only." };
 const SOURCE = ["**/*.{ts,tsx,mjs}"];
+const PAYLOAD = { group: ["@/lib/domain/payload/*"], message: "Shared UI takes payload types from @/lib/domain, not a feature's payload file." };
 
 function featureImports(key) {
   return [
@@ -32,6 +33,7 @@ export default defineConfig([
     },
   },
   { files: SOURCE, ignores: ["components/ui/**"], rules: { "no-restricted-imports": ["error", { patterns: [BASE_UI, INTERNAL] }] } },
+  { files: ["components/**/*.{ts,tsx}", "hooks/**/*.{ts,tsx}"], ignores: ["components/ui/**"], rules: { "no-restricted-imports": ["error", { patterns: [BASE_UI, INTERNAL, PAYLOAD] }] } },
   ...WORKSTREAMS.map((w) => ({
     files: w.owns.filter((g) => !g.startsWith("!")).filter((g) => /\.(ts|tsx|mjs)$|\*\*$/.test(g)),
     ignores: [...w.owns.filter((g) => g.startsWith("!")).map((g) => g.slice(1)), "**/*.test.ts", "lib/sample/index.ts", "lib/db/**"],
