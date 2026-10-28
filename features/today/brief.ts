@@ -23,7 +23,7 @@ export function isRemaining(status: BlockStatus): boolean {
 const UNNAMED = /^(Lec|Lecture)\b/;
 
 /** What the headline calls a block: "recursion", "memory & learning", "the Lecture 9 review", "PS4". */
-export function sessionPhrase(b: StudyBlock): string {
+function sessionPhrase(b: StudyBlock): string {
   const { anchor, topic } = b;
   switch (anchor.kind) {
     case "review":
@@ -63,8 +63,7 @@ function partOfDay(t: EpochMs, zone: Zone): "morning" | "afternoon" | "evening" 
   return m < 12 * 60 ? "morning" : m < 17 * 60 ? "afternoon" : "evening";
 }
 
-/** "today", "tomorrow", "yesterday" or the weekday, relative to `today`. */
-export function relativeDay(day: LocalDate, today: LocalDate, zone: Zone): string {
+function relativeDay(day: LocalDate, today: LocalDate, zone: Zone): string {
   const d = daysBetween(today, day);
   if (d === 0) return "today";
   if (d === 1) return "tomorrow";

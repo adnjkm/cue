@@ -128,7 +128,6 @@ function blockRow(block: StudyBlock, f: RowFacts): TodayRow {
   }
 }
 
-/** Today's timeline: every timed event and study block, by start. */
 export function timelineRows(f: RowFacts): TodayRow[] {
   return f.agenda.map((item) => (item.kind === "event" ? eventRow(item.event, f) : blockRow(item.block, f)));
 }

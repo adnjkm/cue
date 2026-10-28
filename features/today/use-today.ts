@@ -19,7 +19,8 @@ export interface TodayFacts {
 export function useTodayFacts(blocks: readonly StudyBlock[], lectureEvents: readonly EventId[]): TodayFacts | undefined {
   const blockIds = blocks.map((b) => b.id);
   const testIds = [...new Set(blocks.flatMap((b) => (b.why.boostedBy ? [b.why.boostedBy.test] : [])))];
-  const key = JSON.stringify([blockIds, lectureEvents, testIds]);
+  // Topics are in the key because blockMaterials matches handouts and practice by topic, and a saved lecture can rename one.
+  const key = JSON.stringify([blocks.map((b) => [b.id, b.topic.full]), lectureEvents, testIds]);
   return useLive(async () => {
     const [lectures, sessions, materials, tests] = await Promise.all([
       lectureEvents.length ? db.lectures.where("eventId").anyOf(lectureEvents).toArray() : [],
