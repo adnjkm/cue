@@ -6,3 +6,8 @@ next-env.d.ts
 .verify/
 .DS_Store
 .data/
+scripts/fixtures/chunks15/
+scripts/fixtures/chunks30/
+scripts/fixtures/mediarecorder/
+scripts/fixtures/lecture-noisy.wav
+scripts/fixtures/lecture.mp3
