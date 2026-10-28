@@ -47,25 +47,23 @@ function AddMaterialButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** ] and [ page through sections when focus is in the guide or nowhere, never in a field, a popup or the app nav. */
+/** ] and [ page through sections only while focus is inside the guide's root, which takes focus on arrival, and never in a field or a popup. */
 function useSectionKeys(root: React.RefObject<HTMLElement | null>, courseId: CourseId, located: Located | null) {
   const router = useRouter();
-  const prev = located?.prev?.id;
-  const next = located?.next?.id;
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || (e.key !== "]" && e.key !== "[")) return;
-      const target = e.target instanceof HTMLElement ? e.target : null;
-      const inGuide = target === document.body || (target !== null && (root.current?.contains(target) ?? false));
-      if (!inGuide || target?.closest("input, textarea, select, [contenteditable], [role=combobox], [role=listbox], [role=menu], [role=dialog]")) return;
-      const to = e.key === "]" ? next : prev;
-      if (!to) return;
-      e.preventDefault();
-      router.push(href.guide(courseId, to));
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [root, router, courseId, prev, next]);
+    root.current?.focus({ preventScroll: true });
+  }, [root]);
+  return (e: React.KeyboardEvent) => {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || (e.key !== "]" && e.key !== "[")) return;
+    // Popups portal out of the root's DOM but their keys still bubble through it in React, and a dialog can
+    // take a key before focus has moved into it.
+    if (document.querySelector("[role=dialog], [role=alertdialog]")) return;
+    if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable], [role=combobox], [role=listbox], [role=menu]")) return;
+    const to = e.key === "]" ? located?.next?.id : located?.prev?.id;
+    if (!to) return;
+    e.preventDefault();
+    router.push(href.guide(courseId, to));
+  };
 }
 
 export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: string }) {
@@ -93,7 +91,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
     if (sectionId) void markRead(courseId, sectionId);
   }, [courseId, sectionId]);
 
-  useSectionKeys(root, courseId, located);
+  const onSectionKey = useSectionKeys(root, courseId, located);
 
   const shownCourse = useRef(courseId);
   useEffect(() => {
@@ -212,9 +210,13 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
   return (
     <div
       ref={root}
+      role="region"
+      aria-label={`${courseId} · Study guide`}
+      tabIndex={-1}
+      onKeyDown={onSectionKey}
       data-testid={tid.main}
       aria-busy={!data || undefined}
-      className={cn("flex min-w-0 flex-col gap-6 px-4 pt-6 pb-12 md:px-10 md:pt-7", located && "max-md:pb-0")}
+      className={cn("flex min-w-0 flex-col gap-6 px-4 pt-6 pb-12 outline-none md:px-10 md:pt-7", located && "max-md:pb-0")}
     >
       <Toolbar
         courseId={courseId}
