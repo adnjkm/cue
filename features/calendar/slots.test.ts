@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ids, type BlockStatus, type CalendarEvent, type EpochMs, type Interval, type PlanInput, type TimeZone, type WallTime } from "@/lib/domain";
-import { blockStatus, schedule } from "@/lib/plan";
-import { samplePlanInput } from "@/lib/sample/plan-input";
+import { DEFAULT_PLAN_PREFS, ids, type BlockStatus, type CalendarEvent, type EpochMs, type Interval, type PlanInput, type TimeZone, type WallTime } from "@/lib/domain";
+import { blockStatus, planInputFrom, schedule } from "@/lib/plan";
+import { sampleRows } from "@/lib/sample";
 import { fmtRange, zoneOf } from "@/lib/time";
 import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
 
@@ -11,7 +11,7 @@ const at = (iso: string) => Date.parse(iso) as EpochMs;
 const label = (iv: Interval | null) => (iv ? `${zone.dayOf(iv.start)} ${fmtRange(iv, zone)}` : null);
 
 function setup(now: EpochMs, edit: (input: PlanInput) => PlanInput = (i) => i) {
-  const input = edit(samplePlanInput({ now, zone: ZONE }));
+  const input = edit(planInputFrom({ ...sampleRows({ now, zone: ZONE }).rows, zone: ZONE, prefs: DEFAULT_PLAN_PREFS }));
   const blocks = schedule(input).blocks;
   const block = (id: string) => blocks.find((b) => b.id === id)!;
   const status = (id: string): BlockStatus => blockStatus(block(id), { now });

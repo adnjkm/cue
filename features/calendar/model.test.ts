@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { EpochMs, LocalDate, PlanOverride, PlanView, TimeZone, WallTime } from "@/lib/domain";
-import { blockStatus, blockTitle, schedule } from "@/lib/plan";
-import { samplePlanInput } from "@/lib/sample/plan-input";
+import { DEFAULT_PLAN_PREFS, type EpochMs, type LocalDate, type PlanOverride, type PlanView, type TimeZone, type WallTime } from "@/lib/domain";
+import { blockStatus, blockTitle, planInputFrom, schedule } from "@/lib/plan";
+import { sampleRows } from "@/lib/sample";
 import { zoneOf } from "@/lib/time";
 import { blockName, boxOf, eventName, itemsByDay, lookSuffix, periodLabel, shiftDate, viewDays } from "./model";
 
 const ZONE = "America/Toronto" as TimeZone;
 const zone = zoneOf(ZONE);
 const NOW = Date.parse("2026-10-27T10:40:00-04:00") as EpochMs;
-const input = samplePlanInput({ now: NOW, zone: ZONE });
+const input = planInputFrom({ ...sampleRows({ now: NOW, zone: ZONE }).rows, zone: ZONE, prefs: DEFAULT_PLAN_PREFS });
 const out = schedule(input);
 const week = viewDays("week", "2026-10-27" as LocalDate);
 
