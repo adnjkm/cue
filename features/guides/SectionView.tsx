@@ -16,7 +16,10 @@ const SKELETON = [PLACEHOLDER_HEIGHTS.prose, PLACEHOLDER_HEIGHTS.formula, PLACEH
 /** Long enough that paging through sections with ] does not start a write for each one passed. */
 const DWELL_MS = 600;
 
-/** Callout-style box in the figure's border: what failed, how to recover. */
+/**
+ * Callout-style box in the figure's border: what failed, how to recover. Try again shows for every error kind,
+ * because a persisted budget or key error would otherwise strand the section after the cap is raised or the key added.
+ */
 export function ErrorBox({ label, error, onRetry, className }: { label: string; error: AiError; onRetry?: () => void; className?: string }) {
   const copy = errorCopy(error);
   return (
@@ -26,7 +29,7 @@ export function ErrorBox({ label, error, onRetry, className }: { label: string; 
         {copy.title}
         {copy.detail && <span className="text-graphite"> {copy.detail}</span>}
       </p>
-      {copy.retry && onRetry && (
+      {onRetry && (
         <Button variant="secondary" onClick={onRetry} className="mt-2">
           Try again
         </Button>
