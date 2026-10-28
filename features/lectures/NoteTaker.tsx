@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { chooseEngine, type EngineChoice } from "./engine";
 import { PARAKEET_WEIGHTS } from "./engine/protocol";
 import { lectureTitle, orderLinks, spokenDuration } from "./format";
-import { Columns, NoteLine, NoticeRow, RelatedList, StatusPill, Toolbar, TranscriptRow, useStickToEnd, type StatusKind } from "./parts";
+import { Columns, NoteLine, NoticeRow, RelatedList, revealFlag, StatusPill, Toolbar, TranscriptRow, useStickToEnd, type StatusKind } from "./parts";
 import { recorder, useRecorder, type RecorderState } from "./recorder";
 import { tid } from "./testids";
 
@@ -342,6 +342,10 @@ export function NoteTaker({
       <ol
         ref={listRef}
         onScroll={onListScroll}
+        onClick={(e) => {
+          const seq = revealFlag(e, flagButtons.current);
+          if (seq !== null) setRovingSeq(seq);
+        }}
         role="log"
         aria-labelledby="live-transcript-label"
         aria-live="off"

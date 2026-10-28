@@ -163,6 +163,7 @@ export function RelatedList({ links, style, scrollRef }: { links: readonly Relat
 /**
  * A transcript line with its Flag action. The action is the row's keyboard stop (roving: one tab stop for
  * the list, arrows move between rows), and it sits over the text lane so the lane keeps Paper's 828 px.
+ * Without hover (touch), the hidden action ignores taps until a tap on the row focuses it: see `revealFlag`.
  */
 export function TranscriptRow({
   segment,
@@ -201,16 +202,29 @@ export function TranscriptRow({
             onClick={() => onToggleFlag(segment)}
             onKeyDown={onRowKey}
             className={cn(
-              "absolute right-4 h-5 cursor-pointer rounded-xs pl-3 text-sm leading-5 font-medium text-ink opacity-0 transition-opacity duration-[120ms] group-hover/line:opacity-100 focus-visible:opacity-100 max-md:right-3",
-              flagged ? "top-3 bg-fill" : "top-1.5 bg-wash",
+              "absolute right-4 flex h-8 cursor-pointer items-center rounded-xs text-sm leading-5 font-medium text-ink opacity-0 transition-opacity duration-[120ms] group-hover/line:opacity-100 focus-visible:opacity-100 max-md:right-3",
+              "[@media(hover:none)]:pointer-events-none [@media(hover:none)]:focus:pointer-events-auto [@media(hover:none)]:focus:opacity-100",
+              flagged ? "top-1.5" : "top-0",
             )}
           >
-            {flagged ? "Unflag" : "Flag"}
+            <span className={cn("pl-3", flagged ? "bg-fill" : "bg-wash")}>{flagged ? "Unflag" : "Flag"}</span>
           </button>
         )
       }
     />
   );
+}
+
+/** On a device without hover, a tap on a transcript row focuses its Flag action, which shows it. */
+export function revealFlag(e: React.MouseEvent<HTMLElement>, buttons: ReadonlyMap<number, HTMLButtonElement>): number | null {
+  if (!window.matchMedia("(hover: none)").matches) return null;
+  const line = (e.target as HTMLElement).closest("li");
+  for (const [seq, button] of buttons) {
+    if (button.closest("li") !== line) continue;
+    button.focus({ preventScroll: true });
+    return seq;
+  }
+  return null;
 }
 
 /** A line in the transcript's lanes that is not a transcript line: `Paused at 38:12`, `Listening…`. */
