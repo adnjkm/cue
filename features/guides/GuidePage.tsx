@@ -10,7 +10,7 @@ import { href } from "@/lib/routes";
 import { useCourseSources } from "@/lib/sources";
 import { AddMaterialDialog } from "@/components/cue";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ContentsNav } from "./ContentsNav";
 import { joinNames, locate, openingSection, type Located } from "./model";
@@ -104,7 +104,7 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
 
   const course = data?.courses.find((c) => c.id === courseId);
   const hasMaterial = (sources?.stamp ?? 0) > 0;
-  const nav = (onNavigate?: () => void, label = true) =>
+  const nav = (onNavigate?: () => void) =>
     data?.guide && located ? (
       <ContentsNav
         courseId={courseId}
@@ -113,7 +113,6 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
         prev={located.prev?.id}
         next={located.next?.id}
         onNavigate={onNavigate}
-        label={label}
       />
     ) : null;
 
@@ -191,11 +190,10 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
     <Sheet open={contentsOpen} onOpenChange={setContentsOpen}>
       <SheetTrigger render={<Button variant="secondary" className="lg:hidden" />}>Contents</SheetTrigger>
       <SheetContent side="left" className="gap-0 overflow-y-auto border-rule p-0 shadow-none data-[side=left]:w-[288px] data-[side=left]:sm:max-w-[288px]">
-        <SheetHeader className="px-6 pt-7 pb-0">
-          <SheetTitle className="py-1.5 text-sm leading-4 tracking-caps text-graphite uppercase">Contents</SheetTitle>
-        </SheetHeader>
-        <div className="flex flex-col gap-3 px-6 pt-3 pb-6">
-          {nav(() => setContentsOpen(false), false)}
+        {/* Visible, SheetTitle's tracking-display would beat tracking-caps, since cn can't tell they conflict (guides-6). */}
+        <SheetTitle className="sr-only">Contents</SheetTitle>
+        <div className="flex flex-col gap-3 px-6 pt-7 pb-6">
+          {nav(() => setContentsOpen(false))}
           <AddMaterialButton
             onClick={() => {
               setContentsOpen(false);

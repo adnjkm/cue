@@ -18,7 +18,6 @@ export function ContentsNav({
   prev,
   next,
   onNavigate,
-  label = true,
 }: {
   courseId: CourseId;
   guide: Guide;
@@ -26,16 +25,13 @@ export function ContentsNav({
   prev?: SectionId;
   next?: SectionId;
   onNavigate?: () => void;
-  label?: boolean;
 }) {
   const shortcut = (id: SectionId | undefined) => (id === next ? "]" : id === prev ? "[" : undefined);
   return (
     <nav aria-label="Contents" className="flex flex-col gap-3">
-      {label && (
-        <p aria-hidden="true" className="py-1.5 text-sm leading-4 tracking-caps text-graphite uppercase">
-          Contents
-        </p>
-      )}
+      <p aria-hidden="true" className="py-1.5 text-sm leading-4 tracking-caps text-graphite uppercase">
+        Contents
+      </p>
       <ol role="list" className="flex flex-col">
         {guide.chapters.map((chapter) => {
           const open = chapter.id === current.chapterId;
