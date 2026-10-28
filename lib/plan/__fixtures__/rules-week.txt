@@ -1,0 +1,46 @@
+Rules-week snapshot: the sample calendar with the authored Paper blocks removed and planFrom moved
+to Mon 26 Oct 00:00. Reviewed once; it changes only in a reviewed commit. Expected differences from Paper:
+- reviews start 15 minutes after the lecture, and a test within 21 days makes them 45 minutes plus a spaced review next day
+- MAT137 reviews land on Tue, Wed and Fri; both reviews of the Thu lecture fall on Fri because Thu reaches the 240-minute cap
+- CSC148 Lecture 10 (Fri) gets reviews on Fri and Sat
+- the A2 work series has block 1 of 2 (Tue) as well as the final push (Wed)
+- the PS4 work block lands Thu 12–2pm, its latest day, because the evening is past due minus 3 hours
+- the ECO101 Wed lecture review moves to Thu because Wed reaches the cap, and its spaced review is unplaced
+- mid-week reviews for CSC148 (Tue), MAT137 (Wed) and PSY100 (Thu)
+- midterm prep 1 and 2 of 6 land on Fri and Sat; prep 3 of 6 is 60 minutes with no note (only the last of a series is the timed past paper)
+
+Mon 26 | CSC148 Lecture | 10–11am · BA 1160 | 10:00 | 11:00
+Mon 26 | Review · Recursion | 11:15am–12pm | 11:15 | 12:00
+Mon 26 | PSY100 Lecture | 2–3pm · MS 2158 | 14:00 | 15:00
+Mon 26 | Review · Memory | 15:15 | 15:45
+Tue 27 | MAT137 Lecture | 9–10am · MP 102 | 09:00 | 10:00
+Tue 27 | Review · Recursion | 10:15–11am | 10:15 | 11:00
+Tue 27 | Review · By parts | 11–11:45am | 11:00 | 11:45
+Tue 27 | Mid-week · CSC | 14:00 | 14:30
+Tue 27 | Work block · A2 | 6–8pm | 18:00 | 20:00
+Wed 28 | CSC148 A2 due 11:59pm
+Wed 28 | Review · By parts | 9–9:45am | 09:00 | 09:45
+Wed 28 | CSC148 Lecture | 10–11am · BA 1160 | 10:00 | 11:00
+Wed 28 | Review · Lec 9 | 11:15am–12pm | 11:15 | 12:00
+Wed 28 | ECO101 Lecture | 1–2pm · SS 2102 | 13:00 | 14:00
+Wed 28 | Mid-week · MAT | 14:15 | 14:45
+Wed 28 | A2 final push | 6–8pm | 18:00 | 20:00
+Thu 29 | ECO101 PS4 due 5pm
+Thu 29 | MAT137 Lecture | 9–10am · MP 102 | 09:00 | 10:00
+Thu 29 | Review · Lec 9 | 10:15–11am | 10:15 | 11:00
+Thu 29 | Review · Elasticity | 11–11:45am | 11:00 | 11:45
+Thu 29 | Work block · PS4 | 12–2pm | 12:00 | 14:00
+Thu 29 | Mid-week · PSY | 14:00 | 14:30
+Fri 30 | PSY100 quiz due 12pm
+Fri 30 | Review · By parts | 9–9:45am | 09:00 | 09:45
+Fri 30 | CSC148 Lecture | 10–11am · BA 1160 | 10:00 | 11:00
+Fri 30 | Review · By parts | 11:15am–12pm | 11:15 | 12:00
+Fri 30 | Review · Lec 10 | 12–12:45pm | 12:00 | 12:45
+Fri 30 | PSY100 Lecture | 2–3pm · MS 2158 | 14:00 | 15:00
+Fri 30 | Midterm prep · 1 of 6 | 3:15–4:15pm | 15:15 | 16:15
+Fri 30 | Review · Ch. 8 | 16:15 | 16:45
+Sat 31 | Review · Lec 10 | 9–9:45am | 09:00 | 09:45
+Sat 31 | End-of-week review | 11am–12:30pm | 11:00 | 12:30
+Sat 31 | Midterm prep · 2 of 6 | 1–2pm | 13:00 | 14:00
+Sun 1 | Midterm prep · 3 of 6 | 1–2pm | 13:00 | 14:00
+Sun 1 | Test 2 prep · 1 of 4 | 2–3pm | 14:00 | 15:00

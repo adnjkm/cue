@@ -17,6 +17,8 @@ export interface StudyBlock extends Interval {
     offsetDays: number;
     /** A test within prefs.boostWindowDays lengthened or added this block (Today's subline). */
     boostedBy?: { test: EventId; daysUntil: number };
+    /** Local day of the anchor event (lecture, test or deadline), so "Due Thu" needs no lookup. */
+    anchorDay?: LocalDate;
   };
   placement: "rule" | "pinned" | "authored" | "locked";
 }
