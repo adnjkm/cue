@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { WORKSTREAMS } from "@/workstreams";
 import { registry } from "./registry";
 
 describe("every registered task", () => {
@@ -28,7 +29,11 @@ describe("every registered task", () => {
     });
   }
 
-  it("covers the shared tasks and Practice's", () => {
-    expect(Object.keys(registry).sort()).toEqual(["ask", "embed", "material.read", "practice.check", "practice.generate", "practice.parse", "practice.solve"]);
+  it("registers the shared tasks, and every other task under its workstream's prefix", () => {
+    const names = Object.keys(registry);
+    const shared = ["ask", "embed", "material.read"];
+    expect(names).toEqual(expect.arrayContaining([...shared, "practice.check", "practice.generate", "practice.parse", "practice.solve"]));
+    const prefixes = WORKSTREAMS.flatMap((w) => (w.tasks ? [`${w.tasks}.`] : []));
+    expect(names.filter((n) => !shared.includes(n) && !prefixes.some((p) => n.startsWith(p)))).toEqual([]);
   });
 });
