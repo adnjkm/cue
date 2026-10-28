@@ -1,6 +1,5 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/calendar/testids";
+import { CalendarPage } from "@/features/calendar/CalendarPage";
 
-export default function CalendarPage() {
-  return <StubPage title="Calendar" testId={tid.main} />;
+export default function Page() {
+  return <CalendarPage />;
 }
