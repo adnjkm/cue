@@ -122,6 +122,12 @@ export function stepRows(plan: SessionPlan, at: { step: number | null; stepsDone
   });
 }
 
+/** A completed session did every step, including a sample row stored before its plan was written. */
+export function doneSteps(session: StudySession | null, plan: SessionPlan | undefined): readonly number[] {
+  if (session?.state.status === "completed" && plan) return plan.steps.map((_, i) => i);
+  return session?.stepsDone ?? [];
+}
+
 /** One line for the plan when there is no room for the list: "Step 2 of 5 · Re-read key slides". */
 export function planSummary(rows: readonly StepRow[]): string {
   const i = rows.findIndex((r) => r.state === "current");

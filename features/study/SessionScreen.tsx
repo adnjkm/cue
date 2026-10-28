@@ -21,6 +21,7 @@ import {
   advanceKind,
   askCopy,
   defaultViewer,
+  doneSteps,
   endSummary,
   finishedSummary,
   isLive,
@@ -152,7 +153,7 @@ function SessionScreen({
 
   const [localStep, setLocalStep] = useState(0);
   const stepIndex = live ? live.step : mode === "finished" ? null : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
-  const at: PlanAt = { step: stepIndex, stepsDone: row?.stepsDone ?? [] };
+  const at: PlanAt = { step: stepIndex, stepsDone: doneSteps(row, plan) };
   const step = stepIndex === null ? undefined : plan?.steps[stepIndex];
 
   const [override, setOverride] = useState<ViewerState | null>(null);

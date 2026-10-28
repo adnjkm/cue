@@ -18,6 +18,7 @@ import {
   availableTabs,
   buildPlan,
   defaultViewer,
+  doneSteps,
   endSummary,
   finishSession,
   planSummary,
@@ -237,6 +238,16 @@ describe("step transitions", () => {
     ]);
     expect(planSummary(rows)).toBe("2 of 5 steps done");
     expect(planSummary(stepRows(plan, sessionTransitions.nextStep(started, at(5))))).toBe("Step 2 of 5 · Re-read key slides");
+  });
+
+  it("shows every step done for a completed session, even one stored without its steps", () => {
+    const seeded = { ...started, state: { status: "completed" as const, startedAt: T0, endedAt: at(45), pausedMs: 0 }, stepsDone: [] };
+    const rows = stepRows(plan, { step: null, stepsDone: doneSteps(seeded, plan) });
+    expect(rows.map((r) => r.state)).toEqual(["done", "done", "done", "done", "done"]);
+    expect(planSummary(rows)).toBe("5 of 5 steps done");
+    const ended = finishSession(sessionTransitions.nextStep(started, at(5)), at(20));
+    expect(doneSteps(ended, plan)).toEqual([0, 1]);
+    expect(doneSteps(null, plan)).toEqual([]);
   });
 
   it("reads Finish session on the last step and once time is up, and finishing ends the session there", () => {
