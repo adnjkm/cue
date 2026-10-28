@@ -1,0 +1,5 @@
+1. **Need**: `components/cue/chat/Composer.tsx` draws the global focus ring on the form while its textarea has keyboard focus: add `has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-ink has-[textarea:focus-visible]:outline-solid` to the form's classes.
+2. **Why**: the textarea sets `outline-none`, so keyboard focus in the composer shows only the 1px border turning ink. docs/design/lecture-notes.md section 4 ("Composer focus") asks for the ink border plus the global `:focus-visible` outline (2px ink, offset 2), and every other control on the screen draws that ring.
+3. **Proposed diff**: the four classes above on the `form`, beside the existing `has-[textarea:focus-visible]:border-ink`; no prop changes.
+4. **Workaround in use**: `composerClass(chat)` in `features/lectures/parts.tsx` adds the same four classes through the Composer's `className` on the note taker and saved notes.
+5. **Unblocks**: the ring on Study's composer too, and deleting the lectures workaround.
