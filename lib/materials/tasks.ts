@@ -31,6 +31,7 @@ Write math in Unicode, not LaTeX.`;
 export const materialTasks = defineTasks("material", {
   read: jsonTask({
     profile: "vision",
+    multiline: true,
     maxTokens: 12_000,
     input: z.object({ pages: z.array(pageImage).min(1).max(3) }),
     output: z.object({
@@ -54,7 +55,7 @@ export const materialTasks = defineTasks("material", {
       ]),
     }),
     example: {
-      pages: [{ page: 1, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", text: "Lecture 8: Trees" }],
+      pages: [{ page: 1, image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", text: "Lecture 8: Trees\nPostorder traversal\nVisit the left subtree, then the right subtree, then the root." }],
     },
     mock: ({ pages }) => ({ pages: pages.map((p) => ({ page: p.page, text: p.text.trim() || `Page ${p.page}` })) }),
   }),

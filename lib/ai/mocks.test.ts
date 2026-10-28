@@ -7,13 +7,17 @@ describe("every registered task", () => {
     it(`${name}: example parses as input and mock(example) parses as output`, async () => {
       const input = task.input.parse(task.example);
       switch (task.kind) {
-        case "json":
-          expect(task.output.safeParse(await task.mock(input as never)).success).toBe(true);
+        case "json": {
+          const output = await task.mock(input as never);
+          expect(task.output.safeParse(output).success).toBe(true);
+          if (JSON.stringify(output).includes("\\n")) expect(task.multiline, `${name} returns line breaks, so it must set multiline`).toBe(true);
           break;
+        }
         case "list": {
           const items = task.mock(input as never);
           expect(items.length).toBeGreaterThan(0);
           for (const item of items) expect(task.item.safeParse(item).success).toBe(true);
+          if (JSON.stringify(items).includes("\\n")) expect(task.multiline, `${name} returns line breaks, so it must set multiline`).toBe(true);
           break;
         }
         case "stream": {

@@ -19,8 +19,17 @@ interface TaskCommon<I> {
   temperature?: number;
 }
 
+interface StructuredCommon<I> extends TaskCommon<I> {
+  /**
+   * Set when strings in the output carry line breaks (code, page text, paragraphs). Token Factory's JSON grammar
+   * drops line breaks inside strings (a parsed exam question lost its whole code block), so these tasks state the
+   * schema in the prompt only and rely on validation. lib/ai/mocks.test.ts requires it when a mock has a line break.
+   */
+  multiline?: true;
+}
+
 /** One JSON object. response_format's JSON schema is derived from `output` with z.toJSONSchema. */
-export interface JsonTask<I, O> extends TaskCommon<I> {
+export interface JsonTask<I, O> extends StructuredCommon<I> {
   kind: "json";
   profile: ChatProfileKey;
   output: z.ZodType<O>;
@@ -29,7 +38,7 @@ export interface JsonTask<I, O> extends TaskCommon<I> {
 }
 
 /** A JSON object `{ items: T[] }` streamed item by item; an invalid item is dropped, zero valid items is bad_output. */
-export interface ListTask<I, T> extends TaskCommon<I> {
+export interface ListTask<I, T> extends StructuredCommon<I> {
   kind: "list";
   profile: ChatProfileKey;
   item: z.ZodType<T>;

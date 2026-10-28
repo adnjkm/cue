@@ -77,6 +77,18 @@ The grammar applies to `content` only. Reasoning is unconstrained.
 
 Rule for Cue: when thinking is on, always describe the JSON in the system prompt as well as in `response_format`.
 
+### 2.2a Line breaks inside strings under `json_schema` (measured 2026-10-28)
+
+The grammar keeps line breaks out of JSON strings. Whatever the prompt asks, a constrained string comes back on one line, and code is dropped or flattened.
+
+| Task and model | With `json_schema` | Schema in the prompt only |
+| --- | --- | --- |
+| `practice.parse`, Super VL, a page whose text layer holds a 4-line Python function | prompt kept the stem and lost the whole code block | prompt kept the fenced block with every line and its indentation |
+| `practice.generate`, Ultra, thinking on | code fences present, every line break gone (` ```pythondef inorder(node):    if node…`) | fenced blocks with line breaks |
+| `practice.generate`, Ultra, thinking off | the model wrote no code at all | not run |
+
+Rule for Cue: a task whose strings carry code, page text or paragraphs sets `multiline: true`. The server then states the schema in the system prompt only and relies on validation (and, for JSON tasks, one repair turn). Every other task keeps the grammar. `lib/ai/mocks.test.ts` fails when a task's mock output contains a line break and the task does not set the flag.
+
 ### 2.3 Tools
 
 Two tools: `get_course_schedule(course, week)` and `create_study_session(course, start, minutes enum)`. Thinking was off unless noted.

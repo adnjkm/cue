@@ -83,6 +83,7 @@ const TRAVERSAL_PASSAGE: Passage = {
 export const practiceTasks = defineTasks("practice", {
   parse: jsonTask({
     profile: "vision",
+    multiline: true,
     maxTokens: 12_000,
     input: z.object({
       totalPages: z.number().int().min(1).max(60),
@@ -118,6 +119,7 @@ export const practiceTasks = defineTasks("practice", {
   }),
   solve: jsonTask({
     profile: "reason",
+    multiline: true,
     maxTokens: 8000,
     input: z.object({ question: questionInput, passages: passagesSchema }),
     output: solveOutput,
@@ -152,6 +154,7 @@ export const practiceTasks = defineTasks("practice", {
   }),
   generate: listTask({
     profile: "reason",
+    multiline: true,
     maxTokens: 8000,
     temperature: 0.8,
     maxItems: 10,

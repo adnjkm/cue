@@ -178,7 +178,7 @@ async function runJson(call: Call, task: JsonTask<unknown, unknown>, input: unkn
   const schema = jsonSchemaOf(task.output);
   const prompt = withSchemaNote(task.prompt(input), schema);
   const maxTokens = maxTokensOf(task, input);
-  const req: ChatRequest = { model: profile.model, prompt, maxTokens, temperature: task.temperature ?? profile.temperature, thinking: profile.thinking, schema };
+  const req: ChatRequest = { model: profile.model, prompt, maxTokens, temperature: task.temperature ?? profile.temperature, thinking: profile.thinking, ...(task.multiline ? {} : { schema }) };
   const worst = costMicro(profile.model, estimateInputTokens(prompt), maxTokens);
   const parse = (content: string): { ok: true; value: unknown } | { ok: false; why: string } => {
     if (!content.trim()) return { ok: false, why: "The reply was empty." };
@@ -269,7 +269,7 @@ async function runList(call: Call, task: ListTask<unknown, unknown>, input: unkn
   const schema = { type: "object", properties: { items: { type: "array", items: jsonSchemaOf(task.item), maxItems: task.maxItems } }, required: ["items"] };
   const prompt = withSchemaNote(task.prompt(input), schema);
   const maxTokens = maxTokensOf(task, input);
-  const req: ChatRequest = { model: profile.model, prompt, maxTokens, temperature: task.temperature ?? profile.temperature, thinking: profile.thinking, schema };
+  const req: ChatRequest = { model: profile.model, prompt, maxTokens, temperature: task.temperature ?? profile.temperature, thinking: profile.thinking, ...(task.multiline ? {} : { schema }) };
   const worst = costMicro(profile.model, estimateInputTokens(prompt), maxTokens);
   const opened = await openStream(call, req, backend, worst, (d) => Boolean(d.text));
   return ndjson(async (send) => {
