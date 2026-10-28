@@ -247,5 +247,7 @@ export function useStickToEnd<T extends HTMLElement>() {
     const el = ref.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior });
   };
-  return { ref, stuck, onScroll, toEnd };
+  /** Stops following the end, for a jump to an earlier moment. */
+  const hold = () => setStuck(false);
+  return { ref, stuck, onScroll, toEnd, hold };
 }

@@ -95,14 +95,10 @@ function EngineNotice({ choice, onChoose }: { choice: EngineChoice; onChoose: (e
     return (
       <NoticeRow
         title="Demo transcript"
-        detail={
-          choice.why === "sample"
-            ? "The sample semester replays a recorded lecture, so your microphone stays off."
-            : "Cue replays a recorded lecture instead of listening to your microphone."
-        }
+        detail={`${choice.why === "sample" ? "The sample semester replays a recorded lecture, so your microphone stays off." : "Cue replays a recorded lecture instead of listening to your microphone."} To transcribe your own lectures, Cue downloads NVIDIA Parakeet once (${mb(PARAKEET_WEIGHTS.webgpu.bytes)}) and runs it on this device.`}
         action={
           <Button variant="secondary" onClick={() => onChoose("parakeet")}>
-            Use Parakeet on this device
+            Use Parakeet instead
           </Button>
         }
       />
@@ -135,10 +131,10 @@ const FAILURE: Record<Extract<View, { kind: "failed" }>["reason"], { title: stri
 
 /** Shows only the latest question and its answer above the composer; every exchange is kept for the saved notes. */
 function latestExchange(chat: ChatHandle, onSend: () => void): ChatHandle {
-  const lastUser = chat.messages.findLastIndex((m) => m.role === "user");
+  const lastUser = chat.messages.findLastIndex((m) => m.role === "user" && (!chat.pending || m.text === chat.pending.question));
   return {
     ...chat,
-    messages: chat.pending ? [] : lastUser >= 0 ? chat.messages.slice(lastUser) : [],
+    messages: lastUser >= 0 ? chat.messages.slice(lastUser) : [],
     send: (text) => {
       onSend();
       chat.send(text);
@@ -176,7 +172,7 @@ export function NoteTaker({
   const answerChat = latestExchange(chat, () => setShowAnswer(true));
 
   const root = useRef<HTMLDivElement>(null);
-  const { ref: listRef, stuck, onScroll: onListScroll, toEnd } = useStickToEnd<HTMLOListElement>();
+  const { ref: listRef, stuck, onScroll: onListScroll, toEnd, hold } = useStickToEnd<HTMLOListElement>();
   const flagButtons = useRef(new Map<number, HTMLButtonElement>());
   const [rovingSeq, setRovingSeq] = useState<number | null>(null);
   const ordered = useMemo(() => [...segments].sort((a, b) => a.atMs - b.atMs || a.seq - b.seq), [segments]);
@@ -192,7 +188,10 @@ export function NoteTaker({
   useEffect(() => {
     if (focusAtMs === null) return;
     const target = [...ordered].reverse().find((s) => s.atMs <= focusAtMs + 999);
-    flagButtons.current.get(target?.seq ?? -1)?.closest("li")?.scrollIntoView({ block: "center" });
+    const line = flagButtons.current.get(target?.seq ?? -1)?.closest("li");
+    if (!line) return;
+    hold();
+    line.scrollIntoView({ block: "center" });
     // Only on arrival: later lines must not pull the reader back.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

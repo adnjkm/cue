@@ -173,8 +173,8 @@ await session(async (t, page) => {
   await page.getByRole("button", { name: "Record a lecture" }).focus();
   await page.keyboard.press("Enter");
   await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Tab");
-  check(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')), "focus moves into the record dialog");
+  await page.waitForFunction(() => !!document.activeElement?.closest('[role="dialog"]'), null, { timeout: 2_000 }).catch(() => undefined);
+  check(await page.evaluate(() => document.activeElement?.getAttribute("role") === "combobox" && !!document.activeElement.closest('[role="dialog"]')), "the record dialog opens on its Course picker");
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "detached" });
   check(true, "Escape closes the record dialog");
