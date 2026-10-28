@@ -3,6 +3,8 @@ import path from "node:path";
 import type { AiMode, MicroUsd } from "@/lib/domain";
 import { FileLedger } from "./ledger-file";
 import type { LedgerStore } from "./ledger";
+import { RedisLedger, RedisThrottle } from "./ledger-redis";
+import { MemoryThrottle, type ClientThrottle } from "./throttle";
 
 type Env = Record<string, string | undefined>;
 
@@ -24,8 +26,15 @@ export function capFromEnv(env: Env): MicroUsd | null {
   return Number.isFinite(usd) && usd > 0 ? (Math.round(usd * 1e6) as MicroUsd) : null;
 }
 
-/** The file locally; on Vercel, null until a shared store exists, and every paid call fails closed. */
+/** Redis if configured; the file locally; on Vercel without Redis, null, and every paid call fails closed. */
 export function ledgerFromEnv(env: Env): LedgerStore | null {
+  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) return new RedisLedger(env.UPSTASH_REDIS_REST_URL, env.UPSTASH_REDIS_REST_TOKEN);
   if (env.VERCEL) return null;
   return new FileLedger(path.join(process.cwd(), ".data", "spend-ledger.json"));
+}
+
+/** Shared across instances when Redis is configured; per process otherwise. */
+export function throttleFromEnv(env: Env): ClientThrottle {
+  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) return new RedisThrottle(env.UPSTASH_REDIS_REST_URL, env.UPSTASH_REDIS_REST_TOKEN);
+  return new MemoryThrottle();
 }

@@ -7,9 +7,9 @@ import { extractJson, ItemSplitter } from "../json";
 import { costMicro, HOLD_TTL_MS, IMAGE_TOKENS, PROFILES, ROUTE_BUDGET_MS, type ChatProfileKey, type ModelKey } from "../models";
 import { encodeLine, encodeVectors, NDJSON, type WireError, type WireLine } from "../wire";
 import { openAiBackend, UpstreamError, type Backend, type ChatRequest, type Usage } from "./backend";
-import { aiModeFromEnv, capFromEnv, ledgerFromEnv } from "./env";
+import { aiModeFromEnv, capFromEnv, ledgerFromEnv, throttleFromEnv } from "./env";
 import type { LedgerStore } from "./ledger";
-import { MemoryThrottle, type ClientThrottle } from "./throttle";
+import type { ClientThrottle } from "./throttle";
 
 export interface RunContext {
   signal: AbortSignal;
@@ -341,7 +341,7 @@ let defaults: RunDeps | null = null;
 async function defaultDeps(): Promise<RunDeps> {
   if (defaults) return defaults;
   const { registry } = await import("../registry");
-  const throttle = new MemoryThrottle();
+  const throttle = throttleFromEnv(process.env);
   let ledger: LedgerStore | null | undefined;
   defaults = {
     env: process.env,
