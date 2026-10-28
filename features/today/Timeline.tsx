@@ -49,6 +49,7 @@ function TrailingView({ trailing, onReschedule }: { trailing: Trailing; onResche
           <Button
             variant="link"
             disabled={busy}
+            focusableWhenDisabled
             onClick={async () => {
               setBusy(true);
               try {
