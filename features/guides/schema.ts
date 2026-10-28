@@ -125,8 +125,42 @@ const callout = z
     ...(b.quote?.text && b.quote.attribution ? { quote: { text: b.quote.text.replace(/^[“"]|[”"]$/g, ""), attribution: b.quote.attribution } } : {}),
   }));
 
+const CODE_LINES = 25;
+
+/** Code keeps its indentation and line breaks. Only a wrapping fence, trailing markers and spaces, and blank edge lines go. */
+function codeText(raw: string): string {
+  const unfenced = raw.replace(/\r\n?/g, "\n").replace(/^\s*```[^\n]*\n([\s\S]*?)\n?```\s*$/, "$1");
+  const lines = unfenced.split("\n").map((l) => l.replace(/\s*\[S\d+(?:\s*,\s*S\d+)*\]\s*$/, "").trimEnd());
+  while (lines.length && !lines[0]) lines.shift();
+  while (lines.length && !lines.at(-1)) lines.pop();
+  return lines.join("\n");
+}
+
+const code = z.object({
+  kind: z.literal("code"),
+  lang: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(20)
+    .nullish()
+    .transform((v) => v || "text"),
+  text: z
+    .string()
+    .max(2000)
+    .transform(codeText)
+    .pipe(
+      z
+        .string()
+        .min(1)
+        .refine((t) => t.split("\n").length <= CODE_LINES, `Code is at most ${CODE_LINES} lines`),
+    ),
+  caption: text(200),
+  refs: cites,
+});
+
 /** One block as guide.section streams it. Cites name passages; the client numbers them into footnotes. */
-export const guideBlockDraft = z.union([prose, formula, figure, callout]);
+export const guideBlockDraft = z.union([prose, formula, figure, callout, code]);
 export type GuideBlockDraft = z.output<typeof guideBlockDraft>;
 
 type CitesAsNumbers<B> = B extends unknown ? { [K in keyof B]: K extends "refs" | "noteRefs" ? readonly number[] : B[K] } : never;

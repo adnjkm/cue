@@ -13,6 +13,8 @@ export function guidePlainText(blocks: readonly GuideBlock[]): string {
           return [...b.panels.map((p) => `${p.title}: ${p.description}`), b.caption].join(" ");
         case "callout":
           return `${b.label}${b.examHint ? ` (${b.examHint})` : ""}: ${b.text}${b.quote ? ` “${b.quote.text}” ${b.quote.attribution}` : ""}`;
+        case "code":
+          return `${b.caption}\n\n\`\`\`${b.lang}\n${b.text}\n\`\`\``;
       }
     })
     .join("\n\n");

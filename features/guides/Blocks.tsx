@@ -138,6 +138,27 @@ function Callout({ block, footnotes, interactive }: { block: Extract<GuideBlock,
   );
 }
 
+/**
+ * study-session.md's Code block: the box hugs the code and scrolls sideways inside the column, never wrapping.
+ * On paper there is no scrolling, so print wraps long lines instead of cutting them off.
+ */
+function Code({ block, footnotes, interactive }: { block: Extract<GuideBlock, { kind: "code" }>; footnotes: Footnotes; interactive: boolean }) {
+  return (
+    <figure className="flex min-w-0 flex-col items-start gap-3 break-inside-avoid">
+      <pre
+        tabIndex={interactive ? 0 : undefined}
+        className="w-max max-w-full overflow-x-auto rounded-xs bg-fill px-5 py-4 font-mono text-[13px] leading-[22px] font-normal tracking-normal whitespace-pre text-ink [tab-size:4] print:w-full print:whitespace-pre-wrap"
+      >
+        <code className={`language-${block.lang}`}>{block.text}</code>
+      </pre>
+      <figcaption className={cn(MEASURE, "text-sm leading-5 text-ink")}>
+        {inline(block.caption)}
+        <Markers refs={block.refs} footnotes={footnotes} interactive={interactive} />
+      </figcaption>
+    </figure>
+  );
+}
+
 export function Block({ block, footnotes, interactive = true }: { block: GuideBlock; footnotes: Footnotes; interactive?: boolean }): ReactNode {
   switch (block.kind) {
     case "prose":
@@ -153,6 +174,8 @@ export function Block({ block, footnotes, interactive = true }: { block: GuideBl
       return <Figure block={block} footnotes={footnotes} interactive={interactive} />;
     case "callout":
       return <Callout block={block} footnotes={footnotes} interactive={interactive} />;
+    case "code":
+      return <Code block={block} footnotes={footnotes} interactive={interactive} />;
   }
 }
 

@@ -36,6 +36,16 @@ export type GuideBlock =
       text: string;
       refs: readonly FootnoteN[];
       quote?: { text: string; attribution: string };
+    }
+  | {
+      kind: "code";
+      /** "python"; "text" when the source names no language. */
+      lang: string;
+      /** Never empty. Line breaks and indentation are kept as written. */
+      text: string;
+      /** Required because the footnote marker sits here: a marker inside the code would be copied with it. */
+      caption: string;
+      refs: readonly FootnoteN[];
     };
 
 export interface GuideDraft {

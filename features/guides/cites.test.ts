@@ -70,6 +70,18 @@ describe("numberFootnotes", () => {
     expect(footnoteParts(footnotes[1].sources).map((p) => p.text)).toEqual(["Lecture 7 slides 6–8.", "Used in Problem Set 4, Q1."]);
   });
 
+  it("numbers a code block's footnote in sequence with the blocks around it", () => {
+    const code: GuideBlockDraft = { kind: "code", lang: "python", text: "def f():\n    return 1", caption: "A method.", refs: [{ passage: "S3" }] };
+    const withCode = numberFootnotes([drafts[0], code, drafts[2], { ...code, refs: [] }, drafts[5]], passages);
+    expect(withCode.blocks.map((b) => (b.kind === "formula" ? b.noteRefs : b.refs))).toEqual([[1], [2], [3], [], [4]]);
+    expect(withCode.footnotes.map((f) => [f.n, footnoteText(f.sources)])).toEqual([
+      [1, "Lecture 7 at 4:15. Textbook ch. 5, p. 92."],
+      [2, "Lecture 7 slides 6."],
+      [3, "Lecture 7 slides 6–8. Used in Problem Set 4, Q1."],
+      [4, "Lecture 7 at 31:10. Tested in Problem Set 4, Q2."],
+    ]);
+  });
+
   it("keeps slides that are not consecutive apart", () => {
     const gap = numberFootnotes([{ kind: "prose", text: "x", refs: [{ passage: "S3" }, { passage: "S5" }] }], passages);
     expect(footnoteText(gap.footnotes[0].sources)).toBe("Lecture 7 slides 6. Lecture 7 slides 8.");

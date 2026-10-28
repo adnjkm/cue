@@ -21,6 +21,27 @@ describe("guideBlockDraft", () => {
     expect(guideBlockDraft.safeParse(figure(levels([3.5, 4.5]))).success).toBe(true);
     expect(guideBlockDraft.safeParse(figure(levels([3.5, 6]))).success).toBe(false);
   });
+
+  it("keeps a code block's indentation and line breaks, dropping a wrapping fence and a stray marker", () => {
+    const block = guideBlockDraft.parse({
+      kind: "code",
+      lang: "Python",
+      text: "```python\n\ndef is_empty(self) -> bool:\r\n    return self._root is None  [S6]\n```",
+      caption: "`Tree.is_empty` is true exactly when the tree has no root value.",
+      refs: [{ passage: "S6", relation: null, note: null }],
+    });
+    expect(block).toEqual({ kind: "code", lang: "python", text: "def is_empty(self) -> bool:\n    return self._root is None", caption: "`Tree.is_empty` is true exactly when the tree has no root value.", refs: [{ passage: "S6" }] });
+  });
+
+  it("drops a code block with no code, no caption or a runaway length", () => {
+    const code = (text: string, caption = "A method.") => guideBlockDraft.safeParse({ kind: "code", lang: null, text, caption, refs: [] }).success;
+    expect(code("return 1")).toBe(true);
+    expect(code("")).toBe(false);
+    expect(code(" \n\t\n")).toBe(false);
+    expect(code("```python\n```")).toBe(false);
+    expect(code("return 1", " ")).toBe(false);
+    expect(code(Array.from({ length: 26 }, (_, i) => `x = ${i}`).join("\n"))).toBe(false);
+  });
 });
 
 describe("guideOutline", () => {
