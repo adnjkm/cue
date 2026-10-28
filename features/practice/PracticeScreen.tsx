@@ -364,7 +364,7 @@ function Screen({ data }: { data: SetData }) {
           </SheetContent>
         </Sheet>
       )}
-      <WriteQuestionsDialog open={writeOpen} onOpenChange={setWriteOpen} data={data} defaultTopic={topic} onSubmit={generator.start} />
+      <WriteQuestionsDialog key={writeOpen ? "open" : "closed"} open={writeOpen} onOpenChange={setWriteOpen} data={data} defaultTopic={topic} onSubmit={generator.start} />
     </div>
   );
 }

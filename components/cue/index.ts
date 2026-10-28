@@ -6,3 +6,4 @@ export { AddMaterialDialog } from "./AddMaterialDialog";
 export { SourceView } from "./source/SourceView";
 export { SourcePeek } from "./source/SourcePeek";
 export { SampleSemesterButton } from "./sample/SampleSemesterButton";
+export { StubPage } from "./StubPage";

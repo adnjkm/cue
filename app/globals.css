@@ -5,9 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Cue palette. Paper stores these as hex (page #FFFFFF, ink #141414, ink-hover #2C2C2A, graphite #6A6A66,
- * guide #9A9A95, rule #E8E8E3, wash #F6F6F3, fill #EFEFEB, border #D6D6D0, control #E6E6E3); the app
- * keeps only the exact OKLCH conversions. scripts/check-tokens.mjs rejects any other color syntax.
+ * Cue palette: the exact OKLCH conversions of Paper's hex tokens (the table is in docs/design/practice.md
+ * section 7). scripts/check-tokens.mjs rejects any other color syntax in app code.
  */
 :root {
   --page: oklch(100% 0 0);

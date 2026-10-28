@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Database } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SampleScenario } from "@/lib/domain";
 import { currentZone } from "@/lib/time";
 import { resetAll, seedSampleSemester } from "@/lib/sample";
 import {
@@ -16,6 +17,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+/** `?sampleScenario=liveLecture` loads the paused-lecture variant, which the walkthrough's lecture step needs. */
+function scenarioFromUrl(): SampleScenario {
+  return new URLSearchParams(window.location.search).get("sampleScenario") === "liveLecture" ? "liveLecture" : "default";
+}
 
 /** Sidebar footer menu: load the sample semester or wipe everything stored in this browser. */
 export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
@@ -47,7 +53,7 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-56">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => run(() => seedSampleSemester({ now: Date.now(), zone: currentZone() }))}>Load sample semester</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => run(() => seedSampleSemester({ now: Date.now(), zone: currentZone(), scenario: scenarioFromUrl() }))}>Load sample semester</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setConfirmReset(true)}>Reset all data</DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

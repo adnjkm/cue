@@ -190,7 +190,8 @@ const MOCK_SOLUTIONS: Record<string, SolveOutput> = {
 };
 
 function mockSolve(question: z.infer<typeof questionInput>, passageIds: readonly string[]): SolveOutput {
-  const known = MOCK_SOLUTIONS[question.number];
+  const fixture = MOCK_QUESTIONS.find((m) => m.prompt === question.prompt);
+  const known = fixture ? MOCK_SOLUTIONS[fixture.number] : undefined;
   if (known && question.options.some((o) => o.label === known.answer)) {
     return { ...known, resources: passageIds.slice(0, 3) };
   }

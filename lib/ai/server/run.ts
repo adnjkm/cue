@@ -317,7 +317,11 @@ async function runMock(task: AnyTask, input: never): Promise<Response> {
       return Response.json({ vectors: encodeVectors([...task.mock(input).vectors]) }, { headers: { "cache-control": "no-store" } });
     case "list":
       return ndjson(async (send) => {
-        for (const v of task.mock(input)) send({ t: "item", v });
+        // Paced like a real stream, so the screens that fill in item by item can be seen doing it.
+        for (const v of task.mock(input)) {
+          await new Promise((r) => setTimeout(r, 300));
+          send({ t: "item", v });
+        }
         send({ t: "done" });
       });
     case "stream":
