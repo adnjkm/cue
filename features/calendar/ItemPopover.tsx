@@ -217,7 +217,7 @@ function DeadlineDetails({ event, zone, close }: { event: Extract<CalendarEvent,
       await db.events.put({ ...event, effort: next });
       const added = (await count()) - before;
       close();
-      toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : `No free time before ${event.short} is due. Move something to make room.` });
+      toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : `Cue couldn't fit another work block before ${event.short} is due. Move a block to make room, then try again.` });
     } catch {
       toast.add({ title: "Couldn't plan more time. Reload the page and try again." });
     } finally {
