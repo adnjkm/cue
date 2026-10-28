@@ -198,6 +198,8 @@ function Screen({ data }: { data: SetData }) {
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+    // A sheet or dialog can receive its Escape before focus has moved into it; the key is the overlay's, not ours.
+    if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
     const t = e.target as HTMLElement;
     if (t.closest("input, textarea, select, [contenteditable], [role=listbox], [role=menu], [role=dialog]")) return;
     if (e.key === "Escape") {

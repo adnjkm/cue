@@ -40,6 +40,7 @@ try {
     } catch (e) {
       error = e;
       await t.page.screenshot({ path: path.join(runDir, `${name}-FAILED-1440.png`) }).catch(() => undefined);
+      fs.writeFileSync(path.join(runDir, `${name}-FAILED.txt`), `${t.page.url()}\n${String(error?.stack ?? error)}\n`);
     } finally {
       await context.close();
     }
