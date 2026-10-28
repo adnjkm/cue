@@ -5,9 +5,9 @@ import { ai, aiItems, AiError, errorCopy } from "@/lib/ai";
 import { PASSAGE_CHAR_CAP } from "@/lib/ai/passages";
 import { db } from "@/lib/db";
 import { gradeOf, type Attempt, type GenerationScope, type Passage, type PracticeSet, type Question, type QuestionId, type SetId, type SourceRef } from "@/lib/domain";
-import { refsFor, retrieve } from "@/lib/retrieval";
+import { refsFor } from "@/lib/retrieval";
 import { checkGenerated, keyAgrees } from "./checks";
-import { appendQuestion, createSet } from "./data";
+import { appendQuestion, createSet, retrieveMaterial } from "./data";
 import { sectionLabel } from "./model";
 
 /** "Write questions" inside a set. A set made from a link carries its GenerationScope instead. */
@@ -81,7 +81,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
         return g.status === "answered" && !g.correct;
       });
       const style = brief.missedOnly && missed.length > 0 ? [...missed.map((q) => styleOf(q, true)), ...inTopic.filter((q) => !missed.includes(q)).map((q) => styleOf(q))] : inTopic.map((q) => styleOf(q));
-      const passages = await retrieve({ courseId: set.courseId, text: `${topic} ${inTopic.map((q) => q.prompt).join(" ")}`.slice(0, 800), k: 8, latency: "thorough" });
+      const passages = await retrieveMaterial(set.courseId, `${topic} ${inTopic.map((q) => q.prompt).join(" ")}`.slice(0, 800), 8);
       return {
         topic,
         focus: `the topic “${topic}”${set.title && set.origin.kind === "paper" ? `, in the style of the ${set.title}` : ""}`,
@@ -97,7 +97,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
       const section = await db.guideSections.get(brief.sectionId);
       if (!section?.draft) throw new MissingMaterial("That study guide section hasn't been written yet. Write it in Study guides, then try again.");
       const ref: SourceRef = { kind: "section", courseId: brief.courseId, sectionId: section.id, title: section.title };
-      const related = await retrieve({ courseId: brief.courseId, text: `${section.title} ${section.draft.plainText}`.slice(0, 800), k: 6, latency: "thorough" });
+      const related = await retrieveMaterial(brief.courseId, `${section.title} ${section.draft.plainText}`.slice(0, 800), 6);
       return {
         topic: section.title,
         focus: `the study guide section “${section.title}” (passage S1)`,
@@ -111,7 +111,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
     case "message": {
       const message = await db.messages.get(brief.messageId);
       if (!message) throw new MissingMaterial("That answer isn't on this device anymore.");
-      const related = await retrieve({ courseId: brief.courseId, text: message.text.slice(0, 800), k: 8, latency: "thorough" });
+      const related = await retrieveMaterial(brief.courseId, message.text.slice(0, 800), 8);
       return {
         topic: set.title,
         focus: `the ideas in this answer from the student's study chat: “${message.text.slice(0, 1500)}”`,
@@ -125,7 +125,7 @@ async function gather(set: PracticeSet, questions: readonly Question[], attempts
     case "similar": {
       const like = await db.questions.get(brief.questionId);
       if (!like) throw new MissingMaterial("That question isn't on this device anymore.");
-      const related = await retrieve({ courseId: set.courseId, text: `${like.topic} ${like.prompt}`.slice(0, 800), k: 6, latency: "thorough" });
+      const related = await retrieveMaterial(set.courseId, `${like.topic} ${like.prompt}`.slice(0, 800), 6);
       return {
         topic: like.topic,
         focus: `the same idea as the example question, asked from a new angle`,
