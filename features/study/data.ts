@@ -5,6 +5,7 @@ import { ai, AiError } from "@/lib/ai";
 import { db, useLive } from "@/lib/db";
 import {
   focusMinutes,
+  ids,
   sessionTransitions,
   type AskMode,
   type BlockId,
@@ -110,6 +111,21 @@ export function useStudyBlock(id: BlockId, session: StudySession | null | undefi
 
 export function blockFromSession(s: StudySession): StudyBlock {
   return { id: s.id, anchor: s.anchor, start: s.planned.start, end: s.planned.end, courseId: s.courseId, topic: s.topic, why: { offsetDays: 0 }, placement: "locked" };
+}
+
+/**
+ * The number of the lecture a review follows, read before the screen paints so the chat's heading and
+ * placeholder never switch under the student. undefined until it is known for this block.
+ */
+export function useReviewLecture(block: StudyBlock | undefined): { number: number | null } | undefined {
+  const event = block?.anchor.kind === "review" ? block.anchor.lecture : null;
+  const found = useLive(async () => {
+    if (!event) return { event, number: null };
+    const lecture = await db.lectures.get(ids.lectureForEvent(event));
+    const calendar = lecture?.number === undefined ? await db.events.get(event) : undefined;
+    return { event, number: lecture?.number ?? (calendar?.kind === "lecture" ? calendar.number : undefined) ?? null };
+  }, [event]);
+  return found && found.event === event ? { number: found.number } : undefined;
 }
 
 /** undefined while IndexedDB answers, null when the block was never started. */

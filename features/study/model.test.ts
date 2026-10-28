@@ -14,6 +14,7 @@ import {
 import {
   ADVANCE_LABEL,
   advanceKind,
+  askCopy,
   availableTabs,
   buildPlan,
   defaultViewer,
@@ -247,6 +248,15 @@ describe("step transitions", () => {
     expect(finishSession(finished, at(51))).toBe(finished);
     const last = sessionTransitions.gotoStep(s, 4, at(6));
     expect(advanceKind(last, at(6), DEFAULT_POMODORO)).toBe("finish");
+  });
+});
+
+describe("chat copy", () => {
+  it("asks about Lecture 8 on its review and about the topic on any other block", () => {
+    expect(askCopy(block, 8)).toEqual({ label: "Ask about this lecture", placeholder: "Ask anything about Lecture 8…" });
+    expect(askCopy(block, null).placeholder).toBe("Ask anything about Recursion & tree traversal…");
+    const midweek = { anchor: { kind: "midweek", course: "PSY100", week: "2026-W44" }, topic: { full: "Memory & learning", short: "PSY" } } as const;
+    expect(askCopy(midweek as Parameters<typeof askCopy>[0], 3)).toEqual({ label: "Ask about this session", placeholder: "Ask anything about Memory & learning…" });
   });
 });
 

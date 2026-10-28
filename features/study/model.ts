@@ -8,6 +8,7 @@ import {
   type PomodoroPrefs,
   type SessionPlan,
   type SourceRef,
+  type StudyBlock,
   type StudySession,
   type ViewerTab,
 } from "@/lib/domain";
@@ -187,6 +188,12 @@ export function finishSession(session: StudySession, now: EpochMs): StudySession
   if (!isLive(session)) return session;
   const stepsDone = session.stepsDone.includes(session.step) ? session.stepsDone : [...session.stepsDone, session.step].sort((a, b) => a - b);
   return sessionTransitions.end({ ...session, stepsDone }, now);
+}
+
+/** The chat's heading and placeholder: a review asks about its lecture, any other block about its topic. */
+export function askCopy(block: Pick<StudyBlock, "anchor" | "topic">, lectureNumber: number | null): { label: string; placeholder: string } {
+  if (block.anchor.kind !== "review") return { label: "Ask about this session", placeholder: `Ask anything about ${block.topic.full}…` };
+  return { label: "Ask about this lecture", placeholder: `Ask anything about ${lectureNumber === null ? block.topic.full : `Lecture ${lectureNumber}`}…` };
 }
 
 export function endSummary(session: StudySession, now: EpochMs): string {

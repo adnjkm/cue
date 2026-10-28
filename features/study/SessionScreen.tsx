@@ -15,10 +15,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AskPanel } from "./AskPanel";
-import { loadPlan, loadSources, sessionActions, usePlanJob, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
+import { loadPlan, loadSources, sessionActions, usePlanJob, useReviewLecture, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
 import {
   ADVANCE_LABEL,
   advanceKind,
+  askCopy,
   defaultViewer,
   endSummary,
   finishedSummary,
@@ -96,7 +97,23 @@ function NextStep({ live, prefs, onAdvance }: { live: StudySession; prefs: Study
   return <NextStepButton label={ADVANCE_LABEL[kind]} onClick={() => onAdvance(kind)} />;
 }
 
-function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBlock; zone: Zone; row: StudySession | null; prefs: StudyPrefs; start: boolean; tab?: ViewerTab }) {
+function SessionScreen({
+  block,
+  zone,
+  row,
+  prefs,
+  lectureNumber,
+  start,
+  tab,
+}: {
+  block: StudyBlock;
+  zone: Zone;
+  row: StudySession | null;
+  prefs: StudyPrefs;
+  lectureNumber: number | null;
+  start: boolean;
+  tab?: ViewerTab;
+}) {
   const router = useRouter();
   const rootRef = useRef<HTMLElement>(null);
   const planLabelId = useId();
@@ -190,9 +207,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
     }),
     [chat, row, block.id],
   );
-  const lectureNumber = sources?.lecture?.ref.lectureNumber ?? sources?.deck?.ref.doc.lectureNumber;
-  const askLabel = lectureNumber !== undefined || sources?.lecture ? "Ask about this lecture" : "Ask about this session";
-  const placeholder = `Ask anything about ${lectureNumber !== undefined ? `Lecture ${lectureNumber}` : block.topic.short}…`;
+  const { label: askLabel, placeholder } = askCopy(block, lectureNumber);
   const prompts = [step?.check, ...chat.suggestions.filter((s) => s !== "Quiz me on this")].filter((p): p is string => !!p).slice(0, 3);
 
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -325,7 +340,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
           onClick={() => setAskOpen(true)}
           className="flex h-12 w-full cursor-pointer items-center rounded-sm border border-border bg-page px-3.5 text-left text-sm leading-5 text-graphite transition-colors duration-[120ms] ease-standard hover:bg-wash"
         >
-          {placeholder}
+          <span className="min-w-0 truncate">{placeholder}</span>
         </button>
       </div>
       <Sheet open={askOpen} onOpenChange={setAskOpen}>
@@ -411,7 +426,9 @@ export function StudySession({ blockId, start, tab }: { blockId: BlockId; start:
   const row = useSessionRow(blockId);
   const found = useStudyBlock(blockId, row);
   const prefs = usePrefs("study");
+  const lecture = useReviewLecture(found?.block);
   if (found === undefined || row === undefined || !prefs) return <SessionSkeleton />;
   if (found === null) return <MissingBlock />;
-  return <SessionScreen key={blockId} block={found.block} zone={found.zone} row={row} prefs={prefs} start={start} tab={tab} />;
+  if (!lecture) return <SessionSkeleton />;
+  return <SessionScreen key={blockId} block={found.block} zone={found.zone} row={row} prefs={prefs} lectureNumber={lecture.number} start={start} tab={tab} />;
 }
