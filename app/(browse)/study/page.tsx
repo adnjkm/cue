@@ -1,6 +1,5 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/study/testids";
+import { StudyIndex } from "@/features/study";
 
 export default function StudyIndexPage() {
-  return <StubPage title="Study sessions" testId={tid.main} />;
+  return <StudyIndex />;
 }
