@@ -68,6 +68,11 @@ export default async function today(t) {
   await expect(moved.getByRole("link")).toBeFocused();
   await expect(page.getByText("Moved to 11:45am.")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);
+  await expect(review).toHaveAttribute("data-state", "missed");
+  await expect(review).toContainText("10:30am");
+  await expect(review.getByRole("link")).toBeFocused();
 
   await page.getByRole("button", { name: "Data", exact: true }).click();
   await page.getByRole("menuitem", { name: "Reset all data" }).click();

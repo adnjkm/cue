@@ -15,7 +15,7 @@ import { dayInterval, fmtDay, fmtDuration, fmtTime, useNow } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { briefInput, isRemaining, ruleBrief, summaryText, type BriefFacts } from "./brief";
 import { NextUpCard } from "./NextUpCard";
-import { timelineRows, type Trailing } from "./rows";
+import { timelineRows, type TodayRow, type Trailing } from "./rows";
 import { Timeline } from "./Timeline";
 import { useBriefSubline, useTodayFacts } from "./use-today";
 
@@ -100,7 +100,13 @@ function FirstRun({ onStart }: { onStart: () => void }) {
   );
 }
 
-function useRescheduleAction(plan: PlanView, now: EpochMs, focusRow: (key: string) => void) {
+/**
+ * Where focus goes once a move lands, since the control that started it unmounts: the block's row once the list shows
+ * it at `at`, or the headline when the block leaves today.
+ */
+type FocusTarget = { kind: "row"; key: string; at: EpochMs } | { kind: "headline" };
+
+function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: FocusTarget) => void) {
   const router = useRouter();
   return async ({ block }: Extract<Trailing, { kind: "missed" }>) => {
     const minutes = fmtDuration(block.end - block.start);
@@ -111,12 +117,9 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focusRow: (key: strin
       toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again." });
       return;
     }
+    const openCalendar = { children: "Open calendar", onClick: () => router.push(href.calendar({ view: "day", date: plan.zone.dayOf(now) })) };
     if (!moved) {
-      toast.add({
-        title: `No free ${minutes} slot in the next 7 days.`,
-        description: "Open the calendar to move this block by hand.",
-        actionProps: { children: "Open calendar", onClick: () => router.push(href.calendar({ view: "day", date: plan.zone.dayOf(now) })) },
-      });
+      toast.add({ title: `No free ${minutes} slot in the next 7 days.`, description: "Open the calendar to move this block by hand.", actionProps: openCalendar });
       return;
     }
     const { zone } = plan;
@@ -124,17 +127,23 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focusRow: (key: strin
     const day = zone.dayOf(moved.start);
     const time = fmtTime(moved.start, zone);
     const when = day === today ? time : day === zone.addDays(today, 1) ? `tomorrow at ${time}` : `${fmtDay(day, zone, "weekdayShort")} at ${time}`;
-    toast.add({
+    const movedToast = toast.add({
       title: `Moved to ${when}.`,
       actionProps: {
         children: "Undo",
-        onClick: () =>
-          void planActions
-            .move(block.id, { start: block.start, end: block.end })
-            .catch(() => toast.add({ title: "Couldn't move it back.", description: "That time now overlaps a class. Pick another slot on the calendar." })),
+        onClick: () => {
+          toast.close(movedToast);
+          planActions.move(block.id, { start: block.start, end: block.end }).then(
+            () => focus({ kind: "row", key: block.id, at: block.start }),
+            () => {
+              toast.add({ title: "Couldn't move it back.", description: "That time now overlaps another event. Open the calendar to pick a slot.", actionProps: openCalendar });
+              focus(day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" });
+            },
+          );
+        },
       },
     });
-    if (day === today) focusRow(block.id);
+    focus(day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" });
   };
 }
 
@@ -145,8 +154,21 @@ function TodayView({ day, now, later, focusHeadline, onHeadlineFocused }: { day:
   const facts = useTodayFacts(shown, lectureEvents);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const links = useRef(new Map<string, HTMLAnchorElement>());
-  const pendingFocus = useRef<string | null>(null);
-  const reschedule = useRescheduleAction(day, now, (key) => (pendingFocus.current = key));
+  const pendingFocus = useRef<FocusTarget | null>(null);
+  const latestRows = useRef<readonly TodayRow[]>([]);
+  const applyFocus = useCallback(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    if (target.kind === "row") {
+      if (!latestRows.current.some((r) => r.key === target.key && r.start === target.at)) return;
+      links.current.get(target.key)?.focus();
+    } else headlineRef.current?.focus();
+    pendingFocus.current = null;
+  }, []);
+  const reschedule = useRescheduleAction(day, now, (target) => {
+    pendingFocus.current = target;
+    applyFocus();
+  });
 
   const next = day.blocks.find((b) => isRemaining(day.status(b)));
   const cardBlock = next ?? later;
@@ -176,13 +198,9 @@ function TodayView({ day, now, later, focusHeadline, onHeadlineFocused }: { day:
     onHeadlineFocused();
   }, [ready, focusHeadline, onHeadlineFocused]);
 
-  // The Reschedule button unmounts once its row moves, so focus follows the row to its new place.
   useEffect(() => {
-    const key = pendingFocus.current;
-    const row = key && rows.find((r) => r.key === key);
-    if (!key || !row || row.state === "missed") return;
-    links.current.get(key)?.focus();
-    pendingFocus.current = null;
+    latestRows.current = rows;
+    applyFocus();
   });
 
   if (!facts || !rule) return <TodaySkeleton />;
