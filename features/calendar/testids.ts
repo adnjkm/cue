@@ -1,4 +1,5 @@
 /** Calendar's test ids, only for regions with no role. Plain constants: the walkthrough step imports this file directly. */
 export const tid = {
   main: "calendar-main",
+  agenda: "calendar-agenda",
 } as const;

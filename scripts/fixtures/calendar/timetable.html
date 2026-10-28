@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fall 2026 timetable</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 28px 32px; width: 960px; background: #fff; color: #1d1d1b; font: 13px/1.35 -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: #5c5c56; margin: 0 0 18px; }
+  .grid { display: grid; grid-template-columns: 68px repeat(5, 1fr); border-top: 1px solid #c9c9c3; border-left: 1px solid #c9c9c3; }
+  .grid > div { border-right: 1px solid #c9c9c3; border-bottom: 1px solid #c9c9c3; }
+  .head { background: #f1f1ec; font-weight: 600; text-align: center; padding: 6px 0; }
+  .time { color: #5c5c56; font-size: 11px; padding: 3px 6px; height: 56px; white-space: nowrap; }
+  .day { position: relative; }
+  .class { position: absolute; left: 4px; right: 4px; border-radius: 4px; padding: 4px 6px; font-size: 11.5px; line-height: 1.3; }
+  .class b { display: block; font-size: 12px; }
+  .bio { background: #dcebdc; border-left: 3px solid #4f8a4f; }
+  .phl { background: #e1e3f2; border-left: 3px solid #5b63a8; }
+  .pra { background: #f2e7d4; border-left: 3px solid #a87b2f; }
+  h2 { font-size: 14px; font-weight: 600; margin: 22px 0 6px; }
+  table { border-collapse: collapse; }
+  td { padding: 3px 18px 3px 0; }
+</style>
+</head>
+<body>
+  <h1>Weekly timetable · Fall 2026</h1>
+  <p class="sub">Student: Jordan Lee · Generated from ACORN, 20 August 2026</p>
+  <div class="grid" id="grid"></div>
+  <h2>Key dates</h2>
+  <table>
+    <tr><td><b>BIO130</b></td><td>Term Test 1</td><td>Wed 4 Nov 2026, 6:00 pm</td></tr>
+    <tr><td><b>PHL100</b></td><td>Essay 1 due</td><td>Fri 13 Nov 2026, 11:59 pm</td></tr>
+  </table>
+  <script>
+    const HOURS = [9, 10, 11, 12, 13, 14, 15, 16];
+    const ROW = 56;
+    const CLASSES = [
+      { day: 0, from: 13, to: 14, cls: "bio", title: "BIO130H1 LEC0101", lines: ["Molecular and Cell Biology", "MS 2172 · Prof. Ferreira"] },
+      { day: 2, from: 13, to: 14, cls: "bio", title: "BIO130H1 LEC0101", lines: ["Molecular and Cell Biology", "MS 2172 · Prof. Ferreira"] },
+      { day: 3, from: 14, to: 17, cls: "pra", title: "BIO130H1 PRA0104", lines: ["Practical", "RW 110"] },
+      { day: 1, from: 11, to: 12, cls: "phl", title: "PHL100Y1 LEC0201", lines: ["Introduction to Philosophy", "SS 2117 · Prof. Abebe"] },
+      { day: 3, from: 11, to: 12, cls: "phl", title: "PHL100Y1 LEC0201", lines: ["Introduction to Philosophy", "SS 2117 · Prof. Abebe"] },
+    ];
+    const grid = document.getElementById("grid");
+    const cell = (cls, text = "") => Object.assign(document.createElement("div"), { className: cls, textContent: text });
+    grid.append(cell("head"), ...["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((d) => cell("head", d)));
+    const columns = [];
+    HOURS.forEach((h, i) => {
+      grid.append(cell("time", `${((h + 11) % 12) + 1}:00 ${h < 12 ? "am" : "pm"}`));
+      for (let d = 0; d < 5; d++) {
+        const c = cell("day");
+        grid.append(c);
+        if (i === 0) columns[d] = c;
+      }
+    });
+    for (const k of CLASSES) {
+      const box = document.createElement("div");
+      box.className = `class ${k.cls}`;
+      box.style.top = `${(k.from - HOURS[0]) * (ROW + 1) + 3}px`;
+      box.style.height = `${(k.to - k.from) * (ROW + 1) - 6}px`;
+      box.innerHTML = `<b>${k.title}</b>${k.lines.join("<br>")}`;
+      columns[k.day].append(box);
+    }
+  </script>
+</body>
+</html>
