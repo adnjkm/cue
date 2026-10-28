@@ -31,7 +31,7 @@ function dayHeading(day: LocalDate, today: LocalDate, zone: Zone): string {
   return long;
 }
 
-/** Today's timeline lanes: time 96, course chip 84, title, trailing text, then the action. */
+/** Today's fixed lanes, so times, chips and trailing text line up across rows. */
 function Row({ lead, course, title, titleHref, trailing, action, current }: { lead: string; course: string | null; title: string; titleHref: string; trailing: string; action?: ReactNode; current?: boolean }) {
   return (
     <li

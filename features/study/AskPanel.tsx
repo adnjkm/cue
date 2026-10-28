@@ -39,10 +39,7 @@ function FollowUps({ message, chat, courseId }: { message: ChatMessage; chat: Ch
   );
 }
 
-/**
- * The study scope's chat column: caps label, the thread (scrolls, sticks to the newest message unless the
- * student scrolled up) and the composer pinned under it.
- */
+/** The thread sticks to the newest message unless the student scrolled up to reread. */
 export function AskPanel({
   chat,
   label,

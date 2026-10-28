@@ -108,7 +108,6 @@ export function useStudyBlock(id: BlockId, session: StudySession | null | undefi
   return session ? { zone: plan.zone, block: blockFromSession(session) } : null;
 }
 
-/** A session's snapshot as a block, for history whose anchor is gone and for its titles. */
 export function blockFromSession(s: StudySession): StudyBlock {
   return { id: s.id, anchor: s.anchor, start: s.planned.start, end: s.planned.end, courseId: s.courseId, topic: s.topic, why: { offsetDays: 0 }, placement: "locked" };
 }

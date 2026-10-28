@@ -39,7 +39,6 @@ function rovingKeys(e: KeyboardEvent<HTMLOListElement>) {
 
 const currentIndex = (rows: readonly StepRow[]) => Math.max(0, rows.findIndex((r) => r.state === "current"));
 
-/** Paper's 240-wide column: badge, title and, for the current step only, its meta line. */
 export function PlanList({ rows, labelId, onSelect }: { rows: readonly StepRow[]; labelId: string; onSelect: (i: number) => void }) {
   const current = currentIndex(rows);
   return (
@@ -69,7 +68,6 @@ export function PlanList({ rows, labelId, onSelect }: { rows: readonly StepRow[]
   );
 }
 
-/** Below 1280 the column becomes a strip: the five badges, then the current step's title and meta. */
 export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRow[]; onSelect: (i: number) => void; className?: string }) {
   const current = currentIndex(rows);
   const row = rows[current];
@@ -108,7 +106,6 @@ export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRo
   );
 }
 
-/** The transcript moment under the material: 40px time, then the quote. Opens the Transcript tab there. */
 export function MomentCard({ at, quote, examHint, onOpen }: { at: TranscriptRef; quote: string; examHint: boolean; onOpen: () => void }) {
   return (
     <button
@@ -123,7 +120,6 @@ export function MomentCard({ at, quote, examHint, onOpen }: { at: TranscriptRef;
   );
 }
 
-/** The rule, the self-test question and the step's primary action. */
 export function CheckRow({ question, action }: { question?: string; action?: ReactNode }) {
   if (!question && !action) return null;
   return (
@@ -143,7 +139,6 @@ export function NextStepButton({ label, onClick, disabled }: { label: string; on
   );
 }
 
-/** Loading rows for the plan column: badge and title shapes, no shimmer under reduced motion (globals.css). */
 export function PlanSkeleton({ rows = 5 }: { rows?: number }) {
   return (
     <div aria-hidden="true" className="flex flex-col gap-1">

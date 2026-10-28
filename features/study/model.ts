@@ -28,7 +28,6 @@ export interface FlaggedLine {
   examHint: boolean;
 }
 
-/** What a plan draft's ids and numbers resolve against. */
 export interface PlanContext {
   focusMinutes: number;
   /** Page 1 of the lecture's deck, carrying its doc facts, and the deck's slide count. */
@@ -60,7 +59,7 @@ function leadQuote(text: string, max = 240): string {
   return end > 40 ? cut.slice(0, end + 1) : `${cut.trimEnd()}…`;
 }
 
-/** Resolves a model draft into the stored plan: slide numbers and ids to refs, minutes to exactly the focus minutes. */
+/** The model's numbers and ids are never trusted as given: ranges clamp to the deck, unknown ids drop, minutes rescale. */
 export function buildPlan(draft: PlanDraft, ctx: PlanContext): SessionPlan {
   const minutes = normalizeMinutes(
     draft.steps.map((s) => s.minutes),
@@ -91,7 +90,6 @@ export function focusMs(elapsedMs: number, pomodoro: PomodoroPrefs): number {
   return full * focus + Math.min(focus, elapsedMs - full * cycle);
 }
 
-/** How far the current step runs past its minutes, in focus time. */
 export function stepOverMs(session: StudySession, now: EpochMs, pomodoro: PomodoroPrefs): number {
   const step = session.plan?.steps[session.step];
   if (!step) return 0;
@@ -123,7 +121,6 @@ export function stepRows(plan: SessionPlan, at: { step: number; stepsDone: reado
 export interface TimerView {
   /** Quantized to whole percent, so the 160px fill matches Paper's round(29%, 1px). */
   fraction: number;
-  /** "31:48 left", "Paused · 31:48 left", "Break · 4:12 left", "Time's up". */
   text: string;
   valueText: string;
   over: boolean;
@@ -163,7 +160,6 @@ export function timerView(session: StudySession, now: EpochMs, pomodoro: Pomodor
   };
 }
 
-/** "3 steps left · 31:48" for the End session confirm. */
 export function endSummary(session: StudySession, now: EpochMs): string {
   const total = session.plan?.steps.length ?? 0;
   const after = Math.max(0, total - session.step - 1);
@@ -173,7 +169,6 @@ export function endSummary(session: StudySession, now: EpochMs): string {
   return after === 0 ? `Last step · ${leftMs > 0 ? `${left} left` : left}` : `${after} step${after === 1 ? "" : "s"} left · ${left}`;
 }
 
-/** "Completed · 45m studied" or "Ended · 13m studied". */
 export function finishedSummary(session: StudySession): string {
   const studied = fmtDuration(sessionElapsedMs(session.state, session.updatedAt));
   return `${session.state.status === "completed" ? "Completed" : "Ended"} · ${studied} studied`;
@@ -243,7 +238,6 @@ export function tabLabel(tab: ViewerTab, v: ViewerState): string {
   }
 }
 
-/** "Slide 14 of 32", "Transcript · 32:14", "Course notes §5.2 · p. 63". */
 export function viewerLabel(v: ViewerState, slideCount: number | undefined): string {
   switch (v.tab) {
     case "slides":
@@ -259,7 +253,6 @@ export function viewerLabel(v: ViewerState, slideCount: number | undefined): str
   }
 }
 
-/** "Flagged · on the midterm", "Flagged · on Term Test 2". */
 export function flagLabel(assessment: string | undefined): string {
   if (!assessment) return "Flagged";
   return /^(midterm|exam|final|quiz)$/i.test(assessment) ? `Flagged · on the ${assessment.toLowerCase()}` : `Flagged · on ${assessment}`;
@@ -308,7 +301,6 @@ export function defaultViewer(
   return v;
 }
 
-/** Entering a step opens its material; a step with none leaves the viewer where it was. */
 export function viewerForStep(v: ViewerState, step: PlanStep | undefined): ViewerState {
   return step?.source ? (showRef(v, step.source) ?? v) : v;
 }

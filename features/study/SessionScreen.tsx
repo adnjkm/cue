@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey } from "@/lib/chat";
-import { ids, type AskMode, type BlockId, type PrefsByOwner, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
+import { ids, type AskMode, type BlockId, type PrefsByOwner, type SessionPlan, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
 import { usePrefs } from "@/lib/prefs";
 import { href } from "@/lib/routes";
 import { fmtDay, fmtRange, useNow } from "@/lib/time";
@@ -16,7 +16,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AskPanel } from "./AskPanel";
 import { loadPlan, loadSources, sessionActions, usePlanJob, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
-import { defaultViewer, endSummary, finishedSummary, showRef, stepOverMs, stepRows, timerView, viewerForStep, type ViewerState } from "./model";
+import { defaultViewer, endSummary, finishedSummary, showRef, stepOverMs, stepRows, timerView, viewerForStep, type StepRow, type ViewerState } from "./model";
 import { CheckRow, MomentCard, NextStepButton, PlanList, PlanSkeleton, PlanStrip } from "./parts";
 import { tid } from "./testids";
 import { MaterialViewer } from "./Viewer";
@@ -32,7 +32,7 @@ function titleOf(block: StudyBlock): string {
   return [block.courseId, block.topic.full].filter(Boolean).join(" · ");
 }
 
-/** The live toolbar: 160px Pomodoro bar and countdown, Pause, End session. Ticks once a second on its own. */
+/** Ticks by itself for the same reason as TickingRows. */
 function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: StudySession; prefs: StudyPrefs; onTogglePause: () => void; onEnd: () => void }) {
   const now = useNow("second");
   const view = timerView(session, now, prefs.pomodoro);
@@ -68,11 +68,17 @@ function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: Study
   );
 }
 
-/** Ticks with the clock so "Over by 1 min" and "Finish session" appear on time. */
-function useSessionTick(session: StudySession | null, prefs: StudyPrefs) {
+type PlanAt = { step: number; stepsDone: readonly number[] };
+
+/** Ticks by itself, so "Over by 1 min" lands on time without re-rendering the chat every second. */
+function TickingRows({ plan, at, live, prefs, children }: { plan: SessionPlan; at: PlanAt; live: StudySession | null; prefs: StudyPrefs; children: (rows: StepRow[]) => ReactNode }) {
   const now = useNow("second");
-  if (!session) return { overMs: 0, timeUp: false };
-  return { overMs: stepOverMs(session, now, prefs.pomodoro), timeUp: timerView(session, now, prefs.pomodoro).over };
+  return children(stepRows(plan, at, live ? stepOverMs(live, now, prefs.pomodoro) : 0));
+}
+
+function NextStep({ live, prefs, isLast, onClick }: { live: StudySession; prefs: StudyPrefs; isLast: boolean; onClick: () => void }) {
+  const now = useNow("second");
+  return <NextStepButton label={isLast || timerView(live, now, prefs.pomodoro).over ? "Finish session" : "Next step"} onClick={onClick} />;
 }
 
 function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBlock; zone: Zone; row: StudySession | null; prefs: StudyPrefs; start: boolean; tab?: ViewerTab }) {
@@ -114,8 +120,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
 
   const [localStep, setLocalStep] = useState(0);
   const stepIndex = live ? live.step : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
-  const { overMs, timeUp } = useSessionTick(live, prefs);
-  const rows = plan ? stepRows(plan, { step: stepIndex, stepsDone: row?.stepsDone ?? [] }, live ? overMs : 0) : null;
+  const at: PlanAt = { step: stepIndex, stepsDone: row?.stepsDone ?? [] };
   const step = plan?.steps[stepIndex];
   const isLast = !!plan && stepIndex >= plan.steps.length - 1;
 
@@ -194,8 +199,10 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
 
   const [adding, setAdding] = useState(false);
   const planError = planJob?.status === "error" && !plan ? planJob.error : null;
-  const planBody = rows ? (
-    <PlanList rows={rows} labelId={planLabelId} onSelect={goto} />
+  const planBody = plan ? (
+    <TickingRows plan={plan} at={at} live={live} prefs={prefs}>
+      {(rows) => <PlanList rows={rows} labelId={planLabelId} onSelect={goto} />}
+    </TickingRows>
   ) : planError ? (
     planError.kind === "budget" ? (
       <BudgetNotice error={planError} />
@@ -219,7 +226,6 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
     </div>
   );
 
-  const nextLabel = isLast || timeUp ? "Finish session" : "Next step";
   return (
     <main
       ref={rootRef}
@@ -252,8 +258,10 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
         )}
       </header>
 
-      {rows ? (
-        <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />
+      {plan ? (
+        <TickingRows plan={plan} at={at} live={live} prefs={prefs}>
+          {(rows) => <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />}
+        </TickingRows>
       ) : (
         !planError && <p className="animate-breathe text-sm leading-4 text-graphite xl:hidden">Writing your session plan…</p>
       )}
@@ -280,8 +288,8 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
           }
         >
           {plan?.moment && <MomentCard at={plan.moment.ref} quote={plan.moment.quote} examHint={plan.moment.examHint} onOpen={() => openSource(plan.moment!.ref)} />}
-          {!rows && planError && <div className="xl:hidden">{planBody}</div>}
-          <CheckRow question={step?.check} action={live && plan ? <NextStepButton label={nextLabel} onClick={() => void next()} /> : undefined} />
+          {!plan && planError && <div className="xl:hidden">{planBody}</div>}
+          <CheckRow question={step?.check} action={live && plan ? <NextStep live={live} prefs={prefs} isLast={isLast} onClick={() => void next()} /> : undefined} />
         </MaterialViewer>
 
         <AskPanel

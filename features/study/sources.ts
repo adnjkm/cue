@@ -8,7 +8,6 @@ import { fmtStamp } from "@/lib/time";
 import type { FlaggedLine, PageRef, PlanContext, TranscriptRef } from "./model";
 import type { StudyPlanInput } from "./shape";
 
-/** Everything the session reads for one block: the deck, the lecture, a reading, a handout and the plan's context. */
 export interface SessionSources {
   deck: { ref: PageRef; count: number; headings: string[] } | null;
   /** The transcript at 0:00, carrying the facts its labels need. */
@@ -40,7 +39,7 @@ async function deckOf(id: MaterialId | undefined): Promise<SessionSources["deck"
   };
 }
 
-/** Renumbers passages from several retrievals as S1… and keeps the request under the passage cap. */
+/** Each retrieval numbers from S1, so merged passages are renumbered; the budget keeps the request under the passage cap. */
 function merge(groups: readonly Passage[][]): Passage[] {
   const out: Passage[] = [];
   let chars = 0;

@@ -151,7 +151,6 @@ const NOTES = "mat_sample_csc148_notes" as MaterialId;
 const L8 = "lec.evt_sample_csc148_l08" as LectureId;
 const CSC = "CSC148" as CourseId;
 
-/** Study sessions' tasks, registered as "study.<name>" by lib/ai/registry.ts. */
 export const studyTasks = defineTasks("study", {
   plan: jsonTask({
     profile: "reason",

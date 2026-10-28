@@ -31,7 +31,6 @@ function Missing({ children }: { children: ReactNode }) {
   return <div className={cn(CARD, "text-sm leading-5 text-graphite")}>{children}</div>;
 }
 
-/** One slide: heading, body and code, as Paper draws slide 14. Left and Right page through the deck. */
 function SlideCard({ at, onMove }: { at: PageRef; onMove: (delta: number) => void }) {
   const found = usePage(at);
   const slide = found?.page?.slide;
@@ -73,7 +72,6 @@ function SlideCard({ at, onMove }: { at: PageRef; onMove: (delta: number) => voi
   );
 }
 
-/** The lecture's transcript with the target line highlighted and scrolled to the middle of the viewer. */
 function TranscriptPanel({ at, scrollRef }: { at: TranscriptRef; scrollRef: React.RefObject<HTMLDivElement | null> }) {
   const segments = useLive(() => db.segments.where("lectureId").equals(at.lectureId).sortBy("seq"), [at.lectureId]);
   const listRef = useRef<HTMLOListElement>(null);
@@ -123,10 +121,7 @@ function PagePanel({ at }: { at: PageRef }) {
   );
 }
 
-/**
- * Paper's material column: caps label and tabs, the viewer, then whatever the screen puts under it (the
- * transcript moment and the check row). The viewer scrolls on its own so the step's action stays in view.
- */
+/** The viewer scrolls on its own, so the transcript moment and the step's action under it stay in view. */
 export function MaterialViewer({
   viewer,
   slideCount,
