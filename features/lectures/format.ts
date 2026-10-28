@@ -18,6 +18,12 @@ export function spokenDuration(ms: number): string {
   return said.length ? said.join(" ") : "0 seconds";
 }
 
+/** A stamp's `datetime` value: `PT33M20S` for 33:20. */
+export function isoDuration(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `PT${Math.floor(s / 60)}M${s % 60}S`;
+}
+
 /** Live: newest first. Saved: exam-hint cards first, then by time. */
 export function orderLinks(links: readonly RelatedLink[], style: "live" | "saved"): RelatedLink[] {
   return [...links].sort((a, b) => (style === "saved" ? Number(b.why === "hint") - Number(a.why === "hint") || a.atMs - b.atMs : b.atMs - a.atMs || a.title.localeCompare(b.title)));

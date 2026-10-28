@@ -95,6 +95,8 @@ await session(async (t, page) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   check((await pulse()).startsWith("none"), `the recording dot holds still under reduced motion (${await pulse()})`);
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  const cardTime = await page.getByTestId("lectures-related").locator("time").first().getAttribute("datetime");
+  check(cardTime === "PT33M20S", `the first related card's stamp is a valid time (${cardTime})`);
   await shot(page, "live", NARROW);
   await page.setViewportSize(WIDE);
   await page.clock.resume();

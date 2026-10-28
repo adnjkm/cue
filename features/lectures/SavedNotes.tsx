@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { lectureTitle, orderLinks, slotText } from "./format";
+import { isoDuration, lectureTitle, orderLinks, slotText } from "./format";
 import { Chevron, Columns, composerClass, RelatedList, StatusPill, Toolbar, TranscriptRow } from "./parts";
 import { recorder, useRecorder } from "./recorder";
 import { tid } from "./testids";
@@ -159,7 +159,7 @@ export function SavedNotes({
                       aria-label={`${fmtStamp(k.atMs)}, show this moment in the full transcript`}
                       className="h-5 w-11 shrink-0 cursor-pointer self-start rounded-xs text-left text-sm leading-5 text-graphite tabular-nums underline-offset-4 hover:text-ink hover:underline"
                     >
-                      <time dateTime={`PT${Math.floor(k.atMs / 60_000)}M${Math.floor(k.atMs / 1000) % 60}S`}>{fmtStamp(k.atMs)}</time>
+                      <time dateTime={isoDuration(k.atMs)}>{fmtStamp(k.atMs)}</time>
                     </button>
                     <p className="min-w-0 flex-1 text-sm leading-5 text-ink">{k.text}</p>
                   </li>

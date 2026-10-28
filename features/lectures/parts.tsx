@@ -12,6 +12,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { SectionLabel, TranscriptLine } from "@/components/cue";
 import { Item } from "@/components/ui/item";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isoDuration } from "./format";
 import { flagLabel } from "./hints";
 import { tid } from "./testids";
 
@@ -130,7 +131,7 @@ function RelatedCard({ link, emphasized, arriving }: { link: RelatedLink; emphas
   const url = linkHref(link.target);
   const body = (
     <>
-      <time className={cn("w-11 shrink-0 text-sm leading-5 tabular-nums", emphasized ? "font-medium text-ink" : "text-graphite")}>{fmtStamp(link.atMs)}</time>
+      <time dateTime={isoDuration(link.atMs)} className={cn("w-11 shrink-0 text-sm leading-5 tabular-nums", emphasized ? "font-medium text-ink" : "text-graphite")}>{fmtStamp(link.atMs)}</time>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-sm leading-5 font-medium text-ink">{link.title}</span>
         <span className="text-sm leading-4 text-graphite">{link.meta}</span>
