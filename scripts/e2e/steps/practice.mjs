@@ -112,6 +112,9 @@ export default async function practice(t) {
   await page.goto(`/practice?generate=${Buffer.from("{not a scope").toString("base64url")}`);
   await expect(page.getByTestId(t.tid.shell.main).getByRole("alert")).toContainText("That link to write questions is broken.");
 
+  await page.goto("/practice/set_not_on_this_device");
+  await expect(page.getByRole("main")).toContainText("This practice set isn't on this device.");
+
   await migratedHarness(t);
 
   await page.keyboard.press("Escape");

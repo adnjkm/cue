@@ -579,7 +579,7 @@ export function PracticeScreen({ setId, link = {} }: { setId: SetId; link?: { q?
   useEffect(() => {
     if (set) resumeGeneration(set, count);
   }, [set, count]);
-  if (data === undefined) return <div className="flex-1" aria-busy="true" />;
+  if (data === undefined) return <main className="flex-1" aria-busy="true" />;
   if (data === null) return <MissingSet />;
   return <Screen data={data} />;
 }
@@ -587,7 +587,7 @@ export function PracticeScreen({ setId, link = {} }: { setId: SetId; link?: { q?
 /** A set id this browser has no row for, or one that is not a set id at all. */
 export function MissingSet() {
   return (
-    <div className="flex flex-1 flex-col gap-6 px-10 pt-7 max-md:px-4 max-md:pt-4">
+    <main className="flex flex-1 flex-col gap-6 px-10 pt-7 max-md:px-4 max-md:pt-4">
       <EmptyState
         title="This practice set isn't on this device."
         detail="Practice sets live in the browser that made them. Upload the paper again to practice it here."
@@ -597,6 +597,6 @@ export function MissingSet() {
           </Link>
         }
       />
-    </div>
+    </main>
   );
 }
