@@ -36,7 +36,7 @@ function Column({ children, busy }: { children: ReactNode; busy?: boolean }) {
 
 function Header({ headline, subline, headlineRef }: { headline: string; subline: ReactNode; headlineRef?: React.Ref<HTMLHeadingElement> }) {
   return (
-    <div className="flex flex-col gap-3.5 md:h-32 md:shrink-0">
+    <div className="flex flex-col gap-3.5 md:min-h-32 md:shrink-0">
       <h1 ref={headlineRef} tabIndex={-1} className="max-w-[700px] text-2xl font-normal tracking-display text-balance text-ink outline-none max-md:text-[24px] max-md:leading-[30px]">
         {headline}
       </h1>
