@@ -91,7 +91,7 @@ export function Columns({ main, mainLabel, related, relatedCount, relatedFresh }
       <TabsContent value="main" className="flex min-h-0 flex-1 flex-col">
         {main}
       </TabsContent>
-      <TabsContent value="related" className="min-h-0 overflow-y-auto">
+      <TabsContent value="related" className="flex min-h-0 flex-col">
         <h2 className="sr-only">Related coursework</h2>
         {related}
       </TabsContent>
@@ -127,7 +127,8 @@ function RelatedCard({ link, emphasized, arriving }: { link: RelatedLink; emphas
     </>
   );
   const className = cn(
-    "group/card flex-nowrap gap-4 px-4 py-3 text-left transition-[background-color,transform] duration-100 ease-standard hover:bg-wash active:scale-[0.98] [a]:hover:bg-wash",
+    // Item's outline-none hides the global ring, and an emphasized card's border is already ink, so focus needs the ring back.
+    "group/card flex-nowrap gap-4 px-4 py-3 text-left transition-[background-color,transform] duration-100 ease-standard hover:bg-wash focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink focus-visible:outline-solid active:scale-[0.98] [a]:hover:bg-wash",
     emphasized ? "border-ink" : "border-border",
     arriving && "animate-in fade-in-0 slide-in-from-top-1 duration-200",
   );
@@ -149,7 +150,7 @@ export function RelatedList({ links, style, scrollRef }: { links: readonly Relat
     return <p className="text-sm leading-5 text-graphite">Links to tests, problem sets and readings appear here when the lecture mentions them.</p>;
   }
   return (
-    <ul ref={scrollRef} data-testid={tid.related} className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+    <ul ref={scrollRef} data-testid={tid.related} className="-m-1 flex min-h-0 flex-col gap-2 overflow-y-auto p-1">
       {links.map((link, i) => (
         <li key={link.id}>
           <RelatedCard link={link} emphasized={style === "live" && i === 0} arriving={!seen.has(link.id)} />
