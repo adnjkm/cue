@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { blockTitle } from "@/lib/plan";
@@ -199,7 +199,7 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
           </div>
           {dayList.map((d, col) => (
             <div key={d} role="cell" className="relative h-[1200px] min-w-0 flex-1 basis-0 border-l border-rule">
-              {days?.[col] && <DayColumn items={days[col]} col={col} dueCount={due[col].nav.length} zone={zone} now={now} day={day} current={current} recording={recording} label={longDay(d)} />}
+              {days?.[col] && <DayColumn items={days[col]} col={col} dueCount={due[col].nav.length} zone={zone} now={now} day={day} narrow={narrow} current={current} recording={recording} label={longDay(d)} />}
             </div>
           ))}
         </div>
@@ -251,25 +251,34 @@ function DayHeader({ day, today, link, label }: { day: LocalDate; today: LocalDa
   );
 }
 
-function DayColumn(props: { items: DayItems; col: number; dueCount: number; zone: Zone; now: EpochMs; day: boolean; current: string | null; recording: ReadonlySet<string>; label: string }) {
-  const { items, col, dueCount, zone, day } = props;
+function DayColumn(props: { items: DayItems; col: number; dueCount: number; zone: Zone; now: EpochMs; day: boolean; narrow: boolean; current: string | null; recording: ReadonlySet<string>; label: string }) {
+  const { items, col, dueCount, zone, day, narrow } = props;
   const { visible, overflow } = layoutLanes(items.timed, day ? 4 : 3);
   const navIndex = new Map(items.timed.map((t, i) => [t.id, dueCount + i]));
   const placed = visible.map((v) => {
     const lines = v.item.kind === "block" ? blockLines(v.item) : 2;
     return { ...v, lines, box: boxOf(v.item, items.day, zone, lines) };
   });
+  const rendered = placed.map((p) => {
+    const next = placed.filter((o) => o.lane === p.lane && o.item.start >= p.item.end).reduce((top, o) => Math.min(top, o.box.top), Infinity);
+    return { ...p, box: { top: p.box.top, height: Math.max(p.box.minHeight, Math.min(p.box.height, next - p.box.top - 2)) } };
+  });
+  /** At phone width a block under 44px gets up to 8px more hit area above and below, half the gap to its neighbours at most. */
+  const hitOf = (r: (typeof rendered)[number]) => {
+    if (!narrow || r.box.height >= 44) return undefined;
+    const bottom = r.box.top + r.box.height;
+    const others = rendered.filter((o) => o !== r && o.lane === r.lane);
+    const above = Math.max(0, ...others.map((o) => o.box.top + o.box.height).filter((b) => b <= r.box.top));
+    const below = Math.min(24 * HOUR_PX, ...others.map((o) => o.box.top).filter((t) => t >= bottom));
+    return { up: Math.min(8, (r.box.top - above) / 2), down: Math.min(8, (below - bottom) / 2) };
+  };
   return (
     <ul aria-label={props.label} className="absolute inset-0">
-      {placed.map(({ item, lane, lanes, lines, box: drawn }) => {
-        const next = placed.filter((p) => p.lane === lane && p.item.start >= item.end).reduce((top, p) => Math.min(top, p.box.top), Infinity);
-        const box = { top: drawn.top, height: Math.max(drawn.minHeight, Math.min(drawn.height, next - drawn.top - 2)) };
-        return (
-          <li key={item.id} className="absolute" style={{ top: box.top, height: box.height, ...laneStyle(lane, lanes) }}>
-            <Item item={item} lines={lines} {...props} nav={`${col}:${navIndex.get(item.id)}`} />
-          </li>
-        );
-      })}
+      {rendered.map((r) => (
+        <li key={r.item.id} className="absolute" style={{ top: r.box.top, height: r.box.height, ...laneStyle(r.lane, r.lanes) }}>
+          <Item item={r.item} lines={r.lines} {...props} hit={hitOf(r)} nav={`${col}:${navIndex.get(r.item.id)}`} />
+        </li>
+      ))}
       {overflow.map((o) => {
         const top = (minutesOfDay(o.start as EpochMs, zone) * HOUR_PX) / 60;
         return (
@@ -327,11 +336,23 @@ function DeadlineLabel({ text, course }: { text: string; course: string }) {
   );
 }
 
-const BASE = "flex h-full w-full cursor-pointer flex-col items-start overflow-hidden rounded-xs text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard focus-visible:outline-offset-1 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-[160ms]";
+const BASE = "relative flex h-full w-full cursor-pointer flex-col items-start rounded-xs text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard focus-visible:outline-offset-1 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-[160ms]";
 const LINE = "block w-full truncate";
 
-function Item({ item, lines, zone, now, day, current, recording, nav }: { item: TimedItem; lines: 1 | 2; zone: Zone; now: EpochMs; day: boolean; current: string | null; recording: ReadonlySet<string>; nav: string }) {
-  const common = { tabIndex: item.id === current ? 0 : -1, "data-nav": nav, "data-id": item.id };
+/** Clips the block's lines inside the button, so the button itself can carry a hit area larger than its box. */
+const Clip = ({ children }: { children: ReactNode }) => <span className="flex min-h-0 w-full flex-col items-start overflow-hidden">{children}</span>;
+
+const HIT = "before:absolute before:inset-x-0 before:top-[calc(var(--hit-up)*-1)] before:bottom-[calc(var(--hit-down)*-1)] before:content-['']";
+
+function Item(props: { item: TimedItem; lines: 1 | 2; zone: Zone; now: EpochMs; day: boolean; current: string | null; recording: ReadonlySet<string>; nav: string; hit?: { up: number; down: number } }) {
+  const { item, lines, zone, now, day, current, recording, nav, hit } = props;
+  const common = {
+    tabIndex: item.id === current ? 0 : -1,
+    "data-nav": nav,
+    "data-id": item.id,
+    ...(hit ? { style: { "--hit-up": `${hit.up}px`, "--hit-down": `${hit.down}px` } as CSSProperties } : {}),
+  };
+  const hitClass = hit && HIT;
   if (item.kind === "event") {
     const e = item.event;
     const live = now >= e.start && now < e.end;
@@ -346,15 +367,15 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
           ...common,
           "aria-label": eventName(e, zone, live) + (rec ? ", recording" : ""),
           "data-kind": e.kind,
-          className: cn(BASE, "border border-border bg-page pr-2 pl-[7px] hover:bg-wash data-[popup-open]:border-ink", day ? "justify-center" : "py-[3px]"),
+          className: cn(BASE, hitClass, "border border-border bg-page pr-2 pl-[7px] hover:bg-wash data-[popup-open]:border-ink", day ? "justify-center" : "py-[3px]"),
           children: (
-            <>
+            <Clip>
               <span className={cn(LINE, "flex items-center gap-1.5 font-medium")}>
                 {rec && <span aria-hidden className="size-2 shrink-0 rounded-full bg-ink motion-safe:animate-breathe" />}
                 <span className="truncate">{eventTitle(e)}</span>
               </span>
               <span className={LINE}>{meta}</span>
-            </>
+            </Clip>
           ),
         }}
       />
@@ -375,6 +396,7 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
         "data-kind": "block",
         className: cn(
           BASE,
+          hitClass,
           day && "justify-center",
           look === "missed"
             ? cn("border border-dashed border-border bg-page px-[7px] hover:bg-wash data-[popup-open]:border-ink", !day && "py-[3px]")
@@ -383,7 +405,7 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
               : cn("bg-fill px-2 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1"),
         ),
         children: (
-          <>
+          <Clip>
             <span className={cn(LINE, "flex items-center gap-1 font-medium", (look === "done" || look === "missed") && "text-graphite")}>
               {look === "done" && <Check aria-hidden className="size-3 shrink-0" strokeWidth={2} />}
               <KeepEnd text={title} end={lines === 1 ? suffix : ""} />
@@ -394,7 +416,7 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
               </span>
             )}
             {lines === 2 && block.note && <span className={cn(LINE, "pt-1 text-graphite")}>{block.note}</span>}
-          </>
+          </Clip>
         ),
       }}
     />
