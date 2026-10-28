@@ -12,10 +12,12 @@ import {
   type EpochMs,
   type Interval,
   type LectureId,
+  type PlanOverride,
   type PomodoroPrefs,
   type SessionPlan,
   type StudyBlock,
   type StudySession,
+  type Unplaced,
   type Zone,
 } from "@/lib/domain";
 import { usePlan } from "@/lib/plan";
@@ -103,10 +105,25 @@ const EVERYTHING: Interval = { start: 0 as EpochMs, end: 8_640_000_000_000_000 a
 /** The block from the derived plan; a session whose anchor left the calendar still opens from its snapshot. */
 export function useStudyBlock(id: BlockId, session: StudySession | null | undefined): { block: StudyBlock; zone: Zone } | null | undefined {
   const plan = usePlan(EVERYTHING);
-  if (!plan || session === undefined) return undefined;
+  const override = useLive(async () => ({ row: (await db.overrides.get(id)) ?? null }), [id]);
+  if (!plan || session === undefined || !override) return undefined;
   const block = plan.blocks.find((b) => b.id === id);
   if (block) return { block, zone: plan.zone };
-  return session ? { zone: plan.zone, block: blockFromSession(session) } : null;
+  if (session) return { zone: plan.zone, block: blockFromSession(session) };
+  const aside = setAsideBlock(id, override.row, plan.unplaced);
+  return aside ? { zone: plan.zone, block: aside } : null;
+}
+
+/**
+ * "Review now" authors a block at the current minute, so right after a lecture it overlaps the lecture's buffer and
+ * the scheduler sets it aside. The student asked to study now, so the screen opens it from its override; once
+ * started, its session puts it back in the plan.
+ */
+export function setAsideBlock(id: BlockId, row: PlanOverride | null, unplaced: readonly Unplaced[]): StudyBlock | null {
+  const placement = row?.placement;
+  if (placement?.kind !== "authored" || placement.block.anchor.kind !== "custom" || !unplaced.some((u) => u.blockId === id)) return null;
+  const { anchor, at, topic, note } = placement.block;
+  return { id, anchor, start: at.start, end: at.end, courseId: anchor.course, topic, ...(note ? { note } : {}), why: { offsetDays: 0 }, placement: "authored" };
 }
 
 export function blockFromSession(s: StudySession): StudyBlock {
