@@ -263,3 +263,51 @@ export function flagLabel(assessment: string | undefined): string {
   if (!assessment) return "Flagged";
   return /^(midterm|exam|final|quiz)$/i.test(assessment) ? `Flagged · on the ${assessment.toLowerCase()}` : `Flagged · on ${assessment}`;
 }
+
+const TABS: readonly ViewerTab[] = ["slides", "transcript", "textbook", "handout"];
+
+/** Tabs with something to show, in Paper's order; a handout tab exists only once a handout was opened. */
+export function availableTabs(v: ViewerState): ViewerTab[] {
+  return TABS.filter((t) => v[t] !== undefined);
+}
+
+export interface ViewerSources {
+  deck: { ref: PageRef } | null;
+  lecture: { ref: TranscriptRef } | null;
+  reading: PageRef | null;
+  handout: PageRef | null;
+}
+
+/**
+ * Where the viewer opens before the student touches it: the next step that names material, then the place a
+ * started session last saved, then the `?tab=` a link asked for.
+ */
+export function defaultViewer(
+  src: ViewerSources,
+  plan: SessionPlan | undefined,
+  step: number,
+  opts: { tab?: ViewerTab; saved?: StudySession["viewer"] } = {},
+): ViewerState {
+  const steps = plan?.steps ?? [];
+  const planReading = steps.map((s) => s.source).find((r): r is PageRef => r?.kind === "page" && tabFor(r) === "textbook");
+  const moment = plan?.moment?.ref;
+  const reading = planReading ?? src.reading;
+  let v: ViewerState = {
+    tab: "slides",
+    ...(src.deck ? { slides: src.deck.ref } : {}),
+    ...(src.lecture ? { transcript: moment?.lectureId === src.lecture.ref.lectureId ? moment : src.lecture.ref } : {}),
+    ...(reading ? { textbook: reading } : {}),
+    ...(opts.tab === "handout" && src.handout ? { handout: src.handout } : {}),
+  };
+  v = { ...v, tab: availableTabs(v)[0] ?? "slides" };
+  const next = steps.slice(step).find((s) => s.source && tabFor(s.source))?.source;
+  if (next) v = showRef(v, next) ?? v;
+  if (opts.saved?.ref) v = showRef(v, opts.saved.ref) ?? v;
+  if (opts.tab && v[opts.tab]) v = { ...v, tab: opts.tab };
+  return v;
+}
+
+/** Entering a step opens its material; a step with none leaves the viewer where it was. */
+export function viewerForStep(v: ViewerState, step: PlanStep | undefined): ViewerState {
+  return step?.source ? (showRef(v, step.source) ?? v) : v;
+}

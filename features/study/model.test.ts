@@ -12,7 +12,9 @@ import {
   type StudyBlock,
 } from "@/lib/domain";
 import {
+  availableTabs,
   buildPlan,
+  defaultViewer,
   endSummary,
   focusMs,
   showRef,
@@ -21,6 +23,7 @@ import {
   stepSlide,
   tabLabel,
   timerView,
+  viewerForStep,
   viewerLabel,
   type PageRef,
   type PlanContext,
@@ -239,5 +242,31 @@ describe("material viewer", () => {
     const reading = { ...v, tab: "textbook" as const };
     expect(tabLabel("textbook", reading)).toBe("Textbook §5.2");
     expect(viewerLabel(reading, 32)).toBe("Course notes §5.2 · p. 63");
+  });
+});
+
+describe("where the viewer opens", () => {
+  const plan = buildPlan(draft, ctx);
+  const src = { deck: { ref: deckPage1 }, lecture: { ref: { ...ctx.flagged[0].ref, atMs: 0 } }, reading: null, handout: null };
+
+  it("opens on the next step's slides, the plan's reading and the moment's time", () => {
+    const v = defaultViewer(src, plan, 0);
+    expect([v.tab, viewerLabel(v, 32), tabLabel("textbook", v)]).toEqual(["slides", "Slide 12 of 32", "Textbook §5.2"]);
+    expect(viewerLabel({ ...v, tab: "transcript" }, 32)).toBe("Transcript · 32:14");
+    expect(availableTabs(v)).toEqual(["slides", "transcript", "textbook"]);
+  });
+
+  it("restores a started session's place and honours ?tab=", () => {
+    const saved = { tab: "slides" as const, ref: { ...deckPage1, page: 14 } };
+    expect(viewerLabel(defaultViewer(src, plan, 1, { saved }), 32)).toBe("Slide 14 of 32");
+    expect(defaultViewer(src, plan, 1, { tab: "transcript" }).tab).toBe("transcript");
+    expect(defaultViewer(src, plan, 1, { tab: "handout" }).tab).toBe("slides");
+  });
+
+  it("moves to a step's material on Next step and stays put for a step with none", () => {
+    const v = defaultViewer(src, plan, 0);
+    const moved = stepSlide(v, 2, 32);
+    expect(viewerForStep(moved, plan.steps[3])).toBe(moved);
+    expect(viewerForStep(moved, plan.steps[2]).tab).toBe("textbook");
   });
 });

@@ -1,0 +1,385 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { errorCopy } from "@/lib/ai";
+import { useChat, threadKey } from "@/lib/chat";
+import { ids, type AskMode, type BlockId, type PrefsByOwner, type SourceRef, type StudyBlock, type StudySession, type ViewerTab, type Zone } from "@/lib/domain";
+import { usePrefs } from "@/lib/prefs";
+import { href } from "@/lib/routes";
+import { fmtDay, fmtRange, useNow } from "@/lib/time";
+import { cn } from "@/lib/utils";
+import { AddMaterialDialog, BudgetNotice, EmptyState, ErrorLine, SectionLabel, TimerBar } from "@/components/cue";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { AskPanel } from "./AskPanel";
+import { loadPlan, loadSources, sessionActions, usePlanJob, useSessionRow, useSourcesJob, useStudyBlock } from "./data";
+import { defaultViewer, endSummary, finishedSummary, showRef, stepOverMs, stepRows, timerView, viewerForStep, type ViewerState } from "./model";
+import { CheckRow, MomentCard, NextStepButton, PlanList, PlanSkeleton, PlanStrip } from "./parts";
+import { tid } from "./testids";
+import { MaterialViewer } from "./Viewer";
+
+type StudyPrefs = PrefsByOwner["study"];
+
+function isTyping(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
+}
+
+function titleOf(block: StudyBlock): string {
+  return [block.courseId, block.topic.full].filter(Boolean).join(" · ");
+}
+
+/** The live toolbar: 160px Pomodoro bar and countdown, Pause, End session. Ticks once a second on its own. */
+function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: StudySession; prefs: StudyPrefs; onTogglePause: () => void; onEnd: () => void }) {
+  const now = useNow("second");
+  const view = timerView(session, now, prefs.pomodoro);
+  const paused = session.state.status === "paused";
+  return (
+    <>
+      <div className="order-last flex w-full items-center gap-3 lg:order-none lg:w-auto">
+        <TimerBar fraction={view.fraction} label="Session time" valueText={view.valueText} />
+        <span aria-live="off" className={cn("w-max text-sm leading-4 tabular-nums", view.over ? "font-medium text-ink" : "text-graphite")}>
+          {view.text}
+        </span>
+        <span aria-live="polite" className="sr-only">
+          {view.milestone}
+        </span>
+        <Button variant="secondary" aria-keyshortcuts="P" onClick={onTogglePause} className="ml-auto lg:ml-0">
+          {paused ? "Resume" : "Pause"}
+        </Button>
+      </div>
+      <AlertDialog>
+        <AlertDialogTrigger render={<Button variant="secondary" />}>End session</AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End this session?</AlertDialogTitle>
+            <AlertDialogDescription>{endSummary(session, now)}. Cue keeps the steps you finished and this conversation.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="secondary">Keep studying</AlertDialogCancel>
+            <AlertDialogAction onClick={onEnd}>End session</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+/** Ticks with the clock so "Over by 1 min" and "Finish session" appear on time. */
+function useSessionTick(session: StudySession | null, prefs: StudyPrefs) {
+  const now = useNow("second");
+  if (!session) return { overMs: 0, timeUp: false };
+  return { overMs: stepOverMs(session, now, prefs.pomodoro), timeUp: timerView(session, now, prefs.pomodoro).over };
+}
+
+function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBlock; zone: Zone; row: StudySession | null; prefs: StudyPrefs; start: boolean; tab?: ViewerTab }) {
+  const router = useRouter();
+  const rootRef = useRef<HTMLElement>(null);
+  const planLabelId = useId();
+  const sourcesJob = useSourcesJob(block.id);
+  const planJob = usePlanJob(block.id);
+  const sources = sourcesJob?.status === "ready" ? sourcesJob.value : null;
+  const plan = row?.plan ?? (planJob?.status === "ready" ? planJob.value : undefined);
+  const mode = !row ? "preview" : row.state.status === "running" || row.state.status === "paused" ? "live" : "finished";
+  const live = mode === "live" ? row : null;
+  const needPlan = !row?.plan;
+
+  useEffect(() => {
+    loadSources(block).catch(() => undefined);
+  }, [block]);
+  useEffect(() => {
+    if (needPlan) loadPlan(block, prefs.pomodoro);
+  }, [needPlan, block, prefs.pomodoro]);
+
+  const lectureId = block.anchor.kind === "review" ? ids.lectureForEvent(block.anchor.lecture) : sources?.lecture?.id;
+  const startSession = async () => {
+    await sessionActions.start(block, { ...(lectureId ? { lectureId } : {}), ...(plan ? { plan } : {}), mode: prefs.defaultMode });
+  };
+  const handledStart = useRef(false);
+  useEffect(() => {
+    if (!start || handledStart.current) return;
+    handledStart.current = true;
+    void (async () => {
+      if (!row) await startSession();
+      router.replace(href.study(block.id, tab ? { tab } : undefined), { scroll: false });
+    })();
+  });
+
+  useEffect(() => {
+    if (mode === "live") rootRef.current?.focus({ preventScroll: true });
+  }, [mode]);
+
+  const [localStep, setLocalStep] = useState(0);
+  const stepIndex = live ? live.step : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
+  const { overMs, timeUp } = useSessionTick(live, prefs);
+  const rows = plan ? stepRows(plan, { step: stepIndex, stepsDone: row?.stepsDone ?? [] }, live ? overMs : 0) : null;
+  const step = plan?.steps[stepIndex];
+  const isLast = !!plan && stepIndex >= plan.steps.length - 1;
+
+  const [override, setOverride] = useState<ViewerState | null>(null);
+  const viewer = override ?? (sources ? defaultViewer(sources, plan, stepIndex, { ...(tab ? { tab } : {}), ...(row ? { saved: row.viewer } : {}) }) : null);
+  const setViewer = (v: ViewerState) => {
+    setOverride(v);
+    if (live) void sessionActions.setViewer(block.id, v);
+  };
+
+  const [askOpen, setAskOpen] = useState(false);
+  const openSource = (ref: SourceRef): boolean => {
+    const next = viewer && showRef(viewer, ref);
+    if (!next) return false;
+    setViewer(next);
+    setAskOpen(false);
+    return true;
+  };
+
+  const goto = (i: number) => {
+    const v = viewer ? viewerForStep(viewer, plan?.steps[i]) : null;
+    if (v) setOverride(v);
+    if (live) void sessionActions.gotoStep(block.id, i, v ?? undefined);
+    else setLocalStep(i);
+  };
+  const next = async () => {
+    if (!live || !plan) return;
+    const v = viewer ? viewerForStep(viewer, plan.steps[live.step + 1]) : null;
+    if (v) setOverride(v);
+    await sessionActions.nextStep(block.id, v ?? undefined);
+    if (isLast) router.push(href.today());
+  };
+  const togglePause = () => void (live?.state.status === "paused" ? sessionActions.resume(block.id) : sessionActions.pause(block.id));
+  const end = async () => {
+    await sessionActions.end(block.id);
+    router.push(href.today());
+  };
+
+  const focusRef = viewer ? viewer[viewer.tab] : undefined;
+  const chat = useChat({
+    thread: threadKey.session(block.id),
+    scope: { kind: "study", courseId: block.courseId, ...(lectureId ? { lectureId } : {}), ...(focusRef ? { focus: focusRef } : {}) },
+    defaultMode: row?.mode ?? prefs.defaultMode,
+  });
+  const chatHandle = useMemo(
+    () => ({
+      ...chat,
+      setMode: (m: AskMode) => {
+        chat.setMode(m);
+        if (row) void sessionActions.setMode(block.id, m);
+      },
+    }),
+    [chat, row, block.id],
+  );
+  const lectureNumber = sources?.lecture?.ref.lectureNumber ?? sources?.deck?.ref.doc.lectureNumber;
+  const askLabel = lectureNumber !== undefined || sources?.lecture ? "Ask about this lecture" : "Ask about this session";
+  const placeholder = `Ask anything about ${lectureNumber !== undefined ? `Lecture ${lectureNumber}` : block.topic.short}…`;
+  const prompts = [step?.check, ...chat.suggestions.filter((s) => s !== "Quiz me on this")].filter((p): p is string => !!p).slice(0, 3);
+
+  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
+    const key = e.key.toLowerCase();
+    if (key === "n" && live && plan) {
+      e.preventDefault();
+      void next();
+    } else if (key === "p" && live) {
+      e.preventDefault();
+      togglePause();
+    } else if (key === "/") {
+      const box = [...(rootRef.current?.querySelectorAll<HTMLTextAreaElement>("[data-composer-host] textarea") ?? [])].find((t) => t.offsetParent !== null);
+      e.preventDefault();
+      if (box) box.focus();
+      else setAskOpen(true);
+    }
+  };
+
+  const [adding, setAdding] = useState(false);
+  const planError = planJob?.status === "error" && !plan ? planJob.error : null;
+  const planBody = rows ? (
+    <PlanList rows={rows} labelId={planLabelId} onSelect={goto} />
+  ) : planError ? (
+    planError.kind === "budget" ? (
+      <BudgetNotice error={planError} />
+    ) : (
+      <ErrorLine
+        title="Couldn't write a plan."
+        detail={errorCopy(planError).detail ?? errorCopy(planError).title}
+        action={
+          <Button variant="secondary" size="sm" onClick={() => loadPlan(block, prefs.pomodoro, { retry: true })}>
+            Try again
+          </Button>
+        }
+      />
+    )
+  ) : (
+    <div aria-busy="true" className="flex flex-col gap-1">
+      <p className="sr-only" role="status">
+        Writing your session plan
+      </p>
+      <PlanSkeleton />
+    </div>
+  );
+
+  const nextLabel = isLast || timeUp ? "Finish session" : "Next step";
+  return (
+    <main
+      ref={rootRef}
+      tabIndex={-1}
+      data-testid={tid.main}
+      data-mode={mode}
+      onKeyDown={onKeyDown}
+      className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 pb-6 outline-none md:px-6 lg:px-10 lg:pt-7 lg:pb-8 max-lg:overflow-y-auto"
+    >
+      <header className="flex shrink-0 flex-wrap items-center gap-3 lg:h-8 lg:flex-nowrap">
+        <h1 title={titleOf(block)} className="min-w-0 flex-1 truncate text-lg leading-6 font-normal tracking-display text-ink">
+          {titleOf(block)}
+        </h1>
+        {mode === "live" && live && <LiveControls session={live} prefs={prefs} onTogglePause={togglePause} onEnd={() => void end()} />}
+        {mode === "preview" && (
+          <>
+            <p className="order-last w-full text-sm leading-4 text-graphite lg:order-none lg:w-auto">
+              {fmtDay(zone.dayOf(block.start), zone, "long")} · {fmtRange(block, zone)}
+            </p>
+            <Button onClick={() => void startSession()}>Start session</Button>
+          </>
+        )}
+        {mode === "finished" && row && (
+          <>
+            <p className="order-last w-full text-sm leading-4 text-graphite lg:order-none lg:w-auto">{finishedSummary(row)}</p>
+            <Link href={href.today()} className={buttonVariants({ variant: "secondary" })}>
+              Go to Today
+            </Link>
+          </>
+        )}
+      </header>
+
+      {rows && <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />}
+
+      <div className="flex flex-col gap-6 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-8 xl:gap-10">
+        <section aria-labelledby={planLabelId} className="hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto xl:flex">
+          <SectionLabel id={planLabelId} className="py-1.5">
+            Session plan
+          </SectionLabel>
+          {planBody}
+        </section>
+
+        <MaterialViewer
+          viewer={viewer}
+          slideCount={sources?.deck?.count}
+          onChange={setViewer}
+          empty={
+            <EmptyState
+              title="No material for this session yet."
+              detail="Add the lecture slides, a textbook chapter or a handout, and the session opens on the right page."
+              actions={<Button onClick={() => setAdding(true)}>Add material</Button>}
+              className="rounded-sm border border-border p-8 max-md:p-5"
+            />
+          }
+        >
+          {plan?.moment && <MomentCard at={plan.moment.ref} quote={plan.moment.quote} examHint={plan.moment.examHint} onOpen={() => openSource(plan.moment!.ref)} />}
+          {!rows && planError && <div className="xl:hidden">{planBody}</div>}
+          <CheckRow question={step?.check} action={live && plan ? <NextStepButton label={nextLabel} onClick={() => void next()} /> : undefined} />
+        </MaterialViewer>
+
+        <AskPanel
+          chat={chatHandle}
+          label={askLabel}
+          placeholder={placeholder}
+          courseId={block.courseId}
+          prompts={prompts}
+          onOpenSource={openSource}
+          className="hidden w-80 shrink-0 lg:flex xl:w-[360px]"
+        />
+      </div>
+
+      <div className="sticky bottom-0 -mx-4 mt-auto bg-page px-4 pt-2 pb-[max(8px,env(safe-area-inset-bottom))] md:-mx-6 md:px-6 lg:hidden">
+        <button
+          type="button"
+          aria-keyshortcuts="/"
+          onClick={() => setAskOpen(true)}
+          className="flex h-12 w-full cursor-pointer items-center rounded-sm border border-border bg-page px-3.5 text-left text-sm leading-5 text-graphite transition-colors duration-[120ms] ease-standard hover:bg-wash"
+        >
+          {placeholder}
+        </button>
+      </div>
+      <Sheet open={askOpen} onOpenChange={setAskOpen}>
+        <SheetContent side="right" className="gap-0 border-rule p-0 shadow-none data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]">
+          <SheetHeader className="px-4 pt-5 pb-0">
+            <SheetTitle className="text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</SheetTitle>
+            <SheetDescription className="sr-only">Answers cite the slides, transcript and notes for this session.</SheetDescription>
+          </SheetHeader>
+          {askOpen && (
+            <AskPanel
+              chat={chatHandle}
+              label={askLabel}
+              placeholder={placeholder}
+              courseId={block.courseId}
+              prompts={prompts}
+              onOpenSource={openSource}
+              hideLabel
+              className="flex-1 px-4 pt-4"
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+      <AddMaterialDialog open={adding} onOpenChange={setAdding} {...(block.courseId ? { courseId: block.courseId } : {})} />
+    </main>
+  );
+}
+
+function SessionSkeleton() {
+  return (
+    <main aria-busy="true" className="flex min-h-0 flex-1 flex-col gap-6 px-4 pt-5 pb-6 md:px-6 lg:px-10 lg:pt-7 lg:pb-8">
+      <p className="sr-only" role="status">
+        Opening the session
+      </p>
+      <div aria-hidden="true" className="flex h-8 items-center">
+        <span className="h-6 w-80 max-w-full animate-breathe rounded-xs bg-fill" />
+      </div>
+      <div aria-hidden="true" className="flex gap-10">
+        <div className="hidden w-60 shrink-0 flex-col gap-3 xl:flex">
+          <span className="h-7" />
+          <PlanSkeleton />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <span className="h-7" />
+          <div className="flex flex-col gap-4 rounded-sm border border-border p-8">
+            <span className="h-6 w-1/2 animate-breathe rounded-xs bg-fill" />
+            <span className="h-5 w-4/5 animate-breathe rounded-xs bg-fill" />
+          </div>
+        </div>
+        <div className="hidden w-80 shrink-0 lg:block xl:w-[360px]" />
+      </div>
+    </main>
+  );
+}
+
+function MissingBlock() {
+  return (
+    <main className="flex flex-1 flex-col px-4 pt-5 pb-6 md:px-6 lg:px-10 lg:pt-7">
+      <EmptyState
+        title="This study block isn't in your plan."
+        detail="It may have moved after a calendar change, or it was cleared with your data. Pick it again from Study sessions."
+        actions={
+          <>
+            <Link href={href.studyIndex()} className={buttonVariants()}>
+              Open Study sessions
+            </Link>
+            <Link href={href.today()} className={buttonVariants({ variant: "secondary" })}>
+              Go to Today
+            </Link>
+          </>
+        }
+      />
+    </main>
+  );
+}
+
+/** /study/[blockId]: a read-only preview, or the running session once started (`?start=1` starts it). */
+export function StudySession({ blockId, start, tab }: { blockId: BlockId; start: boolean; tab?: ViewerTab }) {
+  const row = useSessionRow(blockId);
+  const found = useStudyBlock(blockId, row);
+  const prefs = usePrefs("study");
+  if (found === undefined || row === undefined || !prefs) return <SessionSkeleton />;
+  if (found === null) return <MissingBlock />;
+  return <SessionScreen key={blockId} block={found.block} zone={found.zone} row={row} prefs={prefs} start={start} tab={tab} />;
+}

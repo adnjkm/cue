@@ -1,7 +1,10 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/study/testids";
+import { StudySession } from "@/features/study";
+import type { BlockId, ViewerTab } from "@/lib/domain";
 
-export default async function StudySessionPage({ params }: PageProps<"/study/[blockId]">) {
-  const { blockId } = await params;
-  return <StubPage focus title="Study session" testId={tid.main}>{<p className="text-sm leading-5 text-graphite">{decodeURIComponent(blockId)}</p>}</StubPage>;
+const TABS: readonly string[] = ["slides", "transcript", "textbook", "handout"] satisfies ViewerTab[];
+
+export default async function StudySessionPage({ params, searchParams }: PageProps<"/study/[blockId]">) {
+  const [{ blockId }, query] = await Promise.all([params, searchParams]);
+  const tab = typeof query.tab === "string" && TABS.includes(query.tab) ? (query.tab as ViewerTab) : undefined;
+  return <StudySession blockId={decodeURIComponent(blockId) as BlockId} start={query.start === "1"} tab={tab} />;
 }
