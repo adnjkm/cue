@@ -18,7 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { lectureTitle, orderLinks, slotText } from "./format";
-import { Chevron, Columns, RelatedList, StatusPill, Toolbar, TranscriptRow } from "./parts";
+import { Chevron, Columns, composerClass, RelatedList, StatusPill, Toolbar, TranscriptRow } from "./parts";
 import { recorder, useRecorder } from "./recorder";
 import { tid } from "./testids";
 
@@ -204,7 +204,7 @@ export function SavedNotes({
           </CollapsibleContent>
         </Collapsible>
       </div>
-      <Composer chat={chat} layout="inline" label="Ask about this lecture" placeholder="Ask about this lecture…" scopeNote={wide ? "Uses the whole lecture" : undefined} className="shrink-0" />
+      <Composer chat={chat} layout="inline" label="Ask about this lecture" placeholder="Ask about this lecture…" scopeNote={wide ? "Uses the whole lecture" : undefined} className={cn("shrink-0", composerClass(chat))} />
     </section>
   );
 

@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { chooseEngine, type EngineChoice } from "./engine";
 import { PARAKEET_WEIGHTS } from "./engine/protocol";
 import { lectureTitle, orderLinks, slotText, spokenDuration } from "./format";
-import { Columns, NoteLine, NoticeRow, RelatedList, revealFlag, StatusPill, Toolbar, TranscriptRow, useStickToEnd, type StatusKind } from "./parts";
+import { Columns, composerClass, NoteLine, NoticeRow, RelatedList, revealFlag, StatusPill, Toolbar, TranscriptRow, useStickToEnd, type StatusKind } from "./parts";
 import { recorder, useRecorder, type RecorderState } from "./recorder";
 import { tid } from "./testids";
 
@@ -186,6 +186,11 @@ export function NoteTaker({
 
   useLayoutEffect(() => {
     if (stuck) toEnd();
+  });
+
+  useEffect(() => {
+    // The shared Composer takes no textarea attributes yet (lectures-6); `/` focuses it from anywhere on the screen.
+    root.current?.querySelector("form textarea")?.setAttribute("aria-keyshortcuts", "/");
   });
 
   useEffect(() => {
@@ -397,6 +402,7 @@ export function NoteTaker({
           label="Ask about the last 5 minutes"
           placeholder={wide ? "Ask about what was just said…" : "Ask about the last 5 minutes…"}
           scopeNote={wide ? "Uses the last 5 minutes" : undefined}
+          className={composerClass(answerChat)}
         />
         {rec.aiError && attached && (
           <p role="alert" className="pt-2 text-sm leading-5">

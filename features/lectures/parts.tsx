@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type ReactNode, type Ref } from "react";
+import type { ChatHandle } from "@/lib/chat";
 import type { LocalDate, RelatedLink, Segment } from "@/lib/domain";
 import { href } from "@/lib/routes";
 import { useOpenSource } from "@/lib/sources";
@@ -52,6 +53,17 @@ export function Toolbar({ title, children }: { title: string; children: ReactNod
       </div>
       <div className="flex shrink-0 items-center gap-3 max-md:min-h-8">{children}</div>
     </header>
+  );
+}
+
+/**
+ * The shared Composer as Paper draws it here, until lectures-3 and lectures-5 land in it: the send button stays
+ * ink while the box is empty (an empty send is already a no-op), and keyboard focus rings the whole box.
+ */
+export function composerClass(chat: ChatHandle): string {
+  return cn(
+    "has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-ink has-[textarea:focus-visible]:outline-solid",
+    chat.error?.kind !== "budget" && "[&_button:disabled]:opacity-100",
   );
 }
 
