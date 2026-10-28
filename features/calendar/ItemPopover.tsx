@@ -41,7 +41,7 @@ export function ItemPopover({ subject, zone, now, trigger }: { subject: Subject;
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger {...trigger} />
-      <PopoverContent aria-label={title} side="right" align="start" sideOffset={8} className="w-max min-w-[280px] max-w-[min(360px,calc(100vw-32px))] gap-3 rounded-lg p-4 text-sm leading-5">
+      <PopoverContent aria-label={title} side="right" align="start" sideOffset={8} className="w-[280px] max-w-[calc(100vw-32px)] gap-3 rounded-lg p-4 text-sm leading-5">
         {subject.kind === "block" && <BlockDetails {...subject} zone={zone} now={now} close={close} />}
         {subject.kind === "event" && <EventDetails event={subject.event} live={subject.live} zone={zone} />}
         {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} close={close} />}
