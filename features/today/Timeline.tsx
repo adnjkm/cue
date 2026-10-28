@@ -82,7 +82,7 @@ function Row({ row, linkRef, onReschedule }: { row: TodayRow; linkRef: (el: HTML
       >
         <time
           dateTime={new Date(row.start).toISOString()}
-          className={cn("col-start-1 row-start-1 shrink-0 text-sm leading-[18px] md:w-24", row.current ? "font-medium text-ink" : "text-graphite")}
+          className={cn("col-start-1 row-start-1 shrink-0 text-sm leading-[18px] tabular-nums md:w-24", row.current ? "font-medium text-ink" : "text-graphite")}
         >
           {row.time}
         </time>
