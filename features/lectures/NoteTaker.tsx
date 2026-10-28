@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey, type ChatHandle } from "@/lib/chat";
 import type { CalendarEvent, EngineId, EpochMs, Lecture, RelatedLink, Segment } from "@/lib/domain";
@@ -175,6 +175,7 @@ export function NoteTaker({
   const answerChat = latestExchange(chat, () => setShowAnswer(true));
 
   const root = useRef<HTMLDivElement>(null);
+  const answer = useRef<HTMLDivElement>(null);
   const { ref: listRef, stuck, onScroll: onListScroll, toEnd, hold } = useStickToEnd<HTMLOListElement>();
   const flagButtons = useRef(new Map<number, HTMLButtonElement>());
   const [rovingSeq, setRovingSeq] = useState<number | null>(null);
@@ -229,26 +230,37 @@ export function NoteTaker({
     flagButtons.current.get(ordered[next].seq)?.focus();
   }
 
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
-    if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+  const composerBox = () => root.current?.querySelector<HTMLTextAreaElement>("form textarea");
+
+  const onShortcut = useEffectEvent((e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented || e.repeat) return;
     const target = e.target as HTMLElement;
+    if (document.querySelector('[role="dialog"], [role="alertdialog"]') || target.closest("[role=listbox], [role=menu]")) return;
+    const editing = target.closest("input, textarea, select, [contenteditable]");
     if (e.key === "Escape") {
-      if (showAnswer) setShowAnswer(false);
-      else if (target.closest("textarea, input")) target.blur();
+      if (showAnswer) {
+        if (answer.current?.contains(document.activeElement)) composerBox()?.focus();
+        setShowAnswer(false);
+      } else if (editing && root.current?.contains(editing)) root.current.focus({ preventScroll: true });
       return;
     }
-    if (target.closest("input, textarea, select, [contenteditable], [role=listbox], [role=menu]")) return;
+    if (editing) return;
     const key = e.key.toLowerCase();
     if (key === "p") togglePause();
     else if (key === "j") toEnd("smooth");
-    else if (key === "/") root.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+    else if (key === "/") composerBox()?.focus();
     else if (key === "f") {
       const focused = ordered.find((s) => flagButtons.current.get(s.seq) === document.activeElement) ?? ordered.at(-1);
       if (focused) void recorder.toggleFlag(focused);
     } else return;
     e.preventDefault();
-  }
+  });
+
+  useEffect(() => {
+    // Listens on the window, not the screen, because focus falls to body whenever its element goes away (a closing answer, a disabled button).
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
 
   const [statusKind, statusLabel] = STATUS[view.kind];
   const canPause = view.kind === "recording" || view.kind === "paused" || view.kind === "interrupted";
@@ -293,7 +305,7 @@ export function NoteTaker({
             {view.kind === "failed" ? FAILURE[view.reason].retry : "Start recording"}
           </Button>
         ) : (
-          <Button variant="secondary" aria-keyshortcuts="p" disabled={!canPause} onClick={togglePause}>
+          <Button variant="secondary" aria-keyshortcuts="p" disabled={!canPause} focusableWhenDisabled onClick={togglePause}>
             {view.kind === "paused" || view.kind === "interrupted" ? "Resume" : "Pause"}
           </Button>
         )}
@@ -386,7 +398,7 @@ export function NoteTaker({
         {liveRow}
       </ol>
       {showAnswer && (chat.messages.length > 0 || chat.pending || chat.error) && (
-        <div className="max-h-80 shrink-0 overflow-y-auto px-4 max-md:px-3">
+        <div ref={answer} className="max-h-80 shrink-0 overflow-y-auto px-4 max-md:px-3">
           <ChatThread chat={answerChat} />
         </div>
       )}
@@ -418,7 +430,6 @@ export function NoteTaker({
     <div
       ref={root}
       tabIndex={-1}
-      onKeyDown={onKeyDown}
       data-testid={tid.main}
       className="flex min-h-0 flex-1 flex-col gap-6 px-10 pt-7 pb-8 outline-none max-xl:px-8 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-[max(16px,env(safe-area-inset-bottom))]"
     >

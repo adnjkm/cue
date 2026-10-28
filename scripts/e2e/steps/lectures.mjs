@@ -44,6 +44,14 @@ export default async function lectures(t) {
   await ask.fill("Which choice of u was the mistake?");
   await ask.press("Enter");
   await expect(page.getByRole("button", { name: "Transcript 33:20" })).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Transcript 33:20" })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId(tid.main)).toBeFocused();
+  await page.keyboard.press("p");
+  await expect(status).toHaveText("Paused");
+  await page.keyboard.press("p");
+  await expect(status).toHaveText("Recording");
 
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(status).toHaveText("Paused");
