@@ -59,6 +59,8 @@ export default async function today(t) {
   const review = items.filter({ hasText: "Review — Recursion & tree traversal" });
   await expect(review).toHaveAttribute("data-state", "missed");
   await expect(review).toContainText("Missed · Reschedule");
+  await expect(review.getByRole("button", { name: "Reschedule" })).toHaveAccessibleName("Reschedule 10:30am CSC148 Review — Recursion & tree traversal");
+  await expect(review.getByRole("link")).toHaveAccessibleDescription("Missed");
   await expect(items.nth(2)).toHaveAttribute("aria-current", "time");
   await review.getByRole("button", { name: "Reschedule" }).focus();
   await page.keyboard.press("Enter");

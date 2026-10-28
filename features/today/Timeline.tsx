@@ -17,36 +17,51 @@ export function SessionLeft({ session }: { session: StudySession }) {
   return <span className="tabular-nums">{fmtCountdown(Math.max(0, leftMs(session, now)))} left</span>;
 }
 
-function TrailingView({ trailing, onReschedule }: { trailing: Trailing; onReschedule: (t: Extract<Trailing, { kind: "missed" }>) => Promise<void> }) {
+/** `statusId` marks the text that describes the row's link; it never wraps the Reschedule button, so no engine reads the button into the link. */
+function TrailingView({
+  trailing,
+  statusId,
+  rowLinkId,
+  onReschedule,
+}: {
+  trailing: Trailing;
+  statusId: string;
+  rowLinkId: string;
+  onReschedule: (t: Extract<Trailing, { kind: "missed" }>) => Promise<void>;
+}) {
   const [busy, setBusy] = useState(false);
+  const buttonId = useId();
   switch (trailing.kind) {
     case "text":
-      return <span>{trailing.text}</span>;
+      return <span id={statusId}>{trailing.text}</span>;
     case "dot":
       return (
-        <span className="inline-flex items-center gap-1.5">
+        <span id={statusId} className="inline-flex items-center gap-1.5">
           <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-graphite" />
           {trailing.text}
         </span>
       );
     case "recording":
       return (
-        <span className="inline-flex items-center gap-1.5 leading-4 font-medium text-ink">
+        <span id={statusId} className="inline-flex items-center gap-1.5 leading-4 font-medium text-ink">
           <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-ink" />
           Recording
         </span>
       );
     case "inProgress":
       return (
-        <span>
+        <span id={statusId}>
           In progress · <SessionLeft session={trailing.session} />
         </span>
       );
     case "missed":
       return (
         <span>
-          Missed ·{" "}
+          <span id={statusId}>Missed</span> ·{" "}
+          {/* Its own word, then the row link's name, so two missed rows read differently in a list of controls. */}
           <Button
+            id={buttonId}
+            aria-labelledby={`${buttonId} ${rowLinkId}`}
             variant="link"
             disabled={busy}
             focusableWhenDisabled
@@ -69,6 +84,7 @@ function TrailingView({ trailing, onReschedule }: { trailing: Trailing; onResche
 
 function Row({ row, linkRef, onReschedule }: { row: TodayRow; linkRef: (el: HTMLAnchorElement | null) => void; onReschedule: (t: Extract<Trailing, { kind: "missed" }>) => Promise<void> }) {
   const statusId = useId();
+  const linkId = useId();
   return (
     <li
       data-state={row.state}
@@ -77,6 +93,7 @@ function Row({ row, linkRef, onReschedule }: { row: TodayRow; linkRef: (el: HTML
     >
       <Link
         ref={linkRef}
+        id={linkId}
         href={row.href}
         aria-describedby={statusId}
         className="col-span-3 col-start-1 row-span-2 row-start-1 grid grid-cols-subgrid grid-rows-subgrid items-center focus-visible:outline-none after:absolute after:inset-y-0 after:-inset-x-2 after:rounded-sm focus-visible:after:outline-2 focus-visible:after:outline-ink md:flex md:min-w-0 md:flex-1"
@@ -91,10 +108,9 @@ function Row({ row, linkRef, onReschedule }: { row: TodayRow; linkRef: (el: HTML
         <span className={cn("col-span-2 col-start-2 row-start-2 min-w-0 text-base leading-5 text-ink md:flex-1", row.current && "font-medium")}>{row.title}</span>
       </Link>
       <div
-        id={statusId}
         className="pointer-events-none relative col-start-3 row-start-1 flex items-center justify-end justify-self-end pl-3 text-right text-sm leading-[18px] text-graphite md:w-[180px] md:shrink-0 md:pl-0"
       >
-        <TrailingView trailing={row.trailing} onReschedule={onReschedule} />
+        <TrailingView trailing={row.trailing} statusId={statusId} rowLinkId={linkId} onReschedule={onReschedule} />
       </div>
     </li>
   );
