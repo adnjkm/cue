@@ -28,6 +28,7 @@ Return 2 to 8 blocks in reading order. Each block is one of:
   - "series": up to 3 labelled lines through points, for growth or change over x.
   - "bars": 2 to 8 labelled values to compare.
 - "callout": the one mistake students make most often on this idea, at most one per section, with "label" "Common mistake". When an exam hint fits this section, set "examHint" to where it will be tested, phrased like "will be on the midterm", and "quote" the professor's words exactly as given with the speaker as "attribution". Otherwise both are null.
+- "code": only when the passages show code. Copy the code a passage shows, or trim it to the part this section needs. Never invent functions, library calls or APIs the passages do not show. Under 15 lines. "lang" is the language in lower case, like "python". "text" is the code itself with its line breaks and indentation, no Markdown fences and no comments you added. "caption" is one sentence naming what the code does, like "\`Tree.__len__\` counts the root, then the size of each subtree." Explain how the code works in a prose block before or after it.
 
 Citations: every block cites the passages it was written from in "refs" ("noteRefs" for a formula), most important first, at most 3, as { "passage": "S2", "relation": null, "note": null }. Set "relation" to "used" when the passage is a problem set or past-paper question that uses the idea, and "tested" when it tests it. Set "note" to a short phrase only when the block changes the source, like "redrawn from the whiteboard sketch". Cite only passage ids you were given, and never put markers or footnote numbers in the text.
 
@@ -167,8 +168,47 @@ function mockPriceElasticity({ passages, hints }: SectionInput): GuideBlockDraft
   ];
 }
 
+/** Slide passages that show code. A slide reads heading, body, then code, so the code runs from the first def or class line to the end. */
+function codeSlides(passages: readonly Passage[]) {
+  return passages.flatMap((p) => {
+    const lines = p.text.split("\n");
+    const start = lines.findIndex((l) => /^(?:def|class) /.test(l));
+    return start < 1 ? [] : [{ id: p.id, heading: lines[0].toLowerCase(), body: lines.slice(1, start).join(" ").trim(), code: lines.slice(start).join("\n") }];
+  });
+}
+
+/** CSC148's first section, which "Write this guide" opens. The code is copied from the is_empty slide it received. */
+function mockTreesAndParts({ passages }: SectionInput): GuideBlockDraft[] {
+  const isEmpty = codeSlides(passages).find((s) => s.code.startsWith("def is_empty"));
+  return [
+    {
+      kind: "prose",
+      text: "A tree is either empty, or a root value with zero or more subtrees, and each subtree is itself a tree. A leaf is a node with no children. The `Tree` class keeps the root value in `_root` and the subtrees in the list `_subtrees`.",
+      refs: cite([...find(passages, "recap: trees"), ...find(passages, "attributes _root")]),
+    },
+    {
+      kind: "prose",
+      text: "An empty tree has `_root` set to `None` and no subtrees, so one comparison tells an empty tree from a tree with a root.",
+      refs: cite(find(passages, "attributes _root")),
+    },
+    ...(isEmpty ? [{ kind: "code" as const, lang: "python", text: isEmpty.code, caption: "`Tree.is_empty` is true exactly when the tree has no root value.", refs: cite([isEmpty.id]) }] : []),
+    {
+      kind: "prose",
+      text: "Every recursive `Tree` method calls `is_empty` first. The empty tree is the base case that stops the recursion, and every other case combines the results of the same method on each subtree.",
+      refs: cite([...(isEmpty ? [isEmpty.id] : []), ...find(passages, "most tree methods")]),
+    },
+    {
+      kind: "callout",
+      label: "Common mistake",
+      text: "Forgetting the empty-tree check, or recursing on `_root` instead of the subtrees. Check the base case first.",
+      refs: cite([...find(passages, "common mistakes"), ...find(passages, "base case first")]),
+    },
+  ];
+}
+
 function mockSection(input: SectionInput): GuideBlockDraft[] {
   if (input.section.toLowerCase() === "price elasticity of demand") return mockPriceElasticity(input);
+  if (input.course.toUpperCase() === "CSC148" && input.section.toLowerCase() === "trees and their parts") return mockTreesAndParts(input);
   const { passages, hints, section } = input;
   if (passages.length === 0) {
     return [{ kind: "prose", text: `Cue found no course material about ${section.toLowerCase()} yet. Add the slides or notes that cover it, then rewrite this section.`, refs: [] }];
@@ -179,6 +219,9 @@ function mockSection(input: SectionInput): GuideBlockDraft[] {
     const text = group.flatMap((p) => sentences(p.text).slice(0, 2)).join(" ");
     if (text) blocks.push({ kind: "prose", text, refs: cite(group.map((p) => p.id)) });
   }
+  const titleWords = section.toLowerCase().match(/[a-z]{4,}/g) ?? [];
+  const shown = codeSlides(passages).find((s) => s.body && titleWords.some((w) => s.heading.includes(w)));
+  if (shown) blocks.splice(1, 0, { kind: "code", lang: "python", text: shown.code, caption: shown.body, refs: cite([shown.id]) });
   const hint = hints[0];
   const caution = passages.flatMap((p) => sentences(p.text).filter((s) => /\b(not|never|forget|mistake|instead)\b/i.test(s)).map((s) => ({ s, id: p.id })))[0];
   if (caution) {
@@ -249,6 +292,7 @@ export const guideTasks = defineTasks("guide", {
     maxTokens: 6000,
     temperature: 0.5,
     maxItems: 12,
+    multiline: true,
     input: sectionInput,
     item: guideBlockDraft,
     prompt: (input) => ({ system: SECTION_SYSTEM, user: sectionUser(input) }),
