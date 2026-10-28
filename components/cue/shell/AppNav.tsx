@@ -10,23 +10,28 @@ import { Wordmark } from "./Wordmark";
 
 /**
  * The wordmark and the six nav items. The docked sidebar, its icon rail and the phone Sheet all render this,
- * so they never drift. The phone Sheet passes `wave={false}` so opening it never replays the wave.
+ * so they never drift. `toggle` sits at the wordmark row's right end, or under the mascot on the rail.
  */
 export function AppNav({
   collapsed = false,
   wave = true,
   badges,
   onNavigate,
+  toggle,
 }: {
   collapsed?: boolean;
   wave?: boolean;
+  toggle?: ReactNode;
   badges?: Partial<Record<NavKey, ReactNode>>;
   onNavigate?: () => void;
 }) {
   const active = navKeyFor(usePathname());
   return (
     <div className="flex flex-col gap-9">
-      <Wordmark collapsed={collapsed} wave={wave} />
+      <div className={cn("flex items-center justify-between gap-2", collapsed && "flex-col")}>
+        <Wordmark collapsed={collapsed} wave={wave} />
+        {toggle}
+      </div>
       <nav aria-label="Main">
         <ul className="flex flex-col gap-0.5">
           {NAV.map((item) => {

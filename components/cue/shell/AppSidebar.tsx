@@ -18,10 +18,15 @@ function DockedSidebar() {
   return (
     <Sidebar collapsible="icon">
       <aside aria-label="Sidebar" className={collapsed ? "flex h-full flex-col justify-between px-2.5 pt-7 pb-6" : "flex h-full flex-col justify-between px-5 pt-7 pb-6"}>
-        <AppNav collapsed={collapsed} wave={!isMobile} badges={badges} onNavigate={isMobile ? () => setOpenMobile(false) : undefined} />
+        <AppNav
+          collapsed={collapsed}
+          wave={!isMobile}
+          badges={badges}
+          onNavigate={isMobile ? () => setOpenMobile(false) : undefined}
+          toggle={isMobile ? undefined : <SidebarToggle />}
+        />
         <div className="flex flex-col gap-2">
           {!collapsed && <SpendMeter />}
-          {!isMobile && <SidebarToggle />}
           <DataMenu collapsed={collapsed} />
         </div>
       </aside>
