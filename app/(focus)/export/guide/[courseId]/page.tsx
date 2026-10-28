@@ -1,7 +1,14 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/guides/testids";
+import type { Metadata } from "next";
+import { ExportPage } from "@/features/guides/ExportPage";
 
-export default async function GuideExportPage({ params }: PageProps<"/export/guide/[courseId]">) {
+type Props = PageProps<"/export/guide/[courseId]">;
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { courseId } = await params;
-  return <StubPage focus title={`${decodeURIComponent(courseId)} · Study guide`} testId={tid.main} />;
+  return { title: `${decodeURIComponent(courseId).toUpperCase()} study guide` };
+}
+
+export default async function Page({ params }: Props) {
+  const { courseId } = await params;
+  return <ExportPage courseParam={decodeURIComponent(courseId)} />;
 }

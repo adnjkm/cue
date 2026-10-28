@@ -1,0 +1,5 @@
+1. **Need**: the `featureImports` pattern in `eslint.config.mjs` to let `features/<x>` import `@/lib/domain/payload/<x>`, as section 11.2 says it may.
+2. **Why**: `"@/lib/*/*"` matches the directory `@/lib/domain/payload`, and gitignore-style patterns cannot re-include a file under an excluded directory, so `"!@/lib/domain/payload/guides"` never applies; `features/guides` and `lib/sample/guides.ts` both get "Import a lib module through its index" for their own payload file.
+3. **Proposed diff**: in `featureImports(key)`, `group: ["@/lib/*/*", "!@/lib/ai/define", "!@/lib/ai/passages", "!@/lib/domain/payload", "@/lib/domain/payload/*", \`!@/lib/domain/payload/${key}\`]`.
+4. **Workaround in use**: payload functions stay out of the payload file; `features/guides/plain-text.ts` holds `guidePlainText`, and `lib/sample/guides.ts` keeps its own copy, so only types cross the boundary (through `@/lib/domain`).
+5. **Unblocks**: one `guidePlainText` shared by the sample fragment and the writer; no walkthrough step depends on it.

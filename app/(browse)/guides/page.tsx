@@ -1,6 +1,8 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/guides/testids";
+import type { Metadata } from "next";
+import { GuidesIndex } from "@/features/guides/GuidesIndex";
 
-export default function GuidesPage() {
-  return <StubPage title="Study guides" testId={tid.main} />;
+export const metadata: Metadata = { title: "Study guides · Cue" };
+
+export default function Page() {
+  return <GuidesIndex />;
 }
