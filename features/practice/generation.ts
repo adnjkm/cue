@@ -32,7 +32,6 @@ class MissingMaterial extends Error {}
 const DEFAULT_COUNT = 5;
 const STYLE_MAX = 6;
 
-/** The topic the student missed most, else the first topic. */
 export function missedMost(questions: readonly Question[], attempts: ReadonlyMap<QuestionId, Attempt>): string | null {
   const misses = new Map<string, number>();
   for (const q of questions) {
