@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { errorCopy } from "@/lib/ai";
 import { useChat, threadKey, type ChatHandle } from "@/lib/chat";
-import type { EngineId, EpochMs, Lecture, RelatedLink, Segment } from "@/lib/domain";
+import type { CalendarEvent, EngineId, EpochMs, Lecture, RelatedLink, Segment } from "@/lib/domain";
 import { lectureElapsedMs } from "@/lib/domain";
 import { setPrefs } from "@/lib/prefs";
 import { fmtStamp } from "@/lib/time";
@@ -12,9 +12,10 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { SectionLabel, TimerBar, TranscriptLine } from "@/components/cue";
 import { ChatThread, Composer } from "@/components/cue/chat";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { chooseEngine, type EngineChoice } from "./engine";
 import { PARAKEET_WEIGHTS } from "./engine/protocol";
-import { lectureTitle, orderLinks, spokenDuration } from "./format";
+import { lectureTitle, orderLinks, slotText, spokenDuration } from "./format";
 import { Columns, NoteLine, NoticeRow, RelatedList, revealFlag, StatusPill, Toolbar, TranscriptRow, useStickToEnd, type StatusKind } from "./parts";
 import { recorder, useRecorder, type RecorderState } from "./recorder";
 import { tid } from "./testids";
@@ -146,6 +147,7 @@ export function NoteTaker({
   lecture,
   segments,
   links,
+  event,
   prefs,
   sampleLoaded,
   focusAtMs,
@@ -153,6 +155,7 @@ export function NoteTaker({
   lecture: Lecture;
   segments: readonly Segment[];
   links: readonly RelatedLink[];
+  event: CalendarEvent | null;
   prefs: { engine: EngineId; parakeetConsentAt?: EpochMs };
   sampleLoaded: boolean;
   focusAtMs: number | null;
@@ -249,20 +252,30 @@ export function NoteTaker({
   const liveLinks = orderLinks(links, "live");
   const transcribing = rec.backend === "wasm" && attached ? (rec.backlog > 0 ? `Transcribing late · ${rec.backlog} waiting` : "Transcribing late, without WebGPU") : null;
 
+  const slot = event ? `Scheduled ${slotText(event)}` : null;
+  const time = (
+    <>
+      <TimerBar
+        fraction={lecture.scheduledMs ? Math.min(1, elapsed / lecture.scheduledMs) : 0}
+        label="Lecture time"
+        valueText={`${spokenDuration(elapsed)} of ${spokenDuration(lecture.scheduledMs)}`}
+        className="max-lg:hidden"
+      />
+      <span className="w-max text-sm leading-4 text-graphite tabular-nums">{wide ? `${fmtStamp(elapsed)} of ${fmtStamp(lecture.scheduledMs)}` : fmtStamp(elapsed)}</span>
+    </>
+  );
   const controls = (
     <>
       <StatusPill kind={statusKind} label={statusLabel} />
-      {view.kind !== "ready" && (
-        <div className="flex items-center gap-3">
-          <TimerBar
-            fraction={lecture.scheduledMs ? Math.min(1, elapsed / lecture.scheduledMs) : 0}
-            label="Lecture time"
-            valueText={`${spokenDuration(elapsed)} of ${spokenDuration(lecture.scheduledMs)}`}
-            className="max-lg:hidden"
-          />
-          <span className="w-max text-sm leading-4 text-graphite tabular-nums">{wide ? `${fmtStamp(elapsed)} of ${fmtStamp(lecture.scheduledMs)}` : fmtStamp(elapsed)}</span>
-        </div>
-      )}
+      {view.kind !== "ready" &&
+        (slot ? (
+          <Tooltip>
+            <TooltipTrigger render={<div role="group" tabIndex={0} aria-label={slot} className="flex items-center gap-3 rounded-xs" />}>{time}</TooltipTrigger>
+            <TooltipContent>{slot}</TooltipContent>
+          </Tooltip>
+        ) : (
+          <div className="flex items-center gap-3">{time}</div>
+        ))}
       <div className="flex items-center gap-3 max-md:ml-auto">
         {view.kind === "ready" || view.kind === "failed" ? (
           <Button

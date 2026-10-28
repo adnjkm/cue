@@ -8,7 +8,7 @@ import { threadKey, useChat } from "@/lib/chat";
 import type { CalendarEvent, EpochMs, Lecture, RelatedLink, Segment } from "@/lib/domain";
 import { planActions } from "@/lib/plan";
 import { href } from "@/lib/routes";
-import { currentZone, fmtRange, fmtStamp, zoneOf } from "@/lib/time";
+import { fmtStamp } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { ErrorLine, SectionLabel } from "@/components/cue";
@@ -17,19 +17,17 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { lectureTitle, orderLinks } from "./format";
+import { lectureTitle, orderLinks, slotText } from "./format";
 import { Chevron, Columns, RelatedList, StatusPill, Toolbar, TranscriptRow } from "./parts";
 import { recorder, useRecorder } from "./recorder";
 import { tid } from "./testids";
 
 /** `50:00 · Tue 9–10am`: how long was captured, and when. */
 function whenText(lecture: Lecture, event: CalendarEvent | null): string {
-  const zone = zoneOf(currentZone());
   const captured = lecture.state.status === "saved" ? lecture.state.capturedMs : 0;
   const span = event ?? (lecture.state.status === "saved" ? { start: (lecture.state.savedAt - captured) as EpochMs, end: lecture.state.savedAt } : null);
   if (!span) return fmtStamp(captured);
-  const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: zone.id }).format(span.start);
-  return `${fmtStamp(captured)} · ${day} ${fmtRange(span, zone)}`;
+  return `${fmtStamp(captured)} · ${slotText(span)}`;
 }
 
 function Section({ id, title, children, className }: { id: string; title: string; children: React.ReactNode; className?: string }) {

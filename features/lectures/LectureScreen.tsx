@@ -60,5 +60,5 @@ export function LectureScreen({ id, focusAtMs }: { id: LectureId | null; focusAt
     };
     return <SavedNotes lecture={lecture} segments={segments} links={links} event={event} focusAtMs={focusAtMs} onContinue={() => void continueRecording()} />;
   }
-  return <NoteTaker lecture={lecture} segments={segments} links={links} prefs={prefs} sampleLoaded={sampleLoaded} focusAtMs={focusAtMs} />;
+  return <NoteTaker lecture={lecture} segments={segments} links={links} event={event} prefs={prefs} sampleLoaded={sampleLoaded} focusAtMs={focusAtMs} />;
 }

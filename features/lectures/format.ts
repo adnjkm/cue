@@ -1,4 +1,5 @@
-import type { Lecture, RelatedLink } from "@/lib/domain";
+import type { Interval, Lecture, RelatedLink } from "@/lib/domain";
+import { currentZone, fmtRange, zoneOf } from "@/lib/time";
 
 /** `MAT137 · Integration by parts`, `MAT137 · Lecture 9`, or `CSC148 · New lecture` until the notes name it. */
 export function lectureTitle(l: Pick<Lecture, "courseId" | "topic" | "number">): string {
@@ -20,4 +21,10 @@ export function spokenDuration(ms: number): string {
 /** Live: newest first. Saved: exam-hint cards first, then by time. */
 export function orderLinks(links: readonly RelatedLink[], style: "live" | "saved"): RelatedLink[] {
   return [...links].sort((a, b) => (style === "saved" ? Number(b.why === "hint") - Number(a.why === "hint") || a.atMs - b.atMs : b.atMs - a.atMs || a.title.localeCompare(b.title)));
+}
+
+/** `Tue 9–10am`: a lecture's slot in the device's zone. */
+export function slotText(span: Interval): string {
+  const zone = zoneOf(currentZone());
+  return `${new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: zone.id }).format(span.start)} ${fmtRange(span, zone)}`;
 }
