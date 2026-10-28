@@ -239,7 +239,8 @@ export function QuestionBar({
                     )}
                   >
                     {q.number}
-                    {generated && <span aria-hidden="true" className={cn("absolute top-1 right-1 size-1 rounded-full", state === "current" ? "bg-page" : "bg-graphite")} />}
+                    {/* 3px inside the 1px border puts the dot 4px from the tile's outer corner, as the spec measures it. */}
+                    {generated &&<span aria-hidden="true" className={cn("absolute top-[3px] right-[3px] size-1 rounded-full", state === "current" ? "bg-page" : "bg-graphite")} />}
                   </button>
                 );
               })}
