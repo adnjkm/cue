@@ -1,4 +1,4 @@
-import { TZDate } from "@date-fns/tz";
+import { TZDate, tzOffset } from "@date-fns/tz";
 import type { EpochMs, Interval, IsoWeek, LocalDate, TimeZone, WallTime, Zone } from "@/lib/domain";
 
 const pad = (n: number, w = 2) => String(n).padStart(w, "0");
@@ -59,24 +59,44 @@ export function daysBetween(a: LocalDate, b: LocalDate): number {
 
 const zones = new Map<string, Zone>();
 
+// Every zone lookup goes through Intl, which was 61% of schedule()'s time. Offsets change only at transitions,
+// and modern transitions fall on 15-minute UTC boundaries, so one lookup per quarter hour is exact.
+const QUARTER_HOUR = 15 * 60_000;
+const offsetCaches = new Map<string, Map<number, number>>();
+
+function localMs(t: number, id: TimeZone): number {
+  let offsets = offsetCaches.get(id);
+  if (!offsets) offsetCaches.set(id, (offsets = new Map()));
+  const bucket = Math.floor(t / QUARTER_HOUR);
+  let offset = offsets.get(bucket);
+  if (offset === undefined) offsets.set(bucket, (offset = tzOffset(id, new Date(t))));
+  return t + offset * 60_000;
+}
+
 /** Zone arithmetic over wall-clock days. Days are calendar dates, so a 25-hour DST day is still one day. */
 export function zoneOf(id: TimeZone): Zone {
   const cached = zones.get(id);
   if (cached) return cached;
+  // TZDate's own rules for DST gaps and overlaps stay authoritative here, so wall times are cached, not derived.
+  const instants = new Map<string, EpochMs>();
   const zone: Zone = {
     id,
     dayOf(t: EpochMs): LocalDate {
-      const z = new TZDate(t, id);
-      return `${z.getFullYear()}-${pad(z.getMonth() + 1)}-${pad(z.getDate())}` as LocalDate;
+      return dayFromUtc(localMs(t, id));
     },
     weekOf(t: EpochMs | LocalDate): IsoWeek {
       return isoWeekOfDay(typeof t === "number" ? zone.dayOf(t) : t);
     },
     weekday: weekdayOf,
     at(day: LocalDate, time: WallTime): EpochMs {
+      const key = `${day} ${time}`;
+      const hit = instants.get(key);
+      if (hit !== undefined) return hit;
       const { y, m, d } = parseDay(day);
       const minutes = wallMinutes(time);
-      return new TZDate(y, m - 1, d, Math.floor(minutes / 60), minutes % 60, 0, 0, id).getTime() as EpochMs;
+      const t = new TZDate(y, m - 1, d, Math.floor(minutes / 60), minutes % 60, 0, 0, id).getTime() as EpochMs;
+      instants.set(key, t);
+      return t;
     },
     startOfDay(day: LocalDate): EpochMs {
       return zone.at(day, "00:00" as WallTime);
@@ -93,8 +113,8 @@ export function zoneOf(id: TimeZone): Zone {
 
 /** Minutes past local midnight of instant t. */
 export function minutesOfDay(t: EpochMs, zone: Zone): number {
-  const z = new TZDate(t, zone.id);
-  return z.getHours() * 60 + z.getMinutes();
+  const local = localMs(t, zone.id);
+  return Math.floor((local - utcOfDay(dayFromUtc(local))) / 60_000);
 }
 
 export function dayInterval(day: LocalDate, zone: Zone): Interval {
