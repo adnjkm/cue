@@ -1,7 +1,8 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/lectures/testids";
+import { parseId } from "@/lib/domain";
+import { LectureScreen } from "@/features/lectures/LectureScreen";
 
-export default async function LecturePage({ params }: PageProps<"/lectures/[lectureId]">) {
-  const { lectureId } = await params;
-  return <StubPage focus title="Lecture" testId={tid.main}>{<p className="text-sm leading-5 text-graphite">{decodeURIComponent(lectureId)}</p>}</StubPage>;
+export default async function LecturePage({ params, searchParams }: PageProps<"/lectures/[lectureId]">) {
+  const [{ lectureId }, { t }] = await Promise.all([params, searchParams]);
+  const focusAtMs = typeof t === "string" && /^\d{1,9}$/.test(t) ? Number(t) : null;
+  return <LectureScreen id={parseId.lecture(decodeURIComponent(lectureId))} focusAtMs={focusAtMs} />;
 }

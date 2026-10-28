@@ -67,9 +67,14 @@ const MAT137_TUE: Line[] = [
   [at(37, 10), "Now, what happens if we need to do this twice? Take x squared e to the x."],
 ];
 
-/** The rest of the Tue lecture, after the Paper live state, for the default (saved) scenario. */
+/**
+ * The rest of the Tue lecture, after the Paper live state. The default scenario saves it; the liveLecture
+ * scenario's demo engine replays it at 400 ms a word, so at 38:12 the live line reads Paper's
+ * "…the same trick comes back, we just apply it a second time to the".
+ */
+const MAT137_TUE_REST_START = at(38, 6) + 600;
 const MAT137_TUE_REST: Line[] = [
-  [at(38, 25), "The same trick comes back, we just apply it a second time to the leftover integral."],
+  [MAT137_TUE_REST_START, "The same trick comes back, we just apply it a second time to the leftover integral."],
   [at(42, 10), "u is x squared, so du is 2x dx, and we're left with an integral of x e to the x, which we just did."],
   [at(46, 50), "So the answer is e to the x times x squared minus 2x plus 2, plus C."],
   [at(49, 20), "Problem Set 5, questions 3 to 6, use exactly this technique."],
@@ -150,7 +155,7 @@ export const lecturesSample: SampleFragment<"lectures" | "segments" | "links" | 
                 [at(6, 40), "The formula comes from integrating the product rule."],
                 [at(30, 2), "LIATE picks u: algebraic before exponential."],
                 [at(33, 20), "Picking u the wrong way makes the integral worse."],
-                [at(38, 25), "Some integrals need the trick twice."],
+                [MAT137_TUE_REST_START, "Some integrals need the trick twice."],
               ],
               matEnd,
             ),

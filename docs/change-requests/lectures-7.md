@@ -1,0 +1,5 @@
+1. **Need**: one pulse depth for the recording dot, in `docs/design/lecture-notes.md` section 4 (the Recording row) or in `app/globals.css`.
+2. **Why**: the design doc proposes the dot's opacity pulsing 1 to 0.35 over 1.6s ease-in-out. The app's one pulse, `--animate-breathe` (the chat's `Thinking…`, Practice's skeleton bars and tiles, the saved view's `Writing summary…`), dims to 0.45 over the same 1.6s ease-in-out, and lectures cannot add a keyframe to `globals.css`.
+3. **Proposed diff**: in the Recording row of section 4, replace "dot opacity pulses 1 to 0.35 over 1.6s ease-in-out" with "dot pulses with the shared `animate-breathe` (opacity 1 to 0.45 over 1.6s ease-in-out)", so the app keeps a single pulse. If 0.35 matters more than one shared pulse, add `@keyframes breathe-deep { 50% { opacity: 0.35; } }` and `--animate-breathe-deep: breathe-deep 1.6s ease-in-out infinite;` to `globals.css` instead.
+4. **Workaround in use**: `StatusPill` in `features/lectures/parts.tsx` gives the recording dot `animate-breathe`. The reduced-motion rule in `globals.css` already stops it.
+5. **Unblocks**: the design doc and the note taker agreeing on how deep the dot pulses.
