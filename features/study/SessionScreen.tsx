@@ -10,7 +10,7 @@ import { usePrefs } from "@/lib/prefs";
 import { href } from "@/lib/routes";
 import { fmtDay, fmtRange, useNow } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import { AddMaterialDialog, BudgetNotice, EmptyState, ErrorLine, SectionLabel, TimerBar } from "@/components/cue";
+import { AddMaterialDialog, BudgetNotice, EmptyState, ErrorLine, SectionLabel } from "@/components/cue";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -33,7 +33,7 @@ import {
   type StepRow,
   type ViewerState,
 } from "./model";
-import { CheckRow, MomentCard, NextStepButton, PlanList, PlanSkeleton, PlanStrip } from "./parts";
+import { CheckRow, MomentCard, NextStepButton, PlanDrawer, PlanList, PlanSkeleton, PlanStrip, SessionTrack } from "./parts";
 import { tid } from "./testids";
 import { MaterialViewer } from "./Viewer";
 
@@ -56,14 +56,14 @@ function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: Study
   return (
     <>
       <div className="order-last flex w-full items-center gap-3 lg:order-none lg:w-auto">
-        <TimerBar fraction={view.fraction} label="Session time" valueText={view.valueText} />
+        <SessionTrack fraction={view.fraction} label="Session time" valueText={view.valueText} className="min-w-0 flex-1 lg:w-40 lg:flex-none" />
         <span aria-live="off" className={cn("w-max text-sm leading-4 tabular-nums", view.over ? "font-medium text-ink" : "text-graphite")}>
           {view.text}
         </span>
         <span aria-live="polite" className="sr-only">
           {view.milestone}
         </span>
-        <Button variant="secondary" aria-keyshortcuts="P" onClick={onTogglePause} className="ml-auto lg:ml-0">
+        <Button variant="secondary" aria-keyshortcuts="P" onClick={onTogglePause}>
           {paused ? "Resume" : "Pause"}
         </Button>
       </div>
@@ -290,7 +290,12 @@ function SessionScreen({
 
       {plan ? (
         <TickingRows plan={plan} at={at} live={live} prefs={prefs}>
-          {(rows) => <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />}
+          {(rows) => (
+            <>
+              <PlanStrip rows={rows} onSelect={goto} className="max-md:hidden xl:hidden" />
+              <PlanDrawer rows={rows} onSelect={goto} className="md:hidden" />
+            </>
+          )}
         </TickingRows>
       ) : (
         !planError && <p className="animate-breathe text-sm leading-4 text-graphite xl:hidden">Writing your session plan…</p>

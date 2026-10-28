@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, ChevronRight } from "lucide-react";
-import type { KeyboardEvent, ReactNode } from "react";
+import { Check, ChevronDown, ChevronRight } from "lucide-react";
+import { useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { fmtStamp } from "@/lib/time";
 import { Button } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { planSummary, type StepRow, type StepState, type TranscriptRef } from "./model";
 
@@ -100,6 +101,77 @@ export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRo
         <span className={cn("truncate", row ? "font-medium text-ink" : "text-graphite")}>{row ? row.title : planSummary(rows)}</span>
         {row?.meta && <span className="truncate text-graphite">{row.meta}</span>}
       </p>
+    </div>
+  );
+}
+
+/** Below 768 the plan is one line that opens every step in a Drawer, as the design doc's 375 layout proposes. */
+export function PlanDrawer({ rows, onSelect, className }: { rows: readonly StepRow[]; onSelect: (i: number) => void; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const titleId = useId();
+  const listRef = useRef<HTMLDivElement>(null);
+  const current = rows.find((r) => r.state === "current");
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger
+        render={
+          <button
+            type="button"
+            className={cn(
+              "-mx-2 flex min-w-0 cursor-pointer items-center gap-3 rounded-sm px-2 py-2 text-left transition-colors duration-[120ms] ease-standard hover:bg-wash",
+              className,
+            )}
+          />
+        }
+      >
+        <span className="flex min-w-0 flex-1 flex-col text-sm leading-4">
+          <span className={cn("truncate", current ? "font-medium text-ink" : "text-graphite")}>{planSummary(rows)}</span>
+          {current?.meta && <span className="truncate text-graphite">{current.meta}</span>}
+        </span>
+        <ChevronDown size={12} strokeWidth={3} aria-hidden="true" className="shrink-0 text-graphite" />
+      </DrawerTrigger>
+      <DrawerContent
+        initialFocus={() => listRef.current?.querySelector<HTMLElement>("button[tabindex='0']") ?? true}
+        className="border-rule data-[swipe-direction=down]:rounded-t-lg"
+      >
+        <DrawerHeader className="px-4 pt-5 pb-3">
+          <DrawerTitle id={titleId} className="text-left text-sm leading-4 font-normal tracking-caps text-graphite uppercase">
+            Session plan
+          </DrawerTitle>
+        </DrawerHeader>
+        <div ref={listRef} className="overflow-y-auto px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+          <PlanList
+            rows={rows}
+            labelId={titleId}
+            onSelect={(i) => {
+              onSelect(i);
+              setOpen(false);
+            }}
+          />
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+/**
+ * The session's timer track. The shared TimerBar fills in pixels of a fixed 160px track; this fill is a
+ * percentage, so the track can run full width below 1024 (change request study-4). `round()` keeps Paper's
+ * whole-pixel fill at 160px; the variable is the fallback where `round()` is unsupported.
+ */
+export function SessionTrack({ fraction, label, valueText, className }: { fraction: number; label: string; valueText: string; className?: string }) {
+  const pct = Math.round(Math.min(1, Math.max(0, fraction)) * 100);
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={pct}
+      aria-valuetext={valueText}
+      className={cn("h-1 shrink-0 overflow-clip rounded-full bg-control", className)}
+    >
+      <div className="h-full w-(--fill) rounded-full bg-ink" style={{ "--fill": `${pct}%`, width: `round(${pct}%, 1px)` } as CSSProperties} />
     </div>
   );
 }
