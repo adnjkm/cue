@@ -29,7 +29,7 @@ export function NavSheet() {
           <SheetDescription>Cue screens and data.</SheetDescription>
         </SheetHeader>
         <div className="flex h-full flex-col justify-between px-5 pt-7 pb-6">
-          <AppNav badges={badges} onNavigate={() => setOpen(false)} />
+          <AppNav wave={false} badges={badges} onNavigate={() => setOpen(false)} />
           <div className="flex flex-col gap-2">
             <SpendMeter />
             <DataMenu />

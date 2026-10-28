@@ -10,13 +10,23 @@ import { Wordmark } from "./Wordmark";
 
 /**
  * The wordmark and the six nav items. The docked sidebar, the icon rail and the focus screens' nav Sheet
- * all render this, so the three never drift.
+ * all render this, so the three never drift. The Sheet passes `wave={false}` so opening it never replays the wave.
  */
-export function AppNav({ collapsed = false, badges, onNavigate }: { collapsed?: boolean; badges?: Partial<Record<NavKey, ReactNode>>; onNavigate?: () => void }) {
+export function AppNav({
+  collapsed = false,
+  wave = true,
+  badges,
+  onNavigate,
+}: {
+  collapsed?: boolean;
+  wave?: boolean;
+  badges?: Partial<Record<NavKey, ReactNode>>;
+  onNavigate?: () => void;
+}) {
   const active = navKeyFor(usePathname());
   return (
     <div className="flex flex-col gap-9">
-      <Wordmark collapsed={collapsed} />
+      <Wordmark collapsed={collapsed} wave={wave} />
       <nav aria-label="Main">
         <ul className="flex flex-col gap-0.5">
           {NAV.map((item) => {
