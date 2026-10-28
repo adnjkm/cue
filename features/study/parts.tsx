@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { fmtStamp } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { StepRow, StepState, TranscriptRef } from "./model";
+import { planSummary, type StepRow, type StepState, type TranscriptRef } from "./model";
 
 function StepBadge({ n, state }: { n: number; state: StepState }) {
   return (
@@ -16,7 +16,7 @@ function StepBadge({ n, state }: { n: number; state: StepState }) {
         "flex size-6 shrink-0 items-center justify-center rounded-sm text-sm leading-4",
         state === "done" && "bg-fill text-ink",
         state === "current" && "bg-ink text-page",
-        state === "upcoming" && "border border-border text-graphite",
+        (state === "upcoming" || state === "skipped") && "border border-border text-graphite",
       )}
     >
       {state === "done" ? <Check size={12} strokeWidth={2.625} /> : n}
@@ -55,7 +55,7 @@ export function PlanList({ rows, labelId, onSelect }: { rows: readonly StepRow[]
           >
             <StepBadge n={i + 1} state={r.state} />
             <span className="flex min-w-0 flex-col pt-1 text-sm leading-4">
-              <span className={cn(r.state === "done" ? "text-graphite" : "text-ink", r.state === "current" && "font-medium")}>
+              <span className={cn(r.state === "done" || r.state === "skipped" ? "text-graphite" : "text-ink", r.state === "current" && "font-medium")}>
                 {r.state === "done" && <span className="sr-only">Done: </span>}
                 {r.title}
               </span>
@@ -70,7 +70,7 @@ export function PlanList({ rows, labelId, onSelect }: { rows: readonly StepRow[]
 
 export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRow[]; onSelect: (i: number) => void; className?: string }) {
   const current = currentIndex(rows);
-  const row = rows[current];
+  const row = rows.find((r) => r.state === "current");
   return (
     <div className={cn("flex min-w-0 items-center gap-4", className)}>
       <ol aria-label="Session plan" onKeyDown={rovingKeys} className="flex shrink-0 items-center gap-2">
@@ -96,12 +96,10 @@ export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRo
           </li>
         ))}
       </ol>
-      {row && (
-        <p aria-hidden="true" className="flex min-w-0 flex-col text-sm leading-4">
-          <span className="truncate font-medium text-ink">{row.title}</span>
-          {row.meta && <span className="truncate text-graphite">{row.meta}</span>}
-        </p>
-      )}
+      <p aria-hidden="true" className="flex min-w-0 flex-col text-sm leading-4">
+        <span className={cn("truncate", row ? "font-medium text-ink" : "text-graphite")}>{row ? row.title : planSummary(rows)}</span>
+        {row?.meta && <span className="truncate text-graphite">{row.meta}</span>}
+      </p>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
   defaultViewer,
   endSummary,
   finishSession,
+  planSummary,
   focusMs,
   showRef,
   stepOverMs,
@@ -221,6 +222,20 @@ describe("step transitions", () => {
     expect(s.state.status).toBe("ended");
     const all = [0, 1, 2, 3].reduce((acc, i) => sessionTransitions.nextStep(sessionTransitions.gotoStep(acc, i, at(9)), at(9)), started);
     expect(sessionTransitions.nextStep(all, at(40)).state.status).toBe("completed");
+  });
+
+  it("shows a finished session's steps as done or skipped, with none current", () => {
+    const ended = finishSession(sessionTransitions.nextStep(started, at(5)), at(20));
+    const rows = stepRows(plan, { step: null, stepsDone: ended.stepsDone });
+    expect(rows.map((r) => [r.state, r.meta])).toEqual([
+      ["done", undefined],
+      ["done", undefined],
+      ["skipped", "Skipped"],
+      ["skipped", "Skipped"],
+      ["skipped", "Skipped"],
+    ]);
+    expect(planSummary(rows)).toBe("2 of 5 steps done");
+    expect(planSummary(stepRows(plan, sessionTransitions.nextStep(started, at(5))))).toBe("Step 2 of 5 · Re-read key slides");
   });
 
   it("reads Finish session on the last step and once time is up, and finishing ends the session there", () => {

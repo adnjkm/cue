@@ -98,7 +98,7 @@ export function stepOverMs(session: StudySession, now: EpochMs, pomodoro: Pomodo
   return Math.max(0, spent - step.minutes * MIN);
 }
 
-export type StepState = "done" | "current" | "upcoming";
+export type StepState = "done" | "current" | "upcoming" | "skipped";
 
 export interface StepRow {
   title: string;
@@ -112,11 +112,20 @@ export function stepMeta(step: PlanStep, overMs: number): string {
   return [step.source ? sourceLabel(step.source, "chip") : null, `${step.minutes} min`].filter(Boolean).join(" · ");
 }
 
-export function stepRows(plan: SessionPlan, at: { step: number; stepsDone: readonly number[] }, overMs = 0): StepRow[] {
+/** `step` is null once the session is over: no step is current, and the ones left undone read Skipped. */
+export function stepRows(plan: SessionPlan, at: { step: number | null; stepsDone: readonly number[] }, overMs = 0): StepRow[] {
   return plan.steps.map((s, i) => {
     if (i === at.step) return { title: s.title, state: "current", meta: stepMeta(s, overMs) };
-    return { title: s.title, state: at.stepsDone.includes(i) ? "done" : "upcoming" };
+    if (at.stepsDone.includes(i)) return { title: s.title, state: "done" };
+    return at.step === null ? { title: s.title, state: "skipped", meta: "Skipped" } : { title: s.title, state: "upcoming" };
   });
+}
+
+/** One line for the plan when there is no room for the list: "Step 2 of 5 · Re-read key slides". */
+export function planSummary(rows: readonly StepRow[]): string {
+  const i = rows.findIndex((r) => r.state === "current");
+  if (i >= 0) return `Step ${i + 1} of ${rows.length} · ${rows[i].title}`;
+  return `${rows.filter((r) => r.state === "done").length} of ${rows.length} steps done`;
 }
 
 export interface TimerView {

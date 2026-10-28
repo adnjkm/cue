@@ -83,7 +83,7 @@ function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: Study
   );
 }
 
-type PlanAt = { step: number; stepsDone: readonly number[] };
+type PlanAt = { step: number | null; stepsDone: readonly number[] };
 
 /** Ticks by itself, so "Over by 1 min" lands on time without re-rendering the chat every second. */
 function TickingRows({ plan, at, live, prefs, children }: { plan: SessionPlan; at: PlanAt; live: StudySession | null; prefs: StudyPrefs; children: (rows: StepRow[]) => ReactNode }) {
@@ -134,12 +134,12 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
   }, [mode]);
 
   const [localStep, setLocalStep] = useState(0);
-  const stepIndex = live ? live.step : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
+  const stepIndex = live ? live.step : mode === "finished" ? null : Math.min(localStep, Math.max(0, (plan?.steps.length ?? 1) - 1));
   const at: PlanAt = { step: stepIndex, stepsDone: row?.stepsDone ?? [] };
-  const step = plan?.steps[stepIndex];
+  const step = stepIndex === null ? undefined : plan?.steps[stepIndex];
 
   const [override, setOverride] = useState<ViewerState | null>(null);
-  const viewer = override ?? (sources ? defaultViewer(sources, plan, stepIndex, { ...(tab ? { tab } : {}), ...(row ? { saved: row.viewer } : {}) }) : null);
+  const viewer = override ?? (sources ? defaultViewer(sources, plan, stepIndex ?? 0, { ...(tab ? { tab } : {}), ...(row ? { saved: row.viewer } : {}) }) : null);
   const setViewer = (v: ViewerState) => {
     setOverride(v);
     if (live) void sessionActions.setViewer(block.id, v);
@@ -158,7 +158,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
     const v = viewer ? viewerForStep(viewer, plan?.steps[i]) : null;
     if (v) setOverride(v);
     if (live) void sessionActions.gotoStep(block.id, i, v ?? undefined);
-    else setLocalStep(i);
+    else if (mode === "preview") setLocalStep(i);
   };
   const advance = async (kind: Advance) => {
     if (!live || !plan) return;
