@@ -15,6 +15,8 @@ import type { CalendarView } from "@/lib/routes";
 import { blockTitle } from "@/lib/plan";
 import { addDays, fmtDay, fmtRange, fmtTime, minutesOfDay, parseDay, weekdayOf } from "@/lib/time";
 
+export { MONTH_SHORT, shortDay, WEEKDAY_SHORT } from "./proposal";
+
 export const HOUR_PX = 50;
 /** 8am sits 40px below the top of the hours body, as on the 900px artboards. */
 export const DEFAULT_SCROLL = 8 * HOUR_PX - 40;
@@ -145,15 +147,6 @@ export function blockName(b: StudyBlock, status: BlockStatus, zone: Zone): strin
 /** `MAT137 Lecture, Thursday 29 October, 9 to 10am, MP 102`. */
 export function eventName(e: TimedEvent, zone: Zone, live: boolean): string {
   return `${eventTitle(e)}, ${longDay(e.start, zone)}, ${spokenRange(e, zone)}${e.location ? `, ${e.location}` : ""}${live ? ", now" : ""}`;
-}
-
-export const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-export const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
-
-/** `Tue 27 Oct`. */
-export function shortDay(day: LocalDate): string {
-  const { m, d } = parseDay(day);
-  return `${WEEKDAY_SHORT[weekdayOf(day) - 1]} ${d} ${MONTH_SHORT[m - 1]}`;
 }
 
 /** The days a view draws: one, the ISO week, or the month grid from the Monday on or before the 1st. */

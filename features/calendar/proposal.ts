@@ -1,5 +1,5 @@
-import { ids, type CalendarEvent, type CourseId, type EpochMs, type EffortSize, type ImportBatch, type ImportId, type TestWeight, type Topic, type Zone } from "@/lib/domain";
-import { fmtRange, fmtTime } from "@/lib/time";
+import { ids, type CalendarEvent, type CourseId, type EpochMs, type EffortSize, type ImportBatch, type ImportId, type LocalDate, type TestWeight, type Topic, type Zone } from "@/lib/domain";
+import { fmtRange, fmtTime, parseDay, weekdayOf } from "@/lib/time";
 
 /** One course an import found: a checkbox row in the preview, and the events written when it stays checked. */
 export interface ProposedCourse {
@@ -93,14 +93,16 @@ export function lectureTopic(rest: string): { number?: number; topic?: Topic } {
   return { number: Number(m[1]), ...(full ? { topic: { full, short: full.length <= 16 ? full : full.split(/\s+/)[0].replace(/[,:;.]$/, "") } } : {}) };
 }
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+export const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
-function shortDate(t: EpochMs, zone: Zone): string {
-  const day = zone.dayOf(t);
-  const [, m, d] = day.split("-").map(Number);
-  return `${WEEKDAYS[zone.weekday(day) - 1]} ${d} ${MONTHS[m - 1]}`;
+/** `Tue 27 Oct`. */
+export function shortDay(day: LocalDate): string {
+  const { m, d } = parseDay(day);
+  return `${WEEKDAY_SHORT[weekdayOf(day) - 1]} ${d} ${MONTH_SHORT[m - 1]}`;
 }
+
+const shortDate = (t: EpochMs, zone: Zone) => shortDay(zone.dayOf(t));
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -119,7 +121,7 @@ export function proposeCourse(id: CourseId, events: readonly CalendarEvent[], zo
   }
   const main = [...patterns.values()].sort((a, b) => b.count - a.count)[0];
   const where = main && "location" in main.sample && main.sample.location ? ` · ${main.sample.location}` : "";
-  const when = main ? ` · ${[...main.days].sort().map((d) => WEEKDAYS[d - 1]).join(", ")} ${fmtRange(main.sample, zone)}${where}` : "";
+  const when = main ? ` · ${[...main.days].sort().map((d) => WEEKDAY_SHORT[d - 1]).join(", ")} ${fmtRange(main.sample, zone)}${where}` : "";
 
   const count = (kind: CalendarEvent["kind"]) => sorted.filter((e) => e.kind === kind).length;
   const counts = [
