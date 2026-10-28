@@ -53,7 +53,7 @@ async function shot(page, name, size = WIDE) {
   await page.setViewportSize(size);
   await page.mouse.move(size.width / 2, size.height - 10);
   await page.waitForTimeout(150);
-  await page.screenshot({ path: path.join(out, `${name}-${size.width}.png`) });
+  await page.screenshot({ path: path.join(out, `${name}-${size.width}.png`), animations: "disabled" });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   console.log(`wrote ${name}-${size.width}.png${overflow > 0 ? `  HORIZONTAL OVERFLOW ${overflow}px` : ""}`);
 }
@@ -88,6 +88,11 @@ await session(async (t, page) => {
   await t.clock.runFor(42_000);
   await shot(page, "live");
   await boxes(page);
+  const pulse = () => page.getByRole("status").locator("span").first().evaluate((d) => `${getComputedStyle(d).animationName} ${getComputedStyle(d).animationDuration}`);
+  check((await pulse()) === "breathe 1.6s", `the recording dot pulses (${await pulse()})`);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  check((await pulse()).startsWith("none"), `the recording dot holds still under reduced motion (${await pulse()})`);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await shot(page, "live", NARROW);
   await page.setViewportSize(WIDE);
   await page.clock.resume();

@@ -26,7 +26,7 @@ export function StatusPill({ kind, label, className }: { kind: StatusKind; label
           <path d="M2.5 6.25 4.9 8.6 9.5 3.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (
-        <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", kind === "recording" ? "bg-ink" : "border-[1.5px] border-ink")} />
+        <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", kind === "recording" ? "animate-breathe bg-ink" : "border-[1.5px] border-ink")} />
       )}
       <span className="text-sm leading-4 font-medium text-ink">{label}</span>
     </div>
