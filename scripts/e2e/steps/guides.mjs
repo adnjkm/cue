@@ -58,6 +58,11 @@ export default async function guides(t) {
   if (partial.length < 2) throw new Error(`Expected placeholders to fill block by block, saw ${JSON.stringify(fills)}`);
   await expect(page.getByRole("navigation", { name: "Contents" }).getByRole("link", { name: "Trees and their parts" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("link", { name: "Quiz me on this section" })).toBeVisible();
+  const code = page.getByRole("figure", { name: /^Tree\.is_empty is true/ }).locator("pre");
+  await expect(code).toContainText("def is_empty(self) -> bool:");
+  await expect(code).toHaveCSS("white-space", "pre");
+  await expect(code).toHaveCSS("overflow-x", "auto");
+  await t.checkNarrow();
 
   await page.goto("/guides/ECO101");
   await expect(page).toHaveURL(/\/guides\/ECO101\/price-elasticity-of-demand$/);
