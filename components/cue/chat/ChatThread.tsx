@@ -6,15 +6,16 @@ import type { ChatMessage, SourceRef } from "@/lib/domain";
 import { errorCopy } from "@/lib/ai";
 import { TID } from "@/lib/testids";
 import { cn } from "@/lib/utils";
+import { useMountTime } from "@/hooks/use-mount-time";
 import { Button } from "@/components/ui/button";
 import { BudgetNotice } from "../BudgetNotice";
 import { ErrorLine } from "../bits";
 import { Prose } from "../Prose";
 import { SourceChips } from "./SourceChip";
 
-function UserBubble({ text }: { text: string }) {
+function UserBubble({ text, fresh }: { text: string; fresh: boolean }) {
   return (
-    <div className="flex justify-end">
+    <div className={cn("flex justify-end", fresh && "animate-rise")}>
       <p className="max-w-[280px] rounded-sm bg-fill px-3.5 py-2.5 text-sm leading-5 text-ink">{text}</p>
     </div>
   );
@@ -35,12 +36,13 @@ export function ChatThread({
   className?: string;
 }) {
   const { messages, pending, error } = chat;
+  const mountedAt = useMountTime();
   return (
     <div data-testid={TID.chat.thread} role="log" aria-label="Conversation" aria-live="polite" className={cn("flex flex-col gap-5", className)}>
       {messages.length === 0 && !pending && empty}
       {messages.map((m) =>
         m.role === "user" ? (
-          <UserBubble key={m.id} text={m.text} />
+          <UserBubble key={m.id} text={m.text} fresh={m.at > mountedAt} />
         ) : (
           <article key={m.id} className="flex flex-col gap-3 text-sm leading-5 text-ink">
             <Prose text={m.text} />

@@ -10,17 +10,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { planSummary, type StepRow, type StepState, type TranscriptRef } from "./model";
 
 function StepBadge({ n, state }: { n: number; state: StepState }) {
+  // Only a step that turns done on screen pops its check; steps already done when the plan opens just show it.
+  const [was, setWas] = useState(state);
+  const [completed, setCompleted] = useState(false);
+  if (was !== state) {
+    setWas(state);
+    if (state === "done") setCompleted(true);
+  }
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-6 shrink-0 items-center justify-center rounded-sm text-sm leading-4",
+        "flex size-6 shrink-0 items-center justify-center rounded-sm text-sm leading-4 transition-colors duration-200 ease-standard",
         state === "done" && "bg-fill text-ink",
         state === "current" && "bg-ink text-page",
         (state === "upcoming" || state === "skipped") && "border border-border text-graphite",
       )}
     >
-      {state === "done" ? <Check size={12} strokeWidth={2.625} /> : n}
+      {state === "done" ? <Check size={12} strokeWidth={2.625} className={cn(completed && "animate-pop-in")} /> : n}
     </span>
   );
 }

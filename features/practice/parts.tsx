@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type KeyboardEvent, type SVGProps } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type SVGProps } from "react";
 import { Check } from "lucide-react";
 import { db, useLive } from "@/lib/db";
 import type { Attempt, BlobId, Option, Question, QuestionId, SourceRef, TreeNode } from "@/lib/domain";
@@ -93,7 +93,7 @@ export function OptionRow({
       onClick={() => onChoose(option.label)}
       aria-keyshortcuts={`${index + 1} ${option.label}`}
       className={cn(
-        "flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border border-border bg-page px-5 py-2 text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard enabled:hover:bg-wash enabled:active:bg-fill disabled:cursor-default max-md:grid max-md:grid-cols-[16px_minmax(0,1fr)] max-md:content-center max-md:gap-y-1 max-md:px-4 max-md:py-3",
+        "flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border border-border bg-page px-5 py-2 text-left text-sm leading-4 text-ink transition-[color,background-color,border-color,scale] duration-[120ms] ease-standard enabled:hover:bg-wash enabled:active:bg-fill motion-safe:enabled:active:scale-[0.99] disabled:cursor-default max-md:grid max-md:grid-cols-[16px_minmax(0,1fr)] max-md:content-center max-md:gap-y-1 max-md:px-4 max-md:py-3",
         (state === "correct-choice" || state === "correct-answer") && "border-ink bg-fill",
         state === "wrong-choice" && "border-dashed border-ink",
         state === "checking" && "border-ink",
@@ -182,6 +182,8 @@ export function QuestionBar({
   onSelect: (q: Question) => void;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
+  // The tiles on screen when the bar mounts; any later one is a question Cue just wrote.
+  const [shown] = useState(() => new Set(questions.map((q) => q.id)));
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
@@ -232,6 +234,8 @@ export function QuestionBar({
                     aria-label={`Question ${q.number}, ${words}${generated ? ", written by Cue" : ""}`}
                     onClick={() => onSelect(q)}
                     className={cn(
+                      // A question Cue writes while you watch takes the place of its breathing placeholder.
+                      !shown.has(q.id) && "animate-pop-in",
                       "relative grid size-9 shrink-0 cursor-pointer place-items-center rounded-sm border border-border bg-page text-sm leading-4 text-graphite tabular-nums transition-colors duration-[120ms] ease-standard hover:bg-wash",
                       state === "correct" && "border-transparent bg-fill text-ink hover:border-border hover:bg-fill",
                       state === "missed" && "border-dashed border-ink text-ink",
