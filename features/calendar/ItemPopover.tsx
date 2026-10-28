@@ -13,6 +13,7 @@ import { blockReasonText, blockTitle, loadPlanInput, planActions, schedule, useP
 import { href } from "@/lib/routes";
 import { fmtRange, fmtTime } from "@/lib/time";
 import { eventTitle, shortDay, type BlockLook } from "./model";
+import { rescheduleSlot } from "./slots";
 
 const DAY = 24 * 60 * 60_000;
 
@@ -77,11 +78,13 @@ function BlockDetails({ block, status, look, zone, now, close }: { block: StudyB
     setBusy("reschedule");
     setError(null);
     try {
-      const slot = await planActions.reschedule(block.id, { after: Math.max(now, Date.now()) as EpochMs });
+      const slot = rescheduleSlot(await loadPlanInput(), block, status, Math.max(now, Date.now()) as EpochMs);
       if (!slot) {
-        setError(`No free ${minutes}-minute slot in the next 7 days. Mark it done, or clear some time and try again.`);
+        const limit = block.anchor.kind === "work" ? "before it's due" : block.anchor.kind === "testPrep" ? "before the test" : "in the next 7 days";
+        setError(`No free ${minutes}-minute slot ${limit}. Mark it done, or clear some time and try again.`);
         return;
       }
+      await planActions.move(block.id, slot);
       close();
       toast.add({ title: `Moved to ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.` });
     } catch {
