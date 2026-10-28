@@ -609,7 +609,7 @@ There is no web search. Paper's `docs.python.org` chip has no source in this des
 | `practice.generate` | P | list | Ultra · on (`reason`) | 8,000 | 0.8 | `GenerateInput` → items `GeneratedQuestion` (at most 10); each then checked |
 | `practice.check` | P | json | Ultra · off (`chat`) | 500 | 0 | `{ prompt, options }` → `{ answer }`; a generated question is dropped when this disagrees with its key |
 | `guide.outline` | G | json | Ultra · on (`reason`) | 8,000 | 0.6 | `{ course, materials (titles, headings), lectures }` → `{ chapters: { title, textbookChapter?, sections }[] }` |
-| `guide.section` | G | list | Ultra · off (`chat`) | 6,000 | 0.5 | `GuideSectionInput` → items `GuideBlockDraft` (at most 12; cites carry relation and note); placeholders fill block by block |
+| `guide.section` | G | list | Ultra · off (`chat`) | 6,000 | 0.5 | `GuideSectionInput` → items `GuideBlockDraft` (at most 12; cites carry relation and note); placeholders fill block by block; `multiline` (code blocks) |
 
 A list task asks the model for `{ items: T[] }` under `json_schema`. The server parses each completed array element as it arrives, validates it with `item`, and forwards it as one NDJSON line. An invalid item is dropped and counted. Zero valid items is `bad_output`.
 
@@ -915,7 +915,7 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 1. `/guides` redirects to `/guides/ECO101/price-elasticity-of-demand`. h1 `ECO101 · Study guide`. `navigation` named `Contents` has link `Price elasticity of demand` with `aria-current="page"`.
 2. Two `role=img` figures, named `/^Elastic demand curve/` and `/^Inelastic demand curve/`. The inelastic SVG has exactly one text `Q2 Q1`. A `note` is named `Common mistake · will be on the midterm`. A `role=math` element is present.
 3. The footnote list has 4 items. Item 1 is `Lecture 7 at 4:15. Textbook ch. 5, p. 92.` and item 3 is `Lecture 7 at 18:40, redrawn from the whiteboard sketch. Textbook Figure 5-1.` Marker link `1` focuses `#fn-1`. Shot `guides`.
-4. Combobox `Course`, option `CSC148`: the URL starts `/guides/CSC148`. Click `Write this guide` (mock outline). The first section's placeholders fill block by block, and footnotes appear.
+4. Combobox `Course`, option `CSC148`: the URL starts `/guides/CSC148`. Click `Write this guide` (mock outline). The first section's placeholders fill block by block, and footnotes appear. The section shows a code block (the region named by its caption `Tree.is_empty is true…`) containing `def is_empty(self) -> bool:`, kept at `white-space: pre` and scrolling sideways, and `checkNarrow()` passes on it.
 5. Back on ECO101: `Add material`, then `fixtures/guides/eco101-lecture8-slides.pdf` as ECO101 slides. The section shows `Lecture 8 slides added. Rewrite this section?` Click `Rewrite`: the line disappears.
 6. Stub `window.print`, then `Export PDF`: the URL is `/export/guide/ECO101`, print media is emulated, the nav is hidden, and `print` was called once. Shot `guides-print`.
 7. Key `]` moves to `Elasticity and total revenue`.

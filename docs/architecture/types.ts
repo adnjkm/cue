@@ -1011,7 +1011,9 @@ export type GuideBlock =
       text: string;
       refs: readonly FootnoteN[];
       quote?: { text: string; attribution: string };
-    };
+    }
+  // lang is lower case, "text" when unknown; text is never empty; the caption carries the footnote markers.
+  | { kind: "code"; lang: string; text: string; caption: string; refs: readonly FootnoteN[] };
 
 export interface GuideDraft {
   blocks: readonly GuideBlock[];
