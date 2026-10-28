@@ -252,10 +252,14 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
         )}
       </header>
 
-      {rows && <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />}
+      {rows ? (
+        <PlanStrip rows={rows} onSelect={goto} className="xl:hidden" />
+      ) : (
+        !planError && <p className="animate-breathe text-sm leading-4 text-graphite xl:hidden">Writing your session plan…</p>
+      )}
 
       <div className="flex flex-col gap-6 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-8 xl:gap-10">
-        <section aria-labelledby={planLabelId} className="hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto xl:flex">
+        <section aria-labelledby={planLabelId} className="-mx-3 hidden w-[264px] shrink-0 flex-col gap-3 overflow-y-auto px-3 xl:flex">
           <SectionLabel id={planLabelId} className="py-1.5">
             Session plan
           </SectionLabel>
@@ -355,21 +359,19 @@ function SessionSkeleton() {
 
 function MissingBlock() {
   return (
-    <main className="flex flex-1 flex-col px-4 pt-5 pb-6 md:px-6 lg:px-10 lg:pt-7">
-      <EmptyState
-        title="This study block isn't in your plan."
-        detail="It may have moved after a calendar change, or it was cleared with your data. Pick it again from Study sessions."
-        actions={
-          <>
-            <Link href={href.studyIndex()} className={buttonVariants()}>
-              Open Study sessions
-            </Link>
-            <Link href={href.today()} className={buttonVariants({ variant: "secondary" })}>
-              Go to Today
-            </Link>
-          </>
-        }
-      />
+    <main className="flex flex-1 flex-col items-start gap-4 px-4 pt-5 pb-6 md:px-6 lg:px-10 lg:pt-7">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-lg leading-6 font-normal tracking-display text-ink">This study block isn&apos;t in your plan.</h1>
+        <p className="max-w-[560px] text-sm leading-5 text-graphite">It may have moved after a calendar change, or it was cleared with your data. Pick it again from Study sessions.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Link href={href.studyIndex()} className={buttonVariants()}>
+          Open Study sessions
+        </Link>
+        <Link href={href.today()} className={buttonVariants({ variant: "secondary" })}>
+          Go to Today
+        </Link>
+      </div>
     </main>
   );
 }

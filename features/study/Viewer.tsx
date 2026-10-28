@@ -32,7 +32,7 @@ function Missing({ children }: { children: ReactNode }) {
 }
 
 /** One slide: heading, body and code, as Paper draws slide 14. Left and Right page through the deck. */
-function SlideCard({ at, count, onMove }: { at: PageRef; count: number; onMove: (delta: number) => void }) {
+function SlideCard({ at, onMove }: { at: PageRef; onMove: (delta: number) => void }) {
   const found = usePage(at);
   const slide = found?.page?.slide;
   return (
@@ -54,7 +54,7 @@ function SlideCard({ at, count, onMove }: { at: PageRef; count: number; onMove: 
         </>
       ) : !found.page ? (
         <p className="text-sm leading-5 text-graphite">
-          Slide {at.page} of {count} isn&apos;t stored on this device. Add the slides again from Lecture notes.
+          Slide {at.page} isn&apos;t stored on this device any more. Add the deck again to see it here.
         </p>
       ) : slide ? (
         <>
@@ -81,8 +81,9 @@ function TranscriptPanel({ at, scrollRef }: { at: TranscriptRef; scrollRef: Reac
   useEffect(() => {
     const box = scrollRef.current;
     const line = listRef.current?.children[target] as HTMLElement | undefined;
-    if (!box || !line || box.scrollHeight <= box.clientHeight) return;
-    box.scrollTop = Math.max(0, line.offsetTop - box.offsetTop - box.clientHeight / 2 + line.offsetHeight / 2);
+    if (!box || !line) return;
+    if (box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, line.offsetTop - box.offsetTop - box.clientHeight / 2 + line.offsetHeight / 2);
+    else line.scrollIntoView({ block: "center" });
   }, [target, scrollRef]);
   if (!segments) return <CardSkeleton />;
   if (segments.length === 0) return <Missing>This lecture has no transcript on this device yet.</Missing>;
@@ -102,13 +103,22 @@ function TranscriptPanel({ at, scrollRef }: { at: TranscriptRef; scrollRef: Reac
   );
 }
 
+/** A page's first short paragraph is its title in the sample and in most PDFs; it reads as the card heading. */
+function splitTitle(text: string): { title?: string; body: string } {
+  const [first, ...rest] = text.trim().split(/\n{2,}/);
+  if (rest.length === 0 || first.length > 80 || first.includes("\n")) return { body: text };
+  return { title: first.replace(/\.$/, ""), body: rest.join("\n\n") };
+}
+
 function PagePanel({ at }: { at: PageRef }) {
   const found = usePage(at);
   if (found === undefined) return <CardSkeleton />;
-  if (!found.page) return <Missing>This page isn&apos;t stored on this device. Add the file again to read it here.</Missing>;
+  if (!found.page) return <Missing>This page isn&apos;t stored on this device any more. Add the file again to read it here.</Missing>;
+  const { title, body } = splitTitle(found.page.text);
   return (
     <article className={CARD}>
-      <Prose text={found.page.text} className="gap-3 text-sm leading-5 text-ink" />
+      {title && <h2 className="text-lg leading-6 font-normal tracking-display text-ink">{title}</h2>}
+      <Prose text={body} className="gap-3 text-sm leading-5 text-ink" />
     </article>
   );
 }
@@ -194,8 +204,8 @@ export function MaterialViewer({
         ) : (
           <>
             {viewer.slides && (
-              <TabsContent value="slides" className="flex-none">
-                <SlideCard at={viewer.slides} count={count} onMove={move} />
+              <TabsContent value="slides" tabIndex={-1} className="flex-none">
+                <SlideCard at={viewer.slides} onMove={move} />
               </TabsContent>
             )}
             {viewer.transcript && (

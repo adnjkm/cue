@@ -205,6 +205,7 @@ describe("step transitions", () => {
     expect(timerView(s, at(26), DEFAULT_POMODORO).text).toBe("Break · 4:00 left");
     expect(timerView(s, at(30), DEFAULT_POMODORO).text).toBe("15:00 left");
     expect(timerView(s, at(45), DEFAULT_POMODORO)).toMatchObject({ text: "Time's up", fraction: 1, over: true });
+    expect(endSummary(s, at(45))).toBe("3 steps left · time's up");
   });
 
   it("jumps back to a done step and completes the session from the last step", () => {

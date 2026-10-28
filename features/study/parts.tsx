@@ -85,7 +85,7 @@ export function PlanStrip({ rows, onSelect, className }: { rows: readonly StepRo
                     type="button"
                     tabIndex={i === current ? 0 : -1}
                     aria-current={r.state === "current" ? "step" : undefined}
-                    aria-label={`${r.state === "done" ? "Done: " : ""}${r.title}`}
+                    aria-label={[r.state === "done" ? `Done: ${r.title}` : r.title, r.meta].filter(Boolean).join(", ")}
                     onClick={() => onSelect(i)}
                     className="-m-1 flex cursor-pointer rounded-sm p-1"
                   />

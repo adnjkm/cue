@@ -65,7 +65,7 @@ function count(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
-/** /study: the next seven days of planned sessions with Start, and the sessions already studied. */
+/** /study (inside the browse shell's main): the next seven days of planned sessions with Start, and the sessions already studied. */
 export function StudyIndex() {
   const now = useNow("minute");
   const plan = usePlan(EVERYTHING);
@@ -81,13 +81,13 @@ export function StudyIndex() {
     [sessions],
   );
 
-  if (!plan || !sessions || now === 0) return <main data-testid={tid.index} aria-busy="true" className="min-h-40" />;
+  if (!plan || !sessions || now === 0) return <div data-testid={tid.index} aria-busy="true" className="min-h-40" />;
   const zone = plan.zone;
   const today = zone.dayOf(now);
 
   if (plan.isEmpty) {
     return (
-      <main data-testid={tid.index} className="flex flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
+      <div data-testid={tid.index} className="flex flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
         <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Study sessions</h1>
         <EmptyState
           title="Add your schedule to plan study sessions."
@@ -101,7 +101,7 @@ export function StudyIndex() {
             </>
           }
         />
-      </main>
+      </div>
     );
   }
 
@@ -112,7 +112,7 @@ export function StudyIndex() {
   const shownPast = allPast ? past : past.slice(0, PAST_SHOWN);
 
   return (
-    <main data-testid={tid.index} className="flex flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
+    <div data-testid={tid.index} className="flex flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
       <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Study sessions</h1>
 
       <Section id="study-upcoming" label="Next 7 days" summary={upcoming.length ? `${count(upcoming.length, "session")} · ${fmtDuration(upcomingMs)}` : undefined}>
@@ -137,11 +137,11 @@ export function StudyIndex() {
                       action={
                         status === "inProgress" ? (
                           <Link href={href.study(b.id)} className={cn(buttonVariants({ variant: "default", size: "sm" }), "px-[11px]")}>
-                            Resume
+                            Resume<span className="sr-only">: {blockTitle(b, "timeline")}</span>
                           </Link>
                         ) : (
                           <Link href={href.study(b.id, { start: true })} className={cn(buttonVariants({ variant: status === "now" ? "default" : "secondary", size: "sm" }), "px-[11px]")}>
-                            Start session
+                            Start session<span className="sr-only">: {blockTitle(b, "timeline")}</span>
                           </Link>
                         )
                       }
@@ -184,6 +184,6 @@ export function StudyIndex() {
           </>
         )}
       </Section>
-    </main>
+    </div>
   );
 }

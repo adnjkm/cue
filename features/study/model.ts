@@ -167,9 +167,10 @@ export function timerView(session: StudySession, now: EpochMs, pomodoro: Pomodor
 export function endSummary(session: StudySession, now: EpochMs): string {
   const total = session.plan?.steps.length ?? 0;
   const after = Math.max(0, total - session.step - 1);
-  const left = fmtCountdown(Math.max(0, session.minutes * MIN - sessionElapsedMs(session.state, now)));
-  if (total === 0) return `${left} left`;
-  return after === 0 ? `Last step · ${left} left` : `${after} step${after === 1 ? "" : "s"} left · ${left}`;
+  const leftMs = session.minutes * MIN - sessionElapsedMs(session.state, now);
+  const left = leftMs > 0 ? fmtCountdown(leftMs) : "time's up";
+  if (total === 0) return leftMs > 0 ? `${left} left` : "Time's up";
+  return after === 0 ? `Last step · ${leftMs > 0 ? `${left} left` : left}` : `${after} step${after === 1 ? "" : "s"} left · ${left}`;
 }
 
 /** "Completed · 45m studied" or "Ended · 13m studied". */

@@ -82,7 +82,7 @@ export function AskPanel({
           const box = e.currentTarget;
           pinned.current = box.scrollHeight - box.scrollTop - box.clientHeight < 24;
         }}
-        className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2"
+        className="-mr-2 -ml-1 min-h-0 flex-1 overflow-y-auto pr-2 pl-1"
       >
         <ChatThread
           chat={chat}
