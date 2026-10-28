@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { Box, Option, Passage, GenerationScope } from "@/lib/domain";
+import type { Box, Option, Passage } from "@/lib/domain";
 import type { generatedQuestion, solveOutput } from "./schema";
 
 export type { Box, Option };
@@ -12,14 +12,23 @@ export interface PaperChunkRead {
   answerKey: readonly { number: string; answer: string }[];
 }
 
+/**
+ * What practice.generate is asked. The client resolves a GenerationScope (a guide section, a chat answer,
+ * a topic in a paper) into words and passages, so the prompt never needs database lookups.
+ */
 export interface GenerateInput {
-  scope: GenerationScope;
-  style: readonly { prompt: string; options: readonly Option[] }[];
+  /** "CSC148"; also picks the mock's question bank. */
+  course?: string;
+  /** The tile group the questions land in. */
+  topic: string;
+  /** What to write about, as a phrase: `the study guide section “Price elasticity of demand” (passage S1)`. */
+  focus: string;
+  /** Up to 6 questions to match in style; `missed` marks ones the student got wrong. */
+  style: readonly { prompt: string; options: readonly Option[]; missed?: true }[];
   passages: readonly Passage[];
   count: number;
   note?: string;
 }
-
 
 export type SolveOutput = z.output<typeof solveOutput>;
 export type GeneratedQuestion = z.output<typeof generatedQuestion>;

@@ -1,8 +1,9 @@
 "use client";
 
 import { ai } from "@/lib/ai";
-import type { AnswerKey, Box, Figure, PageImage, Question, RenderedPage } from "@/lib/domain";
+import type { Figure, PageImage, RenderedPage } from "@/lib/domain";
 import { cropFigure, saveBlob, toPageImage } from "@/lib/materials";
+import type { ExamDraft, ParsedPaper } from "./exam";
 import type { PaperChunkRead } from "./types";
 
 const MAX_CHUNK_PAGES = 3;
@@ -58,50 +59,15 @@ export async function parseChunks(
   return results as PaperChunkRead[];
 }
 
-export interface ParsedPaper {
-  title: string;
-  course?: string;
-  questions: Omit<Question, "id" | "setId" | "order">[];
-}
-
-/**
- * Merges chunk results into one paper. Answer keys merge by printed number (first wins) before any
- * renumbering, and only keys that name one of the question's options are trusted.
- */
-export async function buildPaper(results: readonly PaperChunkRead[], fileName: string, pages: readonly RenderedPage[]): Promise<ParsedPaper> {
-  const parsed = results.flatMap((r) => r.questions);
-  const keyed = new Map<string, string>();
-  for (const r of results) for (const k of r.answerKey) if (!keyed.has(k.number)) keyed.set(k.number, k.answer);
-  const numbers = parsed.map((q) => q.number);
-  const renumber = new Set(numbers).size !== numbers.length;
+/** Crops each figure box out of its rendered page and stores it as a Blob. A box on a page that was not rendered is dropped. */
+export async function attachFigures(exam: ExamDraft, pages: readonly RenderedPage[]): Promise<ParsedPaper> {
   const questions: ParsedPaper["questions"] = [];
-  for (const [i, q] of parsed.entries()) {
-    const keyAnswer = keyed.get(q.number);
-    const answer = q.answer ?? (keyAnswer && q.options.some((o) => o.label === keyAnswer) ? keyAnswer : undefined);
-    const key: AnswerKey = answer ? { source: "document", answer } : { source: "none" };
-    let figure: Figure | undefined;
-    const page = q.figure ? pages.find((p) => p.index === q.figure!.page) : undefined;
-    if (q.figure && page) {
-      const box = q.figure.box as Box;
-      figure = { kind: "crop", blob: await saveBlob(await cropFigure(page.image, box)), page: q.figure.page, box };
-    }
-    questions.push({
-      number: renumber ? String(i + 1) : q.number,
-      topic: q.topic,
-      type: "multipleChoice",
-      ...(q.marks ? { marks: q.marks } : {}),
-      prompt: q.prompt,
-      options: q.options.map((o) => ({ ...o })),
-      key,
-      ...(figure ? { figure } : {}),
-      origin: { kind: "paper" },
-    });
+  for (const { figureAt, ...q } of exam.questions) {
+    const page = figureAt ? pages.find((p) => p.index === figureAt.page) : undefined;
+    const figure: Figure | undefined = figureAt && page ? { kind: "crop", blob: await saveBlob(await cropFigure(page.image, figureAt.box)), page: figureAt.page, box: figureAt.box } : undefined;
+    questions.push({ ...q, ...(figure ? { figure } : {}) });
   }
-  return {
-    title: results.find((r) => r.title)?.title ?? fileName.replace(/\.[a-z0-9]+$/i, ""),
-    course: results.find((r) => r.course)?.course,
-    questions,
-  };
+  return { ...exam, questions };
 }
 
 export { toPageImage };

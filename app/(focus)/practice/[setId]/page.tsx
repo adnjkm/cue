@@ -1,7 +1,12 @@
-import { PracticeScreen } from "@/features/practice";
-import type { SetId } from "@/lib/domain";
+import { MissingSet, PracticeScreen } from "@/features/practice";
+import { parseId } from "@/lib/domain";
 
-export default async function PracticeSetPage({ params }: PageProps<"/practice/[setId]">) {
-  const { setId } = await params;
-  return <PracticeScreen setId={decodeURIComponent(setId) as SetId} />;
+export default async function PracticeSetPage({ params, searchParams }: PageProps<"/practice/[setId]">) {
+  const [{ setId }, query] = await Promise.all([params, searchParams]);
+  const id = parseId.set(decodeURIComponent(setId));
+  if (!id) return <MissingSet />;
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const q = one(query.q);
+  const topic = one(query.topic);
+  return <PracticeScreen setId={id} link={{ ...(q ? { q } : {}), ...(topic ? { topic } : {}) }} />;
 }
