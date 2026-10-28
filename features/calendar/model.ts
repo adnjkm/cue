@@ -128,8 +128,11 @@ export function eventMeta(e: TimedEvent, zone: Zone, live: boolean): string {
   return [fmtRange(e, zone), e.location].filter(Boolean).join(" · ") + (live ? " · now" : "");
 }
 
+/** `A2 due 11:59pm`: the deadline without its course. */
+export const deadlineItem = (e: Extract<CalendarEvent, { kind: "deadline" }>, zone: Zone) => `${e.short} due ${fmtTime(e.start, zone)}`;
+
 /** `CSC148 A2 due 11:59pm`. */
-export const deadlineTitle = (e: Extract<CalendarEvent, { kind: "deadline" }>, zone: Zone) => `${e.courseId} ${e.short} due ${fmtTime(e.start, zone)}`;
+export const deadlineTitle = (e: Extract<CalendarEvent, { kind: "deadline" }>, zone: Zone) => `${e.courseId} ${deadlineItem(e, zone)}`;
 
 /** Month chips: `MAT137 test 1 at 6pm`, `CSC148 midterm at 6pm`. */
 export const testChipTitle = (e: Extract<CalendarEvent, { kind: "test" }>, zone: Zone) => `${e.courseId} ${e.short.toLowerCase()} at ${fmtTime(e.start, zone)}`;

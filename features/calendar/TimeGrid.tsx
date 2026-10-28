@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { EpochMs, LocalDate, Zone } from "@/lib/domain";
 import { ItemPopover } from "./ItemPopover";
 import { layoutLanes } from "./lanes";
-import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type TimedItem } from "./model";
+import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineItem, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type TimedItem } from "./model";
 import { tid } from "./testids";
 
 const HOURS = Array.from({ length: 23 }, (_, i) => i + 1);
@@ -136,11 +136,7 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
                           "flex h-6 min-w-0 cursor-pointer items-center rounded-xs border border-border bg-page px-[7px] text-left text-sm leading-4 font-medium text-ink transition-colors duration-[120ms] ease-standard hover:bg-wash focus-visible:outline-offset-1 data-[popup-open]:border-ink",
                           day ? "max-w-full shrink-0" : "w-full",
                         ),
-                        children: (
-                          <span className="truncate">
-                            {deadlineTitle(e, zone)}
-                          </span>
-                        ),
+                        children: <DeadlineLabel text={deadlineItem(e, zone)} course={e.courseId} />,
                       }}
                     />
                   ),
@@ -273,6 +269,29 @@ function laneStyle(lane: number, lanes: number) {
   return { left: `calc(4px + ${lane} * ((100% - ${gaps}px) / ${lanes} + 2px))`, width: `calc((100% - ${gaps}px) / ${lanes})` };
 }
 
+/** Ellipsizes `text` but never `end`, so " · done" or " · missed" stays readable in a 144px column. */
+function KeepEnd({ text, end }: { text: string; end: string }) {
+  return (
+    <span className="flex min-w-0">
+      <span className="truncate">{text}</span>
+      {end && <span className="shrink-0 whitespace-pre">{end}</span>}
+    </span>
+  );
+}
+
+/**
+ * `CSC148 A2 due 11:59pm`. When the column is too narrow the course code wraps out of the one visible line first,
+ * so the due time stays readable; the popover and the accessible name keep the course.
+ */
+function DeadlineLabel({ text, course }: { text: string; course: string }) {
+  return (
+    <span className="flex h-4 min-w-0 flex-row-reverse flex-wrap justify-end overflow-hidden">
+      <span className="min-w-0 truncate">{text}</span>
+      <span className="whitespace-pre">{`${course} `}</span>
+    </span>
+  );
+}
+
 const BASE = "flex h-full w-full cursor-pointer flex-col items-start overflow-hidden rounded-xs text-left text-sm leading-4 text-ink transition-colors duration-[120ms] ease-standard focus-visible:outline-offset-1 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-[160ms]";
 const LINE = "block w-full truncate";
 
@@ -332,15 +351,11 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
           <>
             <span className={cn(LINE, "flex items-center gap-1 font-medium", (look === "done" || look === "missed") && "text-graphite")}>
               {look === "done" && <Check aria-hidden className="size-3 shrink-0" strokeWidth={2} />}
-              <span className="truncate">
-                {title}
-                {lines === 1 ? suffix : ""}
-              </span>
+              <KeepEnd text={title} end={lines === 1 ? suffix : ""} />
             </span>
             {lines === 2 && (
-              <span className={cn(LINE, look === "done" && "text-graphite")}>
-                {fmtRange(block, zone)}
-                {suffix}
+              <span className={cn(LINE, "flex", look === "done" && "text-graphite")}>
+                <KeepEnd text={fmtRange(block, zone)} end={suffix} />
               </span>
             )}
             {lines === 2 && block.note && <span className={cn(LINE, "pt-1 text-graphite")}>{block.note}</span>}
