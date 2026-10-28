@@ -1,6 +1,5 @@
-import { StubPage } from "@/components/cue";
-import { tid } from "@/features/lectures/testids";
+import { LecturesIndex } from "@/features/lectures/LecturesIndex";
 
 export default function LecturesPage() {
-  return <StubPage title="Lecture notes" testId={tid.main} />;
+  return <LecturesIndex />;
 }

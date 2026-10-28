@@ -87,7 +87,7 @@ export function mockNotes(input: { topic: string | null; transcript: string }) {
     .split("\n")
     .map((l) => l.match(/^\[(\d+:\d{2}(?::\d{2})?)\](?: \(exam hint\))? (.*)$/))
     .flatMap((m) => (m ? [{ at: m[1], text: m[2], hint: m[0].includes("(exam hint)") }] : []));
-  const first = (s: string) => sentencesOf(s)[0] ?? s;
+  const first = (s: string) => sentencesOf(s).find((x) => x.split(/\s+/).length >= 5) ?? sentencesOf(s)[0] ?? s;
   const shortly = (s: string) => {
     const w = first(s).split(/\s+/);
     return w.length > 15 ? `${w.slice(0, 15).join(" ").replace(/[,;:]$/, "")}…` : first(s);

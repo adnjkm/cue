@@ -28,7 +28,7 @@ describe("lecture tasks", () => {
     const out = notes.output.parse(await notes.mock(notes.input.parse(notes.example)));
     expect(out.keyPoints.map((k) => k.at)).toEqual(["0:45", "6:40", "12:15", "30:02", "33:20", "35:47"]);
     expect(out.summary).toBe(
-      "Morning. If you pick u the other way around, the integral gets worse, not better. So the answer is x e to the x minus e to the x, plus C.",
+      "Today is integration by parts, which is really just the product rule run backwards. If you pick u the other way around, the integral gets worse, not better. So the answer is x e to the x minus e to the x, plus C.",
     );
     expect(out.topic).toBeNull();
   });
