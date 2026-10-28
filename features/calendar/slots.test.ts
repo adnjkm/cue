@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { type BlockStatus, type CalendarEvent, type EpochMs, type Interval, type PlanInput, type TimeZone, type WallTime } from "@/lib/domain";
+import { ids, type BlockStatus, type CalendarEvent, type EpochMs, type Interval, type PlanInput, type TimeZone, type WallTime } from "@/lib/domain";
 import { blockStatus, schedule } from "@/lib/plan";
 import { samplePlanInput } from "@/lib/sample/plan-input";
 import { fmtRange, zoneOf } from "@/lib/time";
-import { rescheduleSlot } from "./slots";
+import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
 
 const ZONE = "America/Toronto" as TimeZone;
 const zone = zoneOf(ZONE);
@@ -53,5 +53,30 @@ describe("rescheduleSlot", () => {
   it("gives up when the deadline has no room left", () => {
     const s = setup(NOW, (i) => ({ ...i, prefs: { ...i.prefs, dayStart: "19:00" as WallTime, dayEnd: "20:00" as WallTime } }));
     expect(rescheduleSlot(s.input, s.block("work.evt_sample_csc148_a2.2"), "upcoming", NOW)).toBeNull();
+  });
+});
+
+describe("extra work for a deadline at its largest effort", () => {
+  const NOW = at("2026-10-27T10:40:00-04:00");
+  const { input, event } = setup(NOW);
+  const a2 = event("evt_sample_csc148_a2");
+
+  it("finds an hour before the due time even when the day is at its study cap", () => {
+    expect(a2.effort).toBe("large");
+    expect(label(extraWorkSlot(input, a2, NOW))).toBe("2026-10-27 11:15am–12:15pm");
+  });
+
+  it("finds nothing once the deadline has passed", () => {
+    expect(extraWorkSlot(input, event("evt_sample_csc148_due_a1_w7d3"), NOW)).toBeNull();
+  });
+
+  it("recognises the added block as this deadline's work and not another's", () => {
+    const anchor = { kind: "custom" as const, key: "k3j9", course: a2.courseId };
+    const at = { start: Date.parse("2026-10-27T11:15:00-04:00") as EpochMs, end: Date.parse("2026-10-27T12:15:00-04:00") as EpochMs };
+    const s = setup(NOW, (i) => ({ ...i, overrides: [...i.overrides, { blockId: ids.block(anchor), placement: { kind: "authored", block: { anchor, at, topic: extraWorkTopic(a2) } }, updatedAt: NOW }] }));
+    const added = s.blocks.find((b) => b.id === ids.block(anchor))!;
+    expect(isExtraWork(added, a2)).toBe(true);
+    expect(isExtraWork(added, s.event("evt_sample_eco101_ps4"))).toBe(false);
+    expect(s.blocks.filter((b) => isExtraWork(b, a2)).map((b) => b.id)).toEqual([ids.block(anchor)]);
   });
 });

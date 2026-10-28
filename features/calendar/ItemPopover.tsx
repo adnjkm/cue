@@ -13,7 +13,7 @@ import { blockReasonText, blockTitle, loadPlanInput, planActions, schedule, useP
 import { href } from "@/lib/routes";
 import { fmtRange, fmtTime } from "@/lib/time";
 import { eventTitle, shortDay, type BlockLook } from "./model";
-import { rescheduleSlot } from "./slots";
+import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
 
 const DAY = 24 * 60 * 60_000;
 
@@ -45,7 +45,7 @@ export function ItemPopover({ subject, zone, now, trigger }: { subject: Subject;
       <PopoverContent aria-label={title} side="right" align="start" sideOffset={8} className="w-[280px] max-w-[calc(100vw-32px)] gap-3 rounded-lg p-4 text-sm leading-5">
         {subject.kind === "block" && <BlockDetails {...subject} zone={zone} now={now} close={close} />}
         {subject.kind === "event" && <EventDetails event={subject.event} live={subject.live} zone={zone} />}
-        {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} close={close} />}
+        {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} now={now} close={close} />}
       </PopoverContent>
     </Popover>
   );
@@ -162,7 +162,7 @@ function EventDetails({ event, live, zone }: { event: TimedEvent; live: boolean;
         <Meta>{meta}</Meta>
       </Header>
       {event.kind === "lecture" && <LectureDetails event={event} />}
-      {event.kind === "test" && <PlannedFor anchor={event.id} kind="testPrep" until={event.start} zone={zone} empty="No prep sessions planned yet." />}
+      {event.kind === "test" && <PlannedFor anchor={event} kind="testPrep" until={event.start} zone={zone} empty="No prep sessions planned yet." />}
       {event.kind === "busy" && <Meta>Busy time from your calendar. Cue plans no study over it.</Meta>}
     </>
   );
@@ -188,9 +188,12 @@ function LectureDetails({ event }: { event: Extract<TimedEvent, { kind: "lecture
 }
 
 /** The study blocks planned for a test or deadline, read from the plan around it. */
-function PlannedFor({ anchor, kind, until, zone, empty }: { anchor: string; kind: "testPrep" | "work"; until: EpochMs; zone: Zone; empty: string }) {
+function PlannedFor({ anchor, kind, until, zone, empty }: { anchor: CalendarEvent; kind: "testPrep" | "work"; until: EpochMs; zone: Zone; empty: string }) {
   const plan = usePlan({ start: (until - 15 * DAY) as EpochMs, end: until });
-  const blocks = plan?.blocks.filter((b) => (b.anchor.kind === "work" && b.anchor.deadline === anchor) || (b.anchor.kind === "testPrep" && b.anchor.test === anchor)) ?? [];
+  const blocks =
+    plan?.blocks.filter(
+      (b) => (b.anchor.kind === "work" && b.anchor.deadline === anchor.id) || (b.anchor.kind === "testPrep" && b.anchor.test === anchor.id) || (anchor.kind === "deadline" && isExtraWork(b, anchor)),
+    ) ?? [];
   if (!plan) return null;
   if (blocks.length === 0) return <Meta>{empty}</Meta>;
   return (
@@ -206,21 +209,33 @@ function PlannedFor({ anchor, kind, until, zone, empty }: { anchor: string; kind
 
 const MORE_EFFORT = { small: "medium", medium: "large" } as const;
 
-function DeadlineDetails({ event, zone, close }: { event: Extract<CalendarEvent, { kind: "deadline" }>; zone: Zone; close: () => void }) {
+const NO_ROOM = (short: string) => `Cue couldn't fit another work block before ${short} is due. Move a block to make room, then try again.`;
+
+function DeadlineDetails({ event, zone, now, close }: { event: Extract<CalendarEvent, { kind: "deadline" }>; zone: Zone; now: EpochMs; close: () => void }) {
   const [busy, setBusy] = useState(false);
   const day = zone.dayOf(event.start);
-  const next = event.effort === "large" ? null : MORE_EFFORT[event.effort];
 
+  /** Raises the effort while it can, so the scheduler spreads the work; past the largest effort it adds an hour. */
   async function planMore() {
-    if (!next) return;
     setBusy(true);
     try {
-      const count = async () => schedule(await loadPlanInput()).blocks.filter((b) => b.anchor.kind === "work" && b.anchor.deadline === event.id).length;
-      const before = await count();
-      await db.events.put({ ...event, effort: next });
-      const added = (await count()) - before;
+      if (event.effort !== "large") {
+        const count = async () => schedule(await loadPlanInput()).blocks.filter((b) => b.anchor.kind === "work" && b.anchor.deadline === event.id).length;
+        const before = await count();
+        await db.events.put({ ...event, effort: MORE_EFFORT[event.effort] });
+        const added = (await count()) - before;
+        close();
+        toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : NO_ROOM(event.short) });
+        return;
+      }
+      const slot = extraWorkSlot(await loadPlanInput(), event, Math.max(now, Date.now()) as EpochMs);
       close();
-      toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : `Cue couldn't fit another work block before ${event.short} is due. Move a block to make room, then try again.` });
+      if (!slot) {
+        toast.add({ title: NO_ROOM(event.short) });
+        return;
+      }
+      await planActions.addCustom({ course: event.courseId, topic: extraWorkTopic(event), at: slot });
+      toast.add({ title: `Cue planned another work block for ${event.short}: ${shortDay(zone.dayOf(slot.start))}, ${fmtRange(slot, zone)}.` });
     } catch {
       toast.add({ title: "Couldn't plan more time. Reload the page and try again." });
     } finally {
@@ -235,8 +250,8 @@ function DeadlineDetails({ event, zone, close }: { event: Extract<CalendarEvent,
           Due {shortDay(day)}, {fmtTime(event.start, zone)}
         </Meta>
       </Header>
-      <PlannedFor anchor={event.id} kind="work" until={event.start} zone={zone} empty="No work blocks planned for it." />
-      {next && (
+      <PlannedFor anchor={event} kind="work" until={event.start} zone={zone} empty="No work blocks planned for it." />
+      {event.start > now && (
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" disabled={busy} onClick={planMore}>
             Plan more time
