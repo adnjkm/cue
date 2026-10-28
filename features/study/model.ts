@@ -1,0 +1,265 @@
+import {
+  sessionClock,
+  sessionElapsedMs,
+  type EpochMs,
+  type Passage,
+  type PlanStep,
+  type PomodoroPrefs,
+  type SessionPlan,
+  type SourceRef,
+  type StudySession,
+  type ViewerTab,
+} from "@/lib/domain";
+import { refsFor } from "@/lib/retrieval";
+import { sourceLabel } from "@/lib/sources";
+import { fmtCountdown, fmtDuration, fmtStamp } from "@/lib/time";
+import { normalizeMinutes, type PlanDraft } from "./shape";
+
+export type PageRef = Extract<SourceRef, { kind: "page" }>;
+export type TranscriptRef = Extract<SourceRef, { kind: "transcript" }>;
+
+const MIN = 60_000;
+const MAX_SLIDE_SPAN = 12;
+
+export interface FlaggedLine {
+  id: `F${number}`;
+  ref: TranscriptRef;
+  quote: string;
+  examHint: boolean;
+}
+
+/** What a plan draft's ids and numbers resolve against. */
+export interface PlanContext {
+  focusMinutes: number;
+  /** Page 1 of the lecture's deck, carrying its doc facts, and the deck's slide count. */
+  deck: { ref: PageRef; count: number } | null;
+  flagged: readonly FlaggedLine[];
+  passages: readonly Passage[];
+}
+
+function slideRef(range: PlanDraft["steps"][number]["slides"], deck: PlanContext["deck"]): PageRef | undefined {
+  if (!range || !deck) return undefined;
+  const clamp = (n: number) => Math.min(deck.count, Math.max(1, Math.trunc(n)));
+  const from = clamp(Math.min(range.from, range.to));
+  const to = Math.min(clamp(Math.max(range.from, range.to)), from + MAX_SLIDE_SPAN - 1);
+  const { to: _to, ...page1 } = deck.ref;
+  return to === from ? { ...page1, page: from } : { ...page1, page: from, to };
+}
+
+function atStart(ref: TranscriptRef): TranscriptRef {
+  const { toMs: _toMs, ...start } = ref;
+  return start;
+}
+
+/** A transcript window can run to 90 s; the moment quotes its first sentences only. */
+function leadQuote(text: string, max = 240): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max);
+  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "));
+  return end > 40 ? cut.slice(0, end + 1) : `${cut.trimEnd()}…`;
+}
+
+/** Resolves a model draft into the stored plan: slide numbers and ids to refs, minutes to exactly the focus minutes. */
+export function buildPlan(draft: PlanDraft, ctx: PlanContext): SessionPlan {
+  const minutes = normalizeMinutes(
+    draft.steps.map((s) => s.minutes),
+    ctx.focusMinutes,
+  );
+  const steps: PlanStep[] = minutes.map((m, i) => {
+    const s = draft.steps[i];
+    const source = slideRef(s.slides, ctx.deck) ?? refsFor(s.source ? [s.source] : [], ctx.passages)[0];
+    const check = s.check.trim();
+    return { title: s.title.trim(), kind: s.kind, minutes: m, ...(source ? { source } : {}), ...(check ? { check } : {}) };
+  });
+  const plan: SessionPlan = { steps };
+  const id = draft.moment;
+  if (!id) return plan;
+  const line = ctx.flagged.find((f) => f.id === id);
+  if (line) return { ...plan, moment: { ref: line.ref, quote: line.quote, examHint: line.examHint } };
+  const passage = ctx.passages.find((p) => p.id === id);
+  if (passage?.ref.kind === "transcript") return { ...plan, moment: { ref: atStart(passage.ref), quote: leadQuote(passage.text), examHint: false } };
+  return plan;
+}
+
+/** Focus time inside `elapsedMs`: Pomodoro breaks do not count toward a step. */
+export function focusMs(elapsedMs: number, pomodoro: PomodoroPrefs): number {
+  const focus = pomodoro.focusMin * MIN;
+  const cycle = focus + pomodoro.breakMin * MIN;
+  if (cycle <= 0) return elapsedMs;
+  const full = Math.floor(elapsedMs / cycle);
+  return full * focus + Math.min(focus, elapsedMs - full * cycle);
+}
+
+/** How far the current step runs past its minutes, in focus time. */
+export function stepOverMs(session: StudySession, now: EpochMs, pomodoro: PomodoroPrefs): number {
+  const step = session.plan?.steps[session.step];
+  if (!step) return 0;
+  const spent = focusMs(sessionElapsedMs(session.state, now), pomodoro) - focusMs(session.stepSince, pomodoro);
+  return Math.max(0, spent - step.minutes * MIN);
+}
+
+export type StepState = "done" | "current" | "upcoming";
+
+export interface StepRow {
+  title: string;
+  state: StepState;
+  /** Current step only: "Slides 12–17 · 8 min", or "Over by 1 min" once a full minute over. */
+  meta?: string;
+}
+
+export function stepMeta(step: PlanStep, overMs: number): string {
+  if (overMs >= MIN) return `Over by ${Math.floor(overMs / MIN)} min`;
+  return [step.source ? sourceLabel(step.source, "chip") : null, `${step.minutes} min`].filter(Boolean).join(" · ");
+}
+
+export function stepRows(plan: SessionPlan, at: { step: number; stepsDone: readonly number[] }, overMs = 0): StepRow[] {
+  return plan.steps.map((s, i) => {
+    if (i === at.step) return { title: s.title, state: "current", meta: stepMeta(s, overMs) };
+    return { title: s.title, state: at.stepsDone.includes(i) ? "done" : "upcoming" };
+  });
+}
+
+export interface TimerView {
+  /** Quantized to whole percent, so the 160px fill matches Paper's round(29%, 1px). */
+  fraction: number;
+  /** "31:48 left", "Paused · 31:48 left", "Break · 4:12 left", "Time's up". */
+  text: string;
+  valueText: string;
+  over: boolean;
+  /** For the polite live region: changes only at a break, at 5 minutes left and at time up. */
+  milestone: string;
+}
+
+function spoken(ms: number): string {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  const parts = [m ? `${m} minute${m === 1 ? "" : "s"}` : "", s % 60 ? `${s % 60} second${s % 60 === 1 ? "" : "s"}` : ""].filter(Boolean);
+  return parts.join(" ") || "0 seconds";
+}
+
+export function timerView(session: StudySession, now: EpochMs, pomodoro: PomodoroPrefs): TimerView {
+  const clock = sessionClock(session, now, pomodoro);
+  const paused = session.state.status === "paused";
+  const pct = (f: number) => Math.round(Math.min(1, Math.max(0, f)) * 100) / 100;
+  if (clock.phase === "over") return { fraction: 1, text: "Time's up", valueText: "Time's up", over: true, milestone: "Time's up." };
+  const prefix = paused ? "Paused · " : "";
+  if (clock.phase === "break") {
+    const breakMs = pomodoro.breakMin * MIN;
+    return {
+      fraction: pct(breakMs > 0 ? 1 - clock.phaseLeftMs / breakMs : 1),
+      text: `${prefix}Break · ${fmtCountdown(clock.phaseLeftMs)} left`,
+      valueText: `Break, ${spoken(clock.phaseLeftMs)} left`,
+      over: false,
+      milestone: `Break. ${spoken(clock.phaseLeftMs)}.`,
+    };
+  }
+  return {
+    fraction: pct(clock.fraction),
+    text: `${prefix}${fmtCountdown(clock.leftMs)} left`,
+    valueText: `${paused ? "Paused, " : ""}${spoken(clock.leftMs)} left of ${session.minutes} minutes`,
+    over: false,
+    milestone: clock.leftMs <= 5 * MIN ? "5 minutes left." : "",
+  };
+}
+
+/** "3 steps left · 31:48" for the End session confirm. */
+export function endSummary(session: StudySession, now: EpochMs): string {
+  const total = session.plan?.steps.length ?? 0;
+  const after = Math.max(0, total - session.step - 1);
+  const left = fmtCountdown(Math.max(0, session.minutes * MIN - sessionElapsedMs(session.state, now)));
+  if (total === 0) return `${left} left`;
+  return after === 0 ? `Last step · ${left} left` : `${after} step${after === 1 ? "" : "s"} left · ${left}`;
+}
+
+/** "Completed · 45m studied" or "Ended · 13m studied". */
+export function finishedSummary(session: StudySession): string {
+  const studied = fmtDuration(sessionElapsedMs(session.state, session.updatedAt));
+  return `${session.state.status === "completed" ? "Completed" : "Ended"} · ${studied} studied`;
+}
+
+/** Each tab remembers its own place, so going back to Slides finds slide 14 again. */
+export interface ViewerState {
+  tab: ViewerTab;
+  slides?: PageRef;
+  transcript?: TranscriptRef;
+  textbook?: PageRef;
+  handout?: PageRef;
+}
+
+export function tabFor(ref: SourceRef): ViewerTab | null {
+  if (ref.kind === "transcript") return "transcript";
+  if (ref.kind !== "page") return null;
+  switch (ref.doc.kind) {
+    case "slides":
+      return "slides";
+    case "textbook":
+    case "notes":
+      return "textbook";
+    case "handout":
+      return "handout";
+    default:
+      return null;
+  }
+}
+
+/** Points the viewer at a ref; null when the viewer cannot show it (a question, a past paper), so SourcePeek takes it. */
+export function showRef(v: ViewerState, ref: SourceRef): ViewerState | null {
+  const tab = tabFor(ref);
+  if (ref.kind === "transcript") return { ...v, tab: "transcript", transcript: atStart(ref) };
+  if (ref.kind !== "page") return null;
+  switch (tab) {
+    case "slides": {
+      const { to: _to, ...one } = ref;
+      return { ...v, tab, slides: one };
+    }
+    case "textbook":
+      return { ...v, tab, textbook: ref };
+    case "handout":
+      return { ...v, tab, handout: ref };
+    default:
+      return null;
+  }
+}
+
+export function stepSlide(v: ViewerState, delta: number, count: number): ViewerState {
+  if (!v.slides || count < 1) return v;
+  const page = Math.min(count, Math.max(1, v.slides.page + delta));
+  return page === v.slides.page ? v : { ...v, slides: { ...v.slides, page } };
+}
+
+/** The tab's own name: Paper's `Textbook §5.2` names the reading tab by role; the header names the document. */
+export function tabLabel(tab: ViewerTab, v: ViewerState): string {
+  switch (tab) {
+    case "slides":
+      return "Slides";
+    case "transcript":
+      return "Transcript";
+    case "textbook":
+      return ["Textbook", v.textbook?.section].filter(Boolean).join(" ");
+    case "handout":
+      return v.handout ? sourceLabel(v.handout, "chip") : "Handout";
+  }
+}
+
+/** "Slide 14 of 32", "Transcript · 32:14", "Course notes §5.2 · p. 63". */
+export function viewerLabel(v: ViewerState, slideCount: number | undefined): string {
+  switch (v.tab) {
+    case "slides":
+      return v.slides ? `Slide ${v.slides.page}${slideCount ? ` of ${slideCount}` : ""}` : "Slides";
+    case "transcript":
+      return v.transcript ? `Transcript · ${fmtStamp(v.transcript.atMs)}` : "Transcript";
+    case "textbook":
+    case "handout": {
+      const ref = v[v.tab];
+      if (!ref) return tabLabel(v.tab, v);
+      return [[ref.doc.short ?? ref.doc.title, ref.section].filter(Boolean).join(" "), ref.label].filter(Boolean).join(" · ");
+    }
+  }
+}
+
+/** "Flagged · on the midterm", "Flagged · on Term Test 2". */
+export function flagLabel(assessment: string | undefined): string {
+  if (!assessment) return "Flagged";
+  return /^(midterm|exam|final|quiz)$/i.test(assessment) ? `Flagged · on the ${assessment.toLowerCase()}` : `Flagged · on ${assessment}`;
+}
