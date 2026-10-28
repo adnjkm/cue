@@ -78,21 +78,25 @@ export const paperChunkRead = z
     };
   });
 
+const step = z.object({ label: z.string().trim().min(1).max(40), text: z.string().trim().min(1) });
+
 export const solveOutput = z.object({
   answer: z.string().trim().min(1).transform(normalizeLabel),
   explanation: z.string().trim().min(1),
-  steps: z.array(z.object({ label: z.string().trim().min(1), text: z.string().trim().min(1) })).max(8),
+  steps: z.array(step).max(8),
   conclusion: z.string().nullish().transform((v) => v?.trim() || undefined),
   whyNot: z.record(z.string(), z.string()),
   resources: z.array(z.string()).max(6),
 });
 
+/** One streamed item of practice.generate. checkGenerated decides whether it is kept. */
 export const generatedQuestion = z.object({
-  topic: z.string().trim().min(1),
   prompt: z.string().trim().min(1),
   options: z.array(option).length(4),
   answer: z.string().trim().min(1).transform(normalizeLabel),
+  explanation: z.string().trim().min(1),
+  steps: z.array(step).min(1).max(5),
+  conclusion: z.string().trim().min(1),
   whyNot: z.record(z.string(), z.string()),
-  steps: z.array(z.object({ label: z.string(), text: z.string() })).max(6),
   sources: z.array(z.string()).max(6),
 });

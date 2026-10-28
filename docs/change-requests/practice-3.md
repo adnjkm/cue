@@ -1,0 +1,5 @@
+1. **Need**: update `GenerateInput`, `GeneratedQuestion` and the `practice.generate` row of section 8.2 in the architecture docs.
+2. **Why**: the client now resolves a `GenerationScope` into words and passages (the section title and its guide text, the student's missed questions) before calling, so the scope no longer reaches the model, and a written question carries its full worked solution.
+3. **Proposed diff**: `GenerateInput = { course?: string; topic: string; focus: string; style: { prompt; options; missed?: true }[]; passages: Passage[]; count: number; note?: string }` and `GeneratedQuestion = { prompt; options (exactly 4); answer; explanation; steps (1 to 5 { label, text }); conclusion; whyNot; sources }`, with no `topic`.
+4. **Workaround in use**: `features/practice/types.ts` and `features/practice/schema.ts` define the new shapes; `docs/architecture/types.ts` is stale until this lands.
+5. **Unblocks**: no runtime step; it keeps the contract true for `check-nemotron` readers and the integrator.

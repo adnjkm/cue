@@ -10,7 +10,8 @@ import { href } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { createSet } from "./data";
-import { buildPaper, chunkPages, parseChunks } from "./parse";
+import { buildExam } from "./exam";
+import { attachFigures, chunkPages, parseChunks } from "./parse";
 import { tid } from "./testids";
 import type { PaperChunkRead } from "./types";
 
@@ -29,15 +30,18 @@ interface Job {
 }
 
 function failure(e: unknown): Extract<Phase, { status: "error" }> {
-  if (e instanceof UnreadableError) return { status: "error", title: "Couldn't read that file", detail: "Use a PDF, PNG or JPG that isn't password protected.", retry: false };
+  if (e instanceof UnreadableError) return { status: "error", title: "Couldn't read that file.", detail: "Use a PDF, PNG or JPG that isn't password protected.", retry: false };
   if (e instanceof AiError) {
     const copy = errorCopy(e);
     return { status: "error", title: copy.title, detail: copy.detail, retry: copy.retry };
   }
-  return { status: "error", title: "Couldn't read that file", detail: e instanceof Error ? e.message : undefined, retry: true };
+  return { status: "error", title: "Couldn't read that file.", detail: e instanceof Error ? `${e.message} Try again, or choose another file.` : undefined, retry: true };
 }
 
-/** Drop in a past exam: pages are rendered here, Super VL reads them three at a time, and a new set opens. */
+/**
+ * Drop in a past paper: pages render here, Super VL reads them three at a time, and the new set opens.
+ * A retry resends only the chunks that failed, so a 429 halfway through costs nothing already read.
+ */
 export function Intake() {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -55,17 +59,18 @@ export function Intake() {
     try {
       if (j.pages.length === 0) {
         for (const file of j.files) {
-          const rendered = await renderPages(file, { onPage: (page, total) => setPhase({ status: "reading", page, total }) });
-          j.pages.push(...rendered.map((p) => ({ ...p, index: j.pages.length + p.index })));
+          const offset = j.pages.length;
+          const rendered = await renderPages(file, { onPage: (page, total) => setPhase({ status: "reading", page: offset + page, total: offset + total }) });
+          j.pages.push(...rendered.map((p) => ({ ...p, index: offset + p.index })));
         }
       }
       const images = await Promise.all(j.pages.map(toPageImage));
       const chunks = chunkPages(images);
       if (j.results.length !== chunks.length) j.results = new Array(chunks.length).fill(undefined);
       const results = await parseChunks(chunks, j.pages.length, j.results, (done, total) => setPhase({ status: "parsing", done, total }), controller.signal);
-      const paper = await buildPaper(results, j.files[0].name, j.pages);
+      const paper = await attachFigures(buildExam(results, j.files[0].name), j.pages);
       if (paper.questions.length === 0) {
-        setPhase({ status: "error", title: "No multiple-choice questions found", detail: "Try a clearer scan, or a paper whose questions list their answer options.", retry: false });
+        setPhase({ status: "error", title: "No multiple-choice questions found.", detail: "Try a clearer scan, or a paper whose questions list their answer options.", retry: false });
         return;
       }
       const courseId = paper.course ? await courseActions.ensure(paper.course, "manual") : null;
@@ -91,11 +96,11 @@ export function Intake() {
   }
 
   const progress = phase.status === "reading" ? phase.page / phase.total : phase.status === "parsing" ? (phase.done + 0.5) / Math.max(1, phase.total) : 0;
+  const pct = Math.round(Math.min(1, progress) * 100);
 
   return (
-    <section
+    <div
       data-testid={tid.intake}
-      aria-label="Upload a paper"
       data-dragging={dragging || undefined}
       onDragOver={(e) => {
         if (busy) return;
@@ -111,8 +116,9 @@ export function Intake() {
         if (!busy) start([...e.dataTransfer.files]);
       }}
       className={cn(
-        "flex min-h-[300px] w-full max-w-[640px] flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-border px-8 py-12 text-center transition-colors duration-150 ease-standard max-md:px-5 max-md:py-10",
+        "flex min-h-24 w-full items-center justify-between gap-6 rounded-sm border border-dashed border-border px-6 py-5 transition-colors duration-150 ease-standard max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:px-5",
         dragging && "border-graphite bg-wash",
+        phase.status === "error" && "border-solid bg-wash",
       )}
     >
       <input
@@ -129,39 +135,43 @@ export function Intake() {
       />
       {phase.status === "idle" && (
         <>
-          <h2 className="text-lg leading-6 tracking-display text-ink">Drop in a past exam</h2>
-          <p className="max-w-[52ch] text-sm leading-5 text-graphite">PDF or images. Nemotron reads it, including scans and diagrams, and turns it into practice questions.</p>
-          <Button className="mt-4" onClick={() => input.current?.click()}>
-            Choose file
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="text-base leading-5 text-ink">{dragging ? "Drop to read it" : "Drop a past paper or multiple-choice test here"}</p>
+            <p className="text-sm leading-5 text-graphite">PDF, or photos of the pages. Nemotron reads scans and diagrams too, and keeps the multiple-choice questions.</p>
+          </div>
+          <Button className="shrink-0" onClick={() => input.current?.click()}>
+            Choose files
           </Button>
         </>
       )}
       {busy && (
-        <div role="status" aria-live="polite" className="flex w-full flex-col items-center gap-2">
-          <h2 className="text-lg leading-6 tracking-display text-ink">{phase.status === "reading" ? "Reading pages" : "Finding questions"}</h2>
-          <p className="text-sm leading-5 text-graphite">
-            {phase.status === "reading" ? `Page ${phase.page} of ${phase.total}` : `Part ${Math.min(phase.done + 1, phase.total)} of ${phase.total} with Nemotron Super VL`}
-          </p>
-          <div className="mt-2 mb-1 h-0.5 w-full max-w-[280px] overflow-hidden rounded-[1px] bg-rule">
-            <span className="block h-full origin-left bg-ink transition-transform duration-[400ms] ease-standard" style={{ transform: `scaleX(${Math.min(1, progress)})` }} />
+        <>
+          <div role="status" aria-live="polite" className="flex w-full min-w-0 flex-col gap-1">
+            <p className="text-base leading-5 text-ink">{phase.status === "reading" ? `Reading page ${phase.page} of ${phase.total}` : `Finding questions · part ${Math.min(phase.done + 1, phase.total)} of ${phase.total}`}</p>
+            <p className="text-sm leading-5 text-graphite">{phase.status === "reading" ? "Turning each page into an image Nemotron can read." : "Nemotron Super VL reads three pages at a time."}</p>
+            <div role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} className="mt-2 h-0.5 w-full max-w-[360px] overflow-hidden rounded-[1px] bg-rule">
+              <span className="block h-full origin-left bg-ink transition-transform duration-[400ms] ease-standard" style={{ transform: `scaleX(${Math.min(1, progress)})` }} />
+            </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => abort.current?.abort()}>
+          <Button variant="ghost" className="shrink-0" onClick={() => abort.current?.abort()}>
             Cancel
           </Button>
-        </div>
+        </>
       )}
       {phase.status === "error" && (
-        <div role="alert" className="flex w-full flex-col items-center gap-2">
-          <h2 className="text-lg leading-6 tracking-display text-ink">{phase.title}</h2>
-          {phase.detail && <p className="max-w-[52ch] text-sm leading-5 text-graphite">{phase.detail}</p>}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <>
+          <div role="alert" className="flex min-w-0 flex-col gap-1">
+            <p className="text-base leading-5 text-ink">{phase.title}</p>
+            {phase.detail && <p className="text-sm leading-5 text-graphite">{phase.detail}</p>}
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
             {phase.retry && <Button onClick={() => void run()}>Retry</Button>}
             <Button variant={phase.retry ? "secondary" : "default"} onClick={() => input.current?.click()}>
               Choose another file
             </Button>
           </div>
-        </div>
+        </>
       )}
-    </section>
+    </div>
   );
 }

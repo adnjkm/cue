@@ -1,4 +1,4 @@
-import { gradeOf, type Attempt, type Grade, type Question, type QuestionId, type Solution } from "@/lib/domain";
+import { gradeOf, type Attempt, type Grade, type PracticeSet, type Question, type QuestionId, type Solution, type SourceRef } from "@/lib/domain";
 
 export type TileState = "current" | "correct" | "missed" | "unanswered" | "checking";
 
@@ -58,11 +58,29 @@ export function eyebrow(q: Question): string {
   return parts.join(" · ");
 }
 
-export function provenance(q: Question, s: Solution): string {
-  const grounded = s.provenance.groundedIn;
-  const lecture = grounded?.kind === "page" ? grounded.doc.lectureNumber : grounded?.kind === "transcript" ? grounded.lectureNumber : undefined;
-  const from = lecture !== undefined ? `Lecture ${lecture}` : grounded?.kind === "page" ? grounded.doc.title : "your course material";
-  if (q.origin.kind === "generated") return `Cue wrote this question from ${from}.`;
+/** "ECO101 guide · Price elasticity of demand": how a quiz names the guide section it was written from. */
+export function sectionLabel(ref: Extract<SourceRef, { kind: "section" }>): string {
+  return `${ref.courseId} guide · ${ref.title}`;
+}
+
+function groundedName(ref: SourceRef | undefined): string | undefined {
+  if (!ref) return undefined;
+  if (ref.kind === "section") return sectionLabel(ref);
+  const lecture = ref.kind === "page" ? ref.doc.lectureNumber : ref.kind === "transcript" ? ref.lectureNumber : undefined;
+  if (lecture !== undefined) return `Lecture ${lecture}`;
+  return ref.kind === "page" ? ref.doc.title : undefined;
+}
+
+/** The muted line under a worked solution: who wrote it, and from what. */
+export function provenance(q: Question, s: Solution, set: Pick<PracticeSet, "title" | "origin">): string {
+  if (q.origin.kind === "generated") {
+    const section = q.origin.from.find((r) => r.kind === "section");
+    const from = section ? sectionLabel(section) : groundedName(s.provenance.groundedIn ?? q.origin.from[0]);
+    const paper = set.origin.kind === "paper" ? `the ${set.title}` : undefined;
+    const parts = section ? [from] : [from, paper].filter(Boolean);
+    return parts.length ? `Cue wrote this question from ${parts.join(" and ")}.` : "Cue wrote this question from your course material.";
+  }
+  const from = groundedName(s.provenance.groundedIn) ?? "your course material";
   if (s.provenance.by === "document") return `The answer is from the official answer key; Cue wrote the explanation from ${from}.`;
   return `The original exam had no answer key; Cue wrote this from ${from}.`;
 }

@@ -8,11 +8,13 @@ import {
   sourceKey,
   type Attempt,
   type EpochMs,
+  type Passage,
   type PracticeSet,
   type Question,
   type QuestionId,
   type SetId,
   type Solution,
+  type SourceKey,
 } from "@/lib/domain";
 import { refsFor, reindexSource, retrieve } from "@/lib/retrieval";
 import { normalizeLabel } from "./schema";
@@ -108,6 +110,18 @@ async function slot<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
+const SET_KEY_PREFIX = sourceKey.set("" as SetId);
+
+/**
+ * Passages from a course's slides, notes and transcripts. Practice sets are indexed too, but a question
+ * retrieved as grounding for itself or its neighbours would list them under its own Relevant resources.
+ */
+export async function retrieveMaterial(courseId: PracticeSet["courseId"], text: string, k: number): Promise<Passage[]> {
+  const within = (await db.chunks.orderBy("sourceKey").uniqueKeys()).map((key) => key as SourceKey).filter((key) => !key.startsWith(SET_KEY_PREFIX));
+  if (within.length === 0) return [];
+  return retrieve({ courseId, text, k, within, latency: "thorough" });
+}
+
 /**
  * Writes the worked solution for one question, grounded in retrieved course passages. A keyless question
  * takes the model's answer as its key, which resolves a "checking" attempt.
@@ -116,7 +130,7 @@ export function solveQuestion(q: Question, courseId: PracticeSet["courseId"]): P
   const existing = inFlight.get(q.id);
   if (existing) return existing;
   const run = slot(async () => {
-    const passages = await retrieve({ courseId, text: `${q.topic} ${q.prompt}`, k: 6, latency: "thorough" });
+    const passages = await retrieveMaterial(courseId, `${q.topic} ${q.prompt}`, 6);
     const out = await ai("practice.solve", {
       question: { number: q.number, topic: q.topic, prompt: q.prompt, options: q.options.map((o) => ({ ...o })), ...(q.key.source !== "none" ? { answer: q.key.answer } : {}) },
       passages,

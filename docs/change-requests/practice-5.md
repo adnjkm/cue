@@ -1,0 +1,5 @@
+1. **Need**: `components/ui/select.tsx` `SelectTrigger` to render its chevron without Base UI's default `▼` child.
+2. **Why**: `<SelectPrimitive.Icon render={<ChevronDownIcon … />} />` passes no children, so Base UI fills in its default `▼` and React puts it inside the lucide `<svg>`. It is invisible and `aria-hidden`, but Practice's Topic trigger has `textContent` `All topics▼`, so an exact `toHaveText("All topics")` on any select trigger fails.
+3. **Proposed diff**: `<SelectPrimitive.Icon render={<ChevronDownIcon className="pointer-events-none size-3 text-ink" strokeWidth={3} />}>{null}</SelectPrimitive.Icon>`, or `<ChevronDownIcon aria-hidden="true" … />` placed directly in the trigger in place of the Icon part.
+4. **Workaround in use**: none needed. `scripts/e2e/steps/practice.mjs` reads the select's value through the dialog's combobox with `toHaveText(/Big-O & efficiency/)`, a pattern match that tolerates the stray character.
+5. **Unblocks**: exact text assertions on every Select trigger, in any feature's step.
