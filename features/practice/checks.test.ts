@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkGenerated, keyAgrees, sameStem } from "./checks";
+import { checkGenerated, keyConfirmed, sameStem } from "./checks";
 import { generatedQuestion } from "./schema";
 
 const written = (over: Record<string, unknown> = {}) =>
@@ -104,9 +104,12 @@ describe("sameStem", () => {
   });
 });
 
-describe("keyAgrees", () => {
-  it("compares labels however they are printed", () => {
-    expect(keyAgrees("C", "c)")).toBe(true);
-    expect(keyAgrees("C", "B")).toBe(false);
+describe("keyConfirmed", () => {
+  it("keeps a question only when the check finds its key and nothing else correct", () => {
+    const verdicts = (correct: string[]) => ["A", "B", "C", "D"].map((label) => ({ label, correct: correct.includes(label) }));
+    expect(keyConfirmed("C", [{ label: "c)", correct: true }, { label: "d)", correct: false }])).toBe(true);
+    expect(keyConfirmed("C", verdicts(["B"]))).toBe(false);
+    expect(keyConfirmed("B", verdicts(["B", "D"]))).toBe(false);
+    expect(keyConfirmed("B", verdicts([]))).toBe(false);
   });
 });

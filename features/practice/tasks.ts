@@ -41,7 +41,9 @@ const GENERATE_SYSTEM = `You are Cue, writing new multiple-choice practice quest
 
 Write exactly the number of questions asked, about the focus you are given. Ground every question in the passages: test an idea they teach, never a fact they do not contain. When example questions are given, match their style, length, notation and difficulty, but never copy or lightly reword one. Questions marked MISSED are ones the student got wrong: test the same idea from a new angle.
 
-Each question has exactly four options labelled A, B, C and D, and exactly one correct answer. Make each wrong option a mistake students really make (the inorder walk when asked for postorder, a slope read as elasticity), clearly wrong once the idea is understood. Options must differ in meaning. Never use "all of the above" or "none of the above". Spread the correct label across A to D.
+Each question has exactly four options labelled A, B, C and D, and exactly one correct answer. Make each wrong option a mistake students really make (the inorder walk when asked for postorder, a slope read as elasticity), clearly wrong once the idea is understood. Before you keep a question, test every wrong option against the stem exactly as written; if a second option could also be defended (level order also visits the root first), rewrite the stem or that option. Options must differ in meaning. Never use "all of the above" or "none of the above". Spread the correct label across A to D.
+
+Vary the set. Ask students to apply the idea to a concrete case (a small tree, a few lines of code, a worked number) at least as often as you ask about the idea itself, and never give two questions the same four options.
 
 Reply with JSON { "items": [ ... ] }, one object per question:
 - "prompt": the question stem, without the options. Markdown, with code in fenced blocks that carry a language tag.
@@ -54,7 +56,7 @@ Reply with JSON { "items": [ ... ] }, one object per question:
 - "sources": the passage markers ("S1") the question was written from.
 ${STYLE}`;
 
-const CHECK_SYSTEM = `You check the answer key of a multiple-choice practice question. Work the question out yourself, then reply with JSON { "answer": the label of the single best option }.`;
+const CHECK_SYSTEM = `You check a multiple-choice practice question before a student sees it. Forget which option looks intended. Take each option in turn and decide, on its own, whether it is a correct answer to the question exactly as written, reading the stem literally. Reply with JSON { "options": [{ "label": "A", "why": one short sentence testing this option against the stem, "correct": true or false }, ...] } with one entry per option, in order. More than one option may be correct, or none.`;
 
 const questionInput = z.object({
   number: z.string(),
@@ -194,9 +196,9 @@ export const practiceTasks = defineTasks("practice", {
     maxTokens: 500,
     temperature: 0,
     input: z.object({ prompt: z.string().min(1).max(8000), options: optionsSchema }),
-    output: z.object({ answer: z.string().trim().min(1).transform(normalizeLabel) }),
+    output: z.object({ options: z.array(z.object({ label: z.string().trim().min(1).transform(normalizeLabel), why: z.string(), correct: z.boolean() })).max(8) }),
     prompt: ({ prompt, options }) => ({ system: CHECK_SYSTEM, user: `${prompt}\n\n${optionsText(options)}` }),
     example: { prompt: "Which traversal visits the root of every subtree after both of its children?", options: ["Preorder", "Inorder", "Postorder", "Level order"].map((text, i) => ({ label: "ABCD"[i], text })) },
-    mock: ({ prompt }) => ({ answer: mockCheck(prompt) }),
+    mock: ({ prompt, options }) => ({ options: options.map((o) => ({ label: o.label, why: "", correct: normalizeLabel(o.label) === mockCheck(prompt) })) }),
   }),
 });

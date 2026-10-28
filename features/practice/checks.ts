@@ -4,7 +4,7 @@ import type { GeneratedQuestion } from "./types";
 
 const LABELS = ["A", "B", "C", "D"] as const;
 
-export type Rejection = "labels" | "optionsRepeat" | "answerNotAnOption" | "whyNotMissing" | "duplicateStem" | "keyDisagrees";
+export type Rejection = "labels" | "optionsRepeat" | "answerNotAnOption" | "whyNotMissing" | "duplicateStem";
 
 export interface CheckedQuestion {
   prompt: string;
@@ -75,7 +75,8 @@ export function checkGenerated(item: GeneratedQuestion, existingPrompts: readonl
   };
 }
 
-/** The second opinion: a question is dropped unless an independent answer picks the same option. */
-export function keyAgrees(key: string, independent: string): boolean {
-  return normalizeLabel(key) === normalizeLabel(independent);
+/** The second opinion: a question is dropped unless an independent check finds its key, and only its key, correct. */
+export function keyConfirmed(key: string, verdicts: readonly { label: string; correct: boolean }[]): boolean {
+  const correct = verdicts.filter((v) => v.correct);
+  return correct.length === 1 && normalizeLabel(correct[0].label) === normalizeLabel(key);
 }

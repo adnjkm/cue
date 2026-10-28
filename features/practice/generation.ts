@@ -6,7 +6,7 @@ import { PASSAGE_CHAR_CAP } from "@/lib/ai/passages";
 import { db } from "@/lib/db";
 import { gradeOf, type Attempt, type GenerationScope, type Passage, type PracticeSet, type Question, type QuestionId, type SetId, type SourceRef } from "@/lib/domain";
 import { refsFor } from "@/lib/retrieval";
-import { checkGenerated, keyAgrees } from "./checks";
+import { checkGenerated, keyConfirmed } from "./checks";
 import { appendQuestion, createSet, retrieveMaterial } from "./data";
 import { sectionLabel } from "./model";
 
@@ -218,8 +218,8 @@ export function useGeneration(setId: SetId): GenerationState | undefined {
 }
 
 /**
- * Writes questions into a set, keeping each one only when checkGenerated passes and an independent answer
- * agrees with its key. Runs outside React, so it survives the route change from /practice?generate= to the
+ * Writes questions into a set, keeping each one only when checkGenerated passes and an independent check
+ * finds its key, and only its key, correct. Runs outside React, so it survives the route change from /practice?generate= to the
  * set. A second call while one runs is a no-op.
  */
 export function startGeneration(setId: SetId, brief: Brief, count?: number): void {
@@ -263,7 +263,7 @@ async function run(setId: SetId, brief: Brief, count?: number): Promise<void> {
     for await (const item of aiItems("practice.generate", input)) {
       if (kept >= m.count) break;
       const verdict = checkGenerated(item, prompts);
-      const agrees = verdict.ok && keyAgrees(verdict.question.answer, (await ai("practice.check", { prompt: verdict.question.prompt, options: verdict.question.options })).answer);
+      const agrees = verdict.ok && keyConfirmed(verdict.question.answer, (await ai("practice.check", { prompt: verdict.question.prompt, options: verdict.question.options })).options);
       if (verdict.ok && agrees) {
         const q = verdict.question;
         const cited = refsFor(q.sources, m.passages);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EpochMs, TimeZone } from "@/lib/domain";
 import { sampleRows } from "@/lib/sample";
-import { checkGenerated, keyAgrees } from "./checks";
+import { checkGenerated, keyConfirmed } from "./checks";
 import { mockCheck, mockGenerate } from "./mocks";
 
 const { rows } = sampleRows({ now: Date.parse("2026-10-27T10:12:00-04:00") as EpochMs, zone: "America/Toronto" as TimeZone });
@@ -24,7 +24,7 @@ describe("the mock question banks", () => {
       for (const item of items) {
         const verdict = checkGenerated(item, [...samplePrompts, ...kept]);
         expect(verdict).toMatchObject({ ok: true });
-        expect(keyAgrees(item.answer, mockCheck(item.prompt))).toBe(true);
+        expect(keyConfirmed(item.answer, [{ label: mockCheck(item.prompt), correct: true }])).toBe(true);
         kept.push(item.prompt);
       }
     });
