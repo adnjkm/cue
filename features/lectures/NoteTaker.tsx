@@ -259,7 +259,7 @@ export function NoteTaker({
             fraction={lecture.scheduledMs ? Math.min(1, elapsed / lecture.scheduledMs) : 0}
             label="Lecture time"
             valueText={`${spokenDuration(elapsed)} of ${spokenDuration(lecture.scheduledMs)}`}
-            className="max-md:hidden"
+            className="max-lg:hidden"
           />
           <span className="w-max text-sm leading-4 text-graphite tabular-nums">{wide ? `${fmtStamp(elapsed)} of ${fmtStamp(lecture.scheduledMs)}` : fmtStamp(elapsed)}</span>
         </div>

@@ -30,7 +30,8 @@ async function shot(page, name, size = WIDE) {
   await page.mouse.move(size.width / 2, size.height - 10);
   await page.waitForTimeout(150);
   await page.screenshot({ path: path.join(out, `${name}-${size.width}.png`) });
-  console.log(`wrote ${name}-${size.width}.png`);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  console.log(`wrote ${name}-${size.width}.png${overflow > 0 ? `  HORIZONTAL OVERFLOW ${overflow}px` : ""}`);
 }
 
 async function boxes(page) {
@@ -128,6 +129,55 @@ await session(async (t, page) => {
   } finally {
     await shot(page, "index-empty");
   }
+});
+
+await session(async (t, page) => {
+  const check = (ok, what) => {
+    console.log(`${ok ? "ok  " : "FAIL"} keyboard: ${what}`);
+    if (!ok) process.exitCode = 1;
+  };
+  const focused = () => page.evaluate(() => (document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent ?? "").trim());
+  await t.clock.setSystemTime("2026-10-27T09:47:30-04:00");
+  await t.reseed({ scenario: "liveLecture" });
+  await page.goto(`/lectures/${t.sample.lectures.mat137Tue}`);
+  const status = page.getByRole("status");
+  await status.filter({ hasText: "Paused" }).waitFor();
+  await page.keyboard.press("p");
+  await status.filter({ hasText: "Recording" }).waitFor();
+  check(true, "P resumes");
+  await page.keyboard.press("p");
+  await status.filter({ hasText: "Paused" }).waitFor();
+  check(true, "P pauses");
+  const order = [];
+  for (let i = 0; i < 5; i++) {
+    await page.keyboard.press("Tab");
+    order.push(await focused());
+  }
+  check(order[0] === "Resume" && order[1] === "End and save notes" && order[2] === "Flag the line at 37:10" && order[3] === "Ask about the last 5 minutes", `tab order ${JSON.stringify(order)}`);
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("ArrowUp");
+  check((await focused()) === "Flag the line at 35:47", "ArrowUp moves to the previous line");
+  await page.keyboard.press("Enter");
+  const row = page.getByRole("log").getByRole("listitem").filter({ hasText: "35:47" });
+  await row.filter({ hasText: "Flagged by you" }).waitFor();
+  check(true, "Enter flags the focused line");
+  await page.keyboard.press("f");
+  await row.filter({ hasNotText: "Flagged" }).waitFor();
+  check(true, "F unflags the focused line");
+  await page.keyboard.press("/");
+  check((await focused()) === "Ask about the last 5 minutes", "/ focuses the composer");
+  await page.keyboard.press("Escape");
+  check((await focused()) !== "Ask about the last 5 minutes", "Escape leaves the composer");
+  await page.goto("/lectures");
+  await page.getByRole("button", { name: "Record a lecture" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog").waitFor();
+  await page.keyboard.press("Tab");
+  check(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')), "focus moves into the record dialog");
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  check(true, "Escape closes the record dialog");
 });
 
 await browser.close();

@@ -195,6 +195,7 @@ export function TranscriptRow({
             ref={buttonRef}
             type="button"
             tabIndex={focusable ? 0 : -1}
+            aria-keyshortcuts="f"
             aria-label={`${flagged ? "Unflag" : "Flag"} the line at ${at}`}
             onClick={() => onToggleFlag(segment)}
             onKeyDown={onRowKey}

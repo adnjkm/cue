@@ -96,7 +96,7 @@ export function LecturesIndex() {
 
   return (
     <main data-testid={tid.index} className="flex max-w-[1152px] flex-col gap-10 px-5 pt-6 pb-10 md:px-10 md:pt-7">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="flex min-h-8 flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg leading-6 font-normal tracking-display text-ink">Lecture notes</h1>
         {data.courses.length > 0 && <Button onClick={() => setRecording(true)}>Record a lecture</Button>}
       </header>

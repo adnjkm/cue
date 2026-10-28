@@ -84,11 +84,14 @@ let capped = false;
 const now = () => Date.now() as EpochMs;
 const dismissedFor = (id: LectureId) => dismissed.get(id) ?? dismissed.set(id, new Set()).get(id)!;
 
+/** Serialized per lecture, and never below what the table holds, so a reseed in the same tab cannot reuse a seq. */
 async function allocSeq(lectureId: LectureId): Promise<number> {
-  const prev = seqs.get(lectureId) ?? nextSeq(lectureId);
-  const next = prev.then((n) => n + 1);
-  seqs.set(lectureId, next);
-  return prev;
+  const mine = (seqs.get(lectureId) ?? Promise.resolve(0)).then(async (n) => Math.max(n, await nextSeq(lectureId)));
+  seqs.set(
+    lectureId,
+    mine.then((n) => n + 1),
+  );
+  return mine;
 }
 
 function noteAiError(e: unknown) {
@@ -161,6 +164,15 @@ async function stopRun(): Promise<Run | null> {
 }
 
 async function start(lectureId: LectureId, engineId: EngineId): Promise<void> {
+  try {
+    await begin(lectureId, engineId);
+  } catch {
+    if (run?.lectureId === lectureId) await stopRun();
+    set({ lectureId, phase: { kind: "failed", reason: "runtime" }, partial: null });
+  }
+}
+
+async function begin(lectureId: LectureId, engineId: EngineId): Promise<void> {
   const busy = state.phase.kind === "starting" || state.phase.kind === "preparing" || state.phase.kind === "stopping";
   if (busy || (run?.lectureId === lectureId && state.phase.kind === "running")) return;
   if (run) await pause();
