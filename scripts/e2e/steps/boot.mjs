@@ -27,13 +27,15 @@ export default async function boot(t) {
 
   await page.goto(`/practice/${t.sample.sets.csc148Midterm2024}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("CSC148 · 2024 Midterm");
-  await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
+  // Focus screens have the same collapsible sidebar; the choice holds across screens.
+  await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveCount(6);
+  await expect(page.getByRole("button", { name: "Collapse sidebar" })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+b");
-  const sheet = page.getByRole("dialog", { name: "Navigation" });
-  await expect(sheet).toBeVisible();
-  await expect(sheet.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveCount(6);
-  await page.keyboard.press("Escape");
-  await expect(sheet).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Expand sidebar" })).toBeVisible();
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Expand sidebar" })).toBeVisible();
+  await page.getByRole("button", { name: "Expand sidebar" }).click();
+  await expect(page.getByRole("button", { name: "Collapse sidebar" })).toBeVisible();
 
   await page.goto("/");
   await page.setViewportSize({ width: 375, height: 812 });

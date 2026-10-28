@@ -228,7 +228,7 @@ app/
 components/
   ui/*                                         F  shadcn base-nova, restyled to Cue; every component the specs name
   cue/                                         F  shared Cue parts:
-    shell/ AppSidebar, AppNav, NavSheet, SpendMeter, DataMenu, Mascot, LiveBadges
+    shell/ AppSidebar, AppNav, SidebarToggle, SpendMeter, DataMenu, Mascot, LiveBadges
     chat/ ChatThread, Composer (Quick/Deep, scope note slot), SourceChip, SourceChips
     source/ SourceView (slide, page, transcript window), SourcePeek (Sheet)
     TranscriptLine (final | flagged | live), CourseChip, SectionLabel, FocusToolbar, TimerBar,

@@ -1,5 +1,6 @@
-import { BrowseShell } from "@/components/cue/shell";
+import { AppShell } from "@/components/cue/shell";
+import { storedSidebarOpen } from "@/lib/sidebar-cookie";
 
-export default function BrowseLayout({ children }: LayoutProps<"/">) {
-  return <BrowseShell>{children}</BrowseShell>;
+export default async function BrowseLayout({ children }: LayoutProps<"/">) {
+  return <AppShell storedOpen={await storedSidebarOpen()}>{children}</AppShell>;
 }

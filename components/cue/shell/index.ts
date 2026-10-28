@@ -1,5 +1,4 @@
-export { BrowseShell } from "./AppSidebar";
-export { NavSheet } from "./NavSheet";
+export { AppShell } from "./AppSidebar";
 export { AppNav } from "./AppNav";
 export { Boot } from "./Boot";
 export { Mascot } from "./Mascot";

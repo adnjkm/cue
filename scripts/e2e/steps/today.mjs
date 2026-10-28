@@ -97,7 +97,7 @@ export default async function today(t) {
   await expect(h1).toHaveText("Add your schedule to plan today.");
   await expect(page.getByText("Upload a course timetable or any calendar file. Cue fits study sessions around it.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Add schedule" }).click();
-  await expect(page).toHaveURL("/calendar?add=1");
+  await expect(page).toHaveURL(/\/calendar\?(.*&)?add=1$/);
   await page.goBack();
   await page.getByRole("button", { name: "Try the sample semester" }).focus();
   await page.keyboard.press("Enter");

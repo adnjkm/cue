@@ -9,8 +9,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Wordmark } from "./Wordmark";
 
 /**
- * The wordmark and the six nav items. The docked sidebar, the icon rail and the focus screens' nav Sheet
- * all render this, so the three never drift. The Sheet passes `wave={false}` so opening it never replays the wave.
+ * The wordmark and the six nav items. The docked sidebar, its icon rail and the phone Sheet all render this,
+ * so they never drift. The phone Sheet passes `wave={false}` so opening it never replays the wave.
  */
 export function AppNav({
   collapsed = false,

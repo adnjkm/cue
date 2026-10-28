@@ -1,12 +1,11 @@
-import { NavSheet } from "@/components/cue/shell";
-import { TID } from "@/lib/testids";
+import { AppShell } from "@/components/cue/shell";
+import { storedSidebarOpen } from "@/lib/sidebar-cookie";
 
-/** Full-bleed task screens: no docked sidebar, so a live transcript or a timed paper never reflows. */
-export default function FocusLayout({ children }: LayoutProps<"/">) {
+/** Task screens fill the window beside the same collapsible sidebar; collapsing it gives them the full width. */
+export default async function FocusLayout({ children }: LayoutProps<"/">) {
   return (
-    <div data-testid={TID.shell.main} className="flex h-dvh min-h-0 flex-col overflow-hidden">
+    <AppShell storedOpen={await storedSidebarOpen()} focus>
       {children}
-      <NavSheet />
-    </div>
+    </AppShell>
   );
 }
