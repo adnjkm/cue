@@ -70,11 +70,25 @@ export default async function today(t) {
   await expect(moved.getByRole("link")).toBeFocused();
   await expect(page.getByText("Moved to 11:45am.")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
-  await page.getByRole("button", { name: "Undo" }).click();
+  // From the moved row, Tab passes the 2pm and 7pm rows and the toast itself before reaching Undo.
+  const undo = page.getByRole("button", { name: "Undo" });
+  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  await expect(undo).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);
   await expect(review).toHaveAttribute("data-state", "missed");
   await expect(review).toContainText("10:30am");
   await expect(review.getByRole("link")).toBeFocused();
+
+  await review.getByRole("button", { name: "Reschedule" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(moved.getByRole("link")).toBeFocused();
+  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  await expect(undo).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);
+  await expect(moved).toHaveAttribute("data-state", "current");
+  await expect(moved.getByRole("link")).toBeFocused();
 
   await page.getByRole("button", { name: "Data", exact: true }).click();
   await page.getByRole("menuitem", { name: "Reset all data" }).click();

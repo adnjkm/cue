@@ -108,18 +108,35 @@ type FocusTarget = { kind: "row"; key: string; at: EpochMs } | { kind: "headline
 
 function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: FocusTarget) => void) {
   const router = useRouter();
+  /**
+   * Base UI hands focus back only to where an F6 jump started, so closing a toast from inside it (Escape, its close
+   * button, its action) would leave focus on the page body. Send it to `target`, unless Base UI moved it to another toast.
+   */
+  const returnFocusTo = (target: FocusTarget) => () => {
+    const closing = document.activeElement?.closest('[data-slot="toast"]');
+    if (!closing) return;
+    queueMicrotask(() => {
+      if (closing.contains(document.activeElement)) focus(target);
+    });
+  };
   return async ({ block }: Extract<Trailing, { kind: "missed" }>) => {
     const minutes = fmtDuration(block.end - block.start);
+    const unmoved: FocusTarget = { kind: "row", key: block.id, at: block.start };
     let moved;
     try {
       moved = await planActions.reschedule(block.id, { after: now });
     } catch {
-      toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again." });
+      toast.add({ title: "Couldn't move this block.", description: "Reload the page and try again.", onClose: returnFocusTo(unmoved) });
       return;
     }
     const openCalendar = { children: "Open calendar", onClick: () => router.push(href.calendar({ view: "day", date: plan.zone.dayOf(now) })) };
     if (!moved) {
-      toast.add({ title: `No free ${minutes} slot in the next 7 days.`, description: "Open the calendar to move this block by hand.", actionProps: openCalendar });
+      toast.add({
+        title: `No free ${minutes} slot in the next 7 days.`,
+        description: "Open the calendar to move this block by hand.",
+        actionProps: openCalendar,
+        onClose: returnFocusTo(unmoved),
+      });
       return;
     }
     const { zone } = plan;
@@ -127,23 +144,30 @@ function useRescheduleAction(plan: PlanView, now: EpochMs, focus: (target: Focus
     const day = zone.dayOf(moved.start);
     const time = fmtTime(moved.start, zone);
     const when = day === today ? time : day === zone.addDays(today, 1) ? `tomorrow at ${time}` : `${fmtDay(day, zone, "weekdayShort")} at ${time}`;
+    const landed: FocusTarget = day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" };
     const movedToast = toast.add({
       title: `Moved to ${when}.`,
+      onClose: returnFocusTo(landed),
       actionProps: {
         children: "Undo",
         onClick: () => {
           toast.close(movedToast);
           planActions.move(block.id, { start: block.start, end: block.end }).then(
-            () => focus({ kind: "row", key: block.id, at: block.start }),
+            () => focus(unmoved),
             () => {
-              toast.add({ title: "Couldn't move it back.", description: "That time now overlaps another event. Open the calendar to pick a slot.", actionProps: openCalendar });
-              focus(day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" });
+              toast.add({
+                title: "Couldn't move it back.",
+                description: "That time now overlaps another event. Open the calendar to pick a slot.",
+                actionProps: openCalendar,
+                onClose: returnFocusTo(landed),
+              });
+              focus(landed);
             },
           );
         },
       },
     });
-    focus(day === today ? { kind: "row", key: block.id, at: moved.start } : { kind: "headline" });
+    focus(landed);
   };
 }
 
