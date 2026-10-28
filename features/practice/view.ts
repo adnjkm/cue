@@ -8,7 +8,7 @@ export type ViewAction =
   | { type: "goto"; id: QuestionId }
   /** The arrows and ←/→: printed order within the filter, stopping at the ends. */
   | { type: "step"; by: -1 | 1 }
-  /** Next question after answering: the next visible one, else the first visible one still unanswered. */
+  /** Next question after answering: the next visible one while it is unanswered, else the first visible one still unanswered. */
   | { type: "onward" }
   /** The topic select. The current question stays when the topic still shows it. */
   | { type: "filter"; topic: string | null }
@@ -35,9 +35,9 @@ export function reduceView(view: View, action: ViewAction, { questions, attempts
     case "step":
       return at < 0 ? move(visible[0]) : move(visible[at + action.by]);
     case "onward": {
+      const open = (q: Question | undefined) => q !== undefined && q.id !== view.current && gradeOf(q, attempts.get(q.id)).status === "unanswered";
       const next = visible[at + 1];
-      if (next) return move(next);
-      return move(visible.find((q) => q.id !== view.current && gradeOf(q, attempts.get(q.id)).status === "unanswered"));
+      return move(open(next) ? next : visible.find(open));
     }
     case "filter": {
       if (action.topic === view.topic) return view;
@@ -50,7 +50,7 @@ export function reduceView(view: View, action: ViewAction, { questions, attempts
   }
 }
 
-/** Where Next question would go, or undefined when every visible question is answered and none follows. */
+/** Where Next question would go, or undefined once every visible question is answered. */
 export function onwardTarget(view: View, ctx: ViewContext): QuestionId | undefined {
   const next = reduceView(view, { type: "onward" }, ctx);
   return next === view ? undefined : (next.current ?? undefined);

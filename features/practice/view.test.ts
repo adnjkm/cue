@@ -52,8 +52,14 @@ describe("reduceView", () => {
     expect(reduceView(at(5, BO), { type: "filter", topic: null }, ctx)).toEqual(at(5));
   });
 
-  it("goes onward to the next question, or wraps to the first unanswered one at the end", () => {
+  it("goes onward to the next question while it is unanswered", () => {
     expect(reduceView(at(7), { type: "onward" }, ctx)).toEqual(at(8));
+    expect(reduceView(at(9, BO), { type: "onward" }, ctx)).toEqual(at(10, BO));
+  });
+
+  it("jumps to the first unanswered question when the next one is answered or none follows", () => {
+    const eightDone = { questions, attempts: answered(1, 2, 3, 4, 5, 6, 7, 8, 9) };
+    expect(reduceView(at(8), { type: "onward" }, eightDone)).toEqual(at(10));
     expect(reduceView(at(15), { type: "onward" }, ctx)).toEqual(at(8));
     expect(reduceView(at(11, BO), { type: "onward" }, ctx)).toEqual(at(10, BO));
   });
@@ -61,7 +67,8 @@ describe("reduceView", () => {
   it("reports no onward target once every visible question is answered", () => {
     const allAnswered = { questions, attempts: answered(...Object.keys(TOPIC).map(Number)) };
     expect(onwardTarget(at(15), allAnswered)).toBeUndefined();
-    expect(onwardTarget(at(14), allAnswered)).toBe(id(15));
+    expect(onwardTarget(at(7), allAnswered)).toBeUndefined();
+    expect(onwardTarget(at(7), ctx)).toBe(id(8));
   });
 
   it("clears a filter that would hide a question opened by link", () => {
