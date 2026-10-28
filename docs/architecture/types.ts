@@ -338,8 +338,8 @@ export interface DocFacts {
 
 /** The one citation type. Chips, resource rows, footnotes, related cards and plan steps all use it. */
 export type SourceRef =
-  | { kind: "page"; materialId: MaterialId; doc: DocFacts; page: number; to?: number; label?: string; figure?: string }
-  | { kind: "transcript"; lectureId: LectureId; courseId: CourseId; lectureNumber?: number; atMs: number; toMs?: number }
+  | { kind: "page"; materialId: MaterialId; doc: DocFacts; page: number; to?: number; label?: string; section?: string; figure?: string; title?: string }
+  | { kind: "transcript"; lectureId: LectureId; courseId: CourseId; lectureNumber?: number; atMs: number; toMs?: number; quote?: string }
   | { kind: "question"; setId: SetId; questionId: QuestionId; setTitle: string; number: string }
   | { kind: "assessment"; eventId: EventId; label: string; at: EpochMs }
   | { kind: "section"; courseId: CourseId; sectionId: SectionId; title: string };
@@ -487,6 +487,8 @@ export interface StudyBlock extends Interval {
     offsetDays: number;
     /** A test within prefs.boostWindowDays lengthened or added this block (Today's subline). */
     boostedBy?: { test: EventId; daysUntil: number };
+    /** Local day of the anchor event, so "Due Thu" needs no lookup. */
+    anchorDay?: LocalDate;
   };
   placement: "rule" | "pinned" | "authored" | "locked";
 }
@@ -544,7 +546,7 @@ export interface PlanInput {
   topics: ReadonlyMap<EventId, Topic>;
   overrides: readonly PlanOverride[];
   /** Every session row's snapshot. A block with a session never moves (history stays put). */
-  sessions: readonly Pick<StudySession, "id" | "anchor" | "planned" | "topic">[];
+  sessions: readonly Pick<StudySession, "id" | "anchor" | "planned" | "topic" | "courseId">[];
   prefs: PlanPrefs;
 }
 
@@ -1127,8 +1129,8 @@ export const MODELS = {
   qwenEmbed: { tokenFactory: "Qwen/Qwen3-Embedding-8B", openRouter: null, usdPerM: { input: 0.01, output: 0 } },
 } as const satisfies Record<ModelKey, ModelSpec>;
 
-/** Measured: one image costs up to 3,317 prompt tokens; 3,400 keeps the hold a true worst case. */
-export const IMAGE_TOKENS = 3400;
+/** Measured: one image costs up to 3,317 prompt tokens; 3,500 keeps the hold a true worst case. */
+export const IMAGE_TOKENS = 3500;
 /** Routes set maxDuration 300; every attempt, retry and repair of one call fits inside this. */
 export const ROUTE_BUDGET_MS = 280_000;
 /** Longer than ROUTE_BUDGET_MS, so a hold outlives any live call. An expired unsettled hold is charged in full. */
