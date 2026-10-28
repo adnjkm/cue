@@ -153,7 +153,8 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
         </Link>
       </div>
     );
-  } else if (!hasMaterial) {
+  } else if (!sources) body = null;
+  else if (!hasMaterial) {
     body = (
       <div className={cn(COLUMN, "items-start gap-4")}>
         <p className={TEXT}>No material for {course.code} yet. Add a lecture, slides or a textbook chapter and Cue will write the guide.</p>
