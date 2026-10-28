@@ -22,7 +22,7 @@ export const WORKSTREAMS = [
       "components/**", "hooks/**", "lib/**", "!lib/domain/payload/{study,lectures,practice,guides}.ts", "!lib/sample/{study,lectures,practice,guides}.ts",
       "eslint-rules/**", "scripts/check-*.mjs", "scripts/e2e/walkthrough.mjs", "scripts/e2e/lib/**", "scripts/e2e/steps/boot.mjs",
       "scripts/fixtures/audio/**", "workstreams.ts", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "next.config.ts", "tsconfig.json",
-      "eslint.config.mjs", "vitest.config.ts", "components.json", ".env.example", ".gitignore", ".mcp.json", "AGENTS.md",
+      "eslint.config.mjs", "vitest.config.ts", "components.json", ".env.example", ".gitignore", ".mcp.json", "AGENTS.md", "README.md", "LICENSE",
       "docs/**", "!docs/change-requests/*-*.md",
     ],
     writes: ["prefs", "courses", "overrides", "materials", "pages", "blobs", "chunks", "messages"],
@@ -47,7 +47,7 @@ export const WORKSTREAMS = [
     key: "lectures",
     owns: [
       "app/(browse)/lectures/**", "app/(focus)/lectures/**", "features/lectures/**", "public/lectures/**", "lib/domain/payload/lectures.ts",
-      "lib/sample/lectures.ts", "scripts/e2e/steps/lectures.mjs", "scripts/fixtures/lectures/**", "docs/change-requests/lectures-*.md",
+      "lib/sample/lectures.ts", "scripts/e2e/steps/lectures.mjs", "scripts/e2e/parakeet.mjs", "scripts/fixtures/lectures/**", "docs/change-requests/lectures-*.md",
     ],
     writes: ["lectures", "segments", "links", "audio"],
     tasks: "lecture",
