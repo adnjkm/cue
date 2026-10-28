@@ -95,9 +95,13 @@ export function GuidePage({ courseParam, slug }: { courseParam: string; slug?: s
 
   useSectionKeys(root, courseId, located);
 
+  const shownCourse = useRef(courseId);
+  useEffect(() => {
+    shownCourse.current = courseId;
+  }, [courseId]);
   const writeThisGuide = async () => {
     const first = await writeGuide(courseId);
-    if (first && root.current?.isConnected) router.replace(href.guide(courseId, first));
+    if (first && shownCourse.current === courseId) router.replace(href.guide(courseId, first));
   };
 
   const course = data?.courses.find((c) => c.id === courseId);

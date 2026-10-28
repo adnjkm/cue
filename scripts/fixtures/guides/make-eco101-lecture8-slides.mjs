@@ -5,9 +5,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SLIDES = [
-  ["Lecture 8: Elasticity and total revenue", "ECO101 · Prof. Okafor", "Today we connect elasticity to what sellers earn when they change the price."],
+  ["Lecture 8: Elasticity and total revenue", "ECO101 · Prof. Okafor", "Today we connect elasticity to what sellers earn when they change the price.", "A price rise pays only when buyers keep buying.", "Bring Problem Set 4: question 2 asks about a straight demand line."],
   ["Total revenue", "Total revenue is price times quantity sold.", "When demand is inelastic, a price rise increases total revenue, because quantity barely falls.", "When demand is elastic, a price rise reduces total revenue, because quantity falls a lot."],
-  ["Unit elastic demand", "When elasticity is exactly 1, a small price change leaves total revenue unchanged.", "Along a straight demand line, revenue is highest at the midpoint, where demand is unit elastic."],
+  ["Unit elastic demand", "When elasticity is exactly 1, a small price change leaves total revenue unchanged.", "Along a straight demand line, revenue is highest at the midpoint, where demand is unit elastic.", "Above the midpoint demand is elastic; below it, inelastic."],
 ];
 
 const esc = (s) => s.replace(/[\\()]/g, (c) => `\\${c}`).replace(/·/g, "\\267");

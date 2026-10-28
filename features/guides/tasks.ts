@@ -222,7 +222,6 @@ const EXAMPLE_PASSAGES: Passage[] = [
   },
 ];
 
-/** Study guides' tasks, registered as "guide.outline" and "guide.section". */
 export const guideTasks = defineTasks("guide", {
   outline: jsonTask({
     profile: "reason",
