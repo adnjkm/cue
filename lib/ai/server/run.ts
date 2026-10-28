@@ -77,9 +77,17 @@ export function estimateInputTokens(prompt: Prompt): number {
   return Math.ceil(chars / 3) + images * IMAGE_TOKENS;
 }
 
-function jsonSchemaOf(schema: z.ZodType): Record<string, unknown> {
-  const { $schema: _drop, ...rest } = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
-  return rest;
+/** Keywords Token Factory's grammar compiler rejects with a 400 (measured: z.record emits propertyNames). */
+const UNSUPPORTED = new Set(["$schema", "propertyNames"]);
+
+function strip(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(strip);
+  if (node && typeof node === "object") return Object.fromEntries(Object.entries(node).filter(([k]) => !UNSUPPORTED.has(k)).map(([k, v]) => [k, strip(v)]));
+  return node;
+}
+
+export function jsonSchemaOf(schema: z.ZodType): Record<string, unknown> {
+  return strip(z.toJSONSchema(schema, { io: "input", unrepresentable: "any" })) as Record<string, unknown>;
 }
 
 function withSchemaNote(prompt: Prompt, schema: Record<string, unknown>): Prompt {
@@ -143,7 +151,9 @@ async function attempts<T>(call: Call, worst: MicroUsd, run: (signal: AbortSigna
     try {
       return await run(AbortSignal.any([ctx.signal, AbortSignal.timeout(remaining)]), settle);
     } catch (e) {
-      await settle();
+      // A 4xx answer is a refusal before any generation, so it bills nothing; anything else may have billed.
+      const refused = e instanceof UpstreamError && e.status !== null && e.status >= 400 && e.status < 500 && e.status !== 408;
+      await settle(refused ? { prompt_tokens: 0, completion_tokens: 0 } : undefined);
       if (isAbort(e, ctx.signal)) throw new AiError("aborted", "The request was cancelled.");
       const left = call.deadline - deps.now();
       if (!(e instanceof AiError) && retryable(e) && left > RETRY_FLOOR_MS) {

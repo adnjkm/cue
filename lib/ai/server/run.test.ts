@@ -190,3 +190,12 @@ describe("ItemSplitter", () => {
     }
   });
 });
+
+describe("response_format schemas", () => {
+  it("drop keywords Token Factory's grammar rejects", async () => {
+    const { jsonSchemaOf } = await import("./run");
+    const schema = JSON.stringify(jsonSchemaOf(z.object({ whyNot: z.record(z.string(), z.string()) })));
+    expect(schema).not.toContain("propertyNames");
+    expect(schema).not.toContain("$schema");
+  });
+});

@@ -9,7 +9,11 @@
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "node scripts/e2e/walkthrough.mjs",
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "check:ownership": "node scripts/check-ownership.mjs",
+    "check:nemotron": "node scripts/check-nemotron.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
