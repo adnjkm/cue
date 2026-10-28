@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { errorCopy } from "@/lib/ai";
 import type { CourseId, EpochMs, Guide, MaterialId, Passage, SectionId } from "@/lib/domain";
-import { guidesLanding, joinNames, locate, openingSection, outlineRows, sourceNames } from "./model";
+import { guidesLanding, joinNames, locate, openingSection, outlineRows, restoredError, sourceNames } from "./model";
 
 const CSC = "CSC148" as CourseId;
 const outline = {
@@ -61,5 +62,34 @@ describe("source names", () => {
     expect(joinNames(["A", "B", "C", "D", "E"])).toBe("A, B, C and 2 more");
     expect(joinNames(["Lecture 8 slides"])).toBe("Lecture 8 slides");
     expect(joinNames([])).toBe("");
+  });
+});
+
+describe("restoredError", () => {
+  const copy = (...args: Parameters<typeof restoredError>) => {
+    const error = restoredError(...args);
+    return error && errorCopy(error);
+  };
+
+  it("keeps the copy of a kind that needs no server fact", () => {
+    expect(copy("rate_limited", undefined)).toEqual({ title: "Nemotron is busy right now.", detail: "Try again in a moment.", retry: true });
+  });
+
+  it("takes a budget error's cap from the current spend", () => {
+    expect(copy("budget", { mode: "token-factory", embedder: null, spend: { spentUsd: 30.02, capUsd: 30 } })).toEqual({
+      title: "The $30 spending cap is reached.",
+      detail: "Cue stops calling Nemotron until the cap is raised.",
+      retry: false,
+    });
+  });
+
+  it("says the cap can't be checked only when Token Factory reports no spend", () => {
+    expect(copy("budget", { mode: "token-factory", embedder: null })).toEqual({ title: "The spending cap can't be checked, so Cue paused model calls.", retry: false });
+  });
+
+  it("gives no reason for a budget error while the status is unknown or in a mode without a cap", () => {
+    expect(copy("budget", undefined)).toBeNull();
+    expect(copy("budget", { mode: "mock", embedder: null })).toBeNull();
+    expect(copy("budget", { mode: "openrouter", embedder: null })).toBeNull();
   });
 });

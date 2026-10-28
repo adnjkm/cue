@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId } from "react";
-import { AiError, errorCopy, useAiStatus } from "@/lib/ai";
+import { errorCopy, useAiStatus, type AiError } from "@/lib/ai";
 import { sectionStale, type CourseSources, type GuideDraft, type GuideSection } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Block, PLACEHOLDER_HEIGHTS } from "./Blocks";
 import { Footnotes } from "./Footnotes";
 import { numberFootnotes } from "./cites";
+import { restoredError } from "./model";
 import { tid } from "./testids";
 import { useSectionJob, writeSection } from "./writer";
 
@@ -20,15 +21,17 @@ const DWELL_MS = 600;
  * Callout-style box in the figure's border: what failed, how to recover. Try again shows for every error kind,
  * because a persisted budget or key error would otherwise strand the section after the cap is raised or the key added.
  */
-export function ErrorBox({ label, error, onRetry, className }: { label: string; error: AiError; onRetry?: () => void; className?: string }) {
-  const copy = errorCopy(error);
+export function ErrorBox({ label, error, onRetry, className }: { label: string; error: AiError | null; onRetry?: () => void; className?: string }) {
+  const copy = error && errorCopy(error);
   return (
     <div role="alert" className={cn("flex flex-col items-start gap-2 rounded-sm border border-border px-6 py-5 max-md:p-4", className)}>
       <p className="text-sm leading-4 font-medium text-ink">{label}</p>
-      <p className="max-w-[760px] text-sm leading-[22px] text-ink">
-        {copy.title}
-        {copy.detail && <span className="text-graphite"> {copy.detail}</span>}
-      </p>
+      {copy && (
+        <p className="max-w-[760px] text-sm leading-[22px] text-ink">
+          {copy.title}
+          {copy.detail && <span className="text-graphite"> {copy.detail}</span>}
+        </p>
+      )}
       {onRetry && (
         <Button variant="secondary" onClick={onRetry} className="mt-2">
           Try again
@@ -54,8 +57,10 @@ export function SectionView({ section, sources }: { section: GuideSection; sourc
   const streamed = job?.status === "writing" ? numberFootnotes(job.drafts, job.passages) : null;
   const saved = job?.status === "saved" && (!section.draft || section.draft.generatedAt < job.draft.generatedAt) ? job.draft : null;
   const shown: Pick<GuideDraft, "blocks" | "footnotes"> | null = streamed ?? saved ?? section.draft ?? null;
-  const error = job?.status === "failed" ? job.error : !job && section.lastError && (!section.draft || section.lastError.at > section.draft.generatedAt) ? new AiError(section.lastError.kind, "", undefined, status?.spend?.capUsd) : null;
-  const stale = !writing && !error && sources ? sectionStale(section, sources) : { stale: false as const };
+  const lastError = !job && section.lastError && (!section.draft || section.lastError.at > section.draft.generatedAt) ? section.lastError : null;
+  const failed = job?.status === "failed" || lastError !== null;
+  const error = job?.status === "failed" ? job.error : lastError && restoredError(lastError.kind, status);
+  const stale = !writing && !failed && sources ? sectionStale(section, sources) : { stale: false as const };
   const pending = writing ? (streamed ? SKELETON.slice(streamed.blocks.length).concat(streamed.blocks.length >= SKELETON.length ? [PLACEHOLDER_HEIGHTS.prose] : []) : SKELETON) : [];
 
   return (
@@ -78,7 +83,7 @@ export function SectionView({ section, sources }: { section: GuideSection; sourc
           </div>
         )}
       </div>
-      {error && (
+      {failed && (
         <ErrorBox
           label={section.draft ? "Couldn't rewrite this section" : "Couldn't write this section"}
           error={error}

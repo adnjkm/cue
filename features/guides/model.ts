@@ -1,3 +1,4 @@
+import { AiError, type AiErrorKind, type AiStatus } from "@/lib/ai";
 import { ids, slugify, type ChapterId, type Course, type CourseId, type EpochMs, type Guide, type GuideChapter, type GuideSection, type Passage, type SectionId } from "@/lib/domain";
 import type { GuideOutline } from "./schema";
 
@@ -90,4 +91,14 @@ export function guidesLanding(courses: readonly Pick<Course, "id" | "code">[], g
   const byCode = [...courses].sort((a, b) => a.code.localeCompare(b.code));
   const courseId = byCode.find((c) => guides.some((g) => g.courseId === c.id))?.id ?? guides.map((g) => g.courseId).sort()[0] ?? byCode[0]?.id;
   return courseId ? { courseId } : null;
+}
+
+/**
+ * A saved error keeps only its kind, but budget copy needs the cap, which only the server's current status knows.
+ * Without a status that can say, the reason is left out rather than guessed.
+ */
+export function restoredError(kind: AiErrorKind, status: AiStatus | undefined): AiError | null {
+  if (kind !== "budget") return new AiError(kind, "");
+  if (status?.spend) return new AiError("budget", "", undefined, status.spend.capUsd);
+  return status?.mode === "token-factory" ? new AiError("budget", "") : null;
 }
