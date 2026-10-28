@@ -104,7 +104,7 @@ export function MonthGrid({ days, dayList, month, zone, now, today, narrow }: { 
                 "aria-current": isToday ? ("date" as const) : undefined,
                 "aria-label": `${fmtDay(day, zone, "long")}${chips.length ? `, ${chips.length} item${chips.length === 1 ? "" : "s"}` : ""}`,
               };
-              const number = isToday ? <span className="rounded-xs bg-ink px-1.5 text-page">{label}</span> : <span className={outside ? "text-guide" : "text-ink"}>{label}</span>;
+              const number = isToday ? <span className="rounded-xs bg-ink px-1.5 text-page">{label}</span> : <span className={outside ? "text-graphite" : "text-ink"}>{label}</span>;
               return (
                 <div key={day} role="gridcell" data-date={day} className={cn("flex min-w-0 flex-1 basis-0 flex-col overflow-hidden", i > 0 && "border-l border-rule", narrow ? "items-center gap-1 pt-1.5" : "gap-[3px] px-1 py-1.5")}>
                   {narrow ? (
@@ -113,7 +113,7 @@ export function MonthGrid({ days, dayList, month, zone, now, today, narrow }: { 
                       {...linkProps}
                       aria-pressed={day === focus}
                       onClick={() => setActive(day)}
-                      className={cn("rounded-xs px-1.5 text-sm leading-4", day === focus && !isToday && "bg-control", outside && !isToday && "text-guide")}
+                      className={cn("rounded-xs px-1.5 text-sm leading-4", day === focus && !isToday && "bg-control", outside && !isToday && day !== focus && "text-graphite")}
                     >
                       {isToday ? <span className="-mx-1.5 block rounded-xs bg-ink px-1.5 text-page">{parseDay(day).d}</span> : parseDay(day).d}
                     </button>

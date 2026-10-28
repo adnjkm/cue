@@ -1,0 +1,5 @@
+1. **Need**: `docs/design/calendar.md` to name `--color-graphite` for outside-month dates (section 3, Month cell row, and flag 7) instead of `#B9B9B3`.
+2. **Why**: outside-month dates (`Sep 28`, `29`, `30`, `Nov 1`) are links into Day view, so their 13px text needs 4.5:1. `#B9B9B3` is 1.97:1 on `--color-page` and `--color-guide` is 2.83:1; `--color-graphite` is 5.43:1, the value flag 7 suggests, and it is already the week's past-date color. The labels are visibly darker than T4-1 draws them, and the screenshot judge should read that as intended.
+3. **Proposed diff**: in section 3's Month cell row replace "Outside month `#B9B9B3` (no token, flag 7)" with "Outside month `--color-graphite` (flag 7)"; append to flag 7: "Calendar uses `--color-graphite`: the dates are links, so they need 4.5:1. At 375 a selected outside date reads ink on `--color-control`, since graphite there is 4.34:1."
+4. **Workaround in use**: `MonthGrid` renders outside-month dates in `text-graphite`, and at 375 a selected outside date in ink on `--color-control`.
+5. **Unblocks**: the month fidelity check at 1440 and 375 reads the date color as intended.
