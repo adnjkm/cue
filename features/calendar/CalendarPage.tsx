@@ -43,7 +43,7 @@ function useNarrow(): boolean {
 /** Calendar: week, day and month at /calendar?view=&date=, with `add=1` opening the import dialog. */
 export function CalendarPage() {
   return (
-    <Suspense fallback={<main data-testid={tid.main} aria-busy className="h-dvh" />}>
+    <Suspense fallback={<div data-testid={tid.main} aria-busy className="h-dvh" />}>
       <CalendarScreen />
     </Suspense>
   );
@@ -79,7 +79,7 @@ function CalendarScreen() {
 
   const go = (v: CalendarView, d: LocalDate) => router.push(href.calendar({ view: v, date: d }), { scroll: false });
 
-  if (!zone || !date || !today) return <main data-testid={tid.main} aria-busy className="h-dvh" />;
+  if (!zone || !date || !today) return <div data-testid={tid.main} aria-busy className="h-dvh" />;
 
   const dialogOpen = addOpen || adding;
   const setDialog = (open: boolean) => {
@@ -88,17 +88,28 @@ function CalendarScreen() {
   };
 
   return (
-    <main
+    <div
       data-testid={tid.main}
       className={cn(
         "flex h-dvh min-h-[480px] flex-col px-10 pt-7 pb-8 max-[899px]:px-6 max-md:h-[calc(100dvh-56px)] max-md:px-5 max-md:pt-4 max-md:pb-0",
         view === "month" && !narrow ? "gap-6" : "gap-2",
       )}
     >
-      <Toolbar view={view} date={date} zone={zone} narrow={narrow} go={go} onToday={() => (go(view, today), setTodayClicks((n) => n + 1))} onAdd={() => setDialog(true)} />
+      <Toolbar
+        view={view}
+        date={date}
+        zone={zone}
+        narrow={narrow}
+        go={go}
+        onToday={() => {
+          go(view, today);
+          setTodayClicks((n) => n + 1);
+        }}
+        onAdd={() => setDialog(true)}
+      />
       <CalendarBody view={view} date={date} zone={zone} now={now} today={today} narrow={narrow} scrollKey={`${view}:${viewDays(view, date)[0]}:${todayClicks}`} onAdd={() => setDialog(true)} />
       <ImportDialog open={dialogOpen} onOpenChange={setDialog} zone={zone} now={now} />
-    </main>
+    </div>
   );
 }
 

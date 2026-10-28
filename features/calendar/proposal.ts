@@ -22,6 +22,8 @@ export interface ImportProposal {
   courses: readonly ProposedCourse[];
   /** Events with no course: timed ones are busy time, all-day ones are notes. */
   other: readonly CalendarEvent[];
+  /** What Cue assumed while reading, shown above the rows: "Classes repeat weekly from Mon 26 Oct to Fri 11 Dec." */
+  assumption?: string;
 }
 
 const SECTION = /\b(?:LEC|TUT|PRA|LAB|SEM)\d{3,4}\b/g;

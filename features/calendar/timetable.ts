@@ -1,6 +1,6 @@
 import { deadlineEvent, ids, type CalendarEvent, type CourseId, type EpochMs, type ImportId, type LocalDate, type MaterialId, type WallTime, type Zone } from "@/lib/domain";
 import { addDays, parseDay, wallMinutes, weekdayOf } from "@/lib/time";
-import { deadlineEffort, deadlineShort, detectCourse, ImportError, proposeCourse, testShort, testWeight, type ImportProposal } from "./proposal";
+import { deadlineEffort, deadlineShort, detectCourse, ImportError, proposeCourse, shortDay, testShort, testWeight, type ImportProposal } from "./proposal";
 import { WEEKDAY_CODES, type TimetableRead } from "./schema";
 
 const MIN = 60_000;
@@ -22,6 +22,7 @@ export function termAround(today: LocalDate): Term {
 }
 
 const minutes = (hhmm: string) => wallMinutes(hhmm as WallTime);
+const lastTeachingDay = (day: LocalDate) => (weekdayOf(day) > 5 ? addDays(day, 5 - weekdayOf(day)) : day);
 
 function courseIdOf(code: string): CourseId | null {
   return detectCourse(code.toUpperCase())?.id ?? null;
@@ -86,5 +87,11 @@ export function expandTimetable(read: TimetableRead, opts: { zone: Zone; importI
     .map(([id, e]) => proposeCourse(id, e.events, zone, { title: e.title, instructor: e.instructor }))
     .sort((a, b) => (a.id < b.id ? -1 : 1));
   if (courses.length === 0) throw new ImportError("noClasses");
-  return { importId, source: { kind: "vision", materialId: opts.materialId }, courses, other: [] };
+  return {
+    importId,
+    source: { kind: "vision", materialId: opts.materialId },
+    courses,
+    other: [],
+    assumption: `Classes repeat weekly from ${shortDay(term.start)} to ${shortDay(lastTeachingDay(term.end))}.`,
+  };
 }

@@ -24,6 +24,7 @@ describe("expandTimetable", () => {
     expect(phl.dated).toEqual(["Essay 1 due Fri 13 Nov, 11:59pm"]);
     expect(bio).toMatchObject({ title: "Molecular and Cell Biology", instructor: "Prof. Ferreira" });
     expect(p.source).toEqual({ kind: "vision", materialId: "mat_abc" });
+    expect(p.assumption).toBe("Classes repeat weekly from Mon 26 Oct to Fri 11 Dec.");
   });
 
   it("repeats each meeting weekly from the first week to the term end", () => {

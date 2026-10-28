@@ -155,7 +155,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
         {step.kind === "reading" && (
           <div role="status" className="flex min-h-[200px] flex-col justify-center gap-3 rounded-sm border border-border px-6">
             <p className="text-sm leading-5 text-ink">Reading your schedule…</p>
-            <Progress value={null} aria-label={`Reading ${step.fileName}`} className="[&_[data-slot=progress-track]]:h-0.5 [&_[data-slot=progress-track]]:bg-rule" />
+            <Progress value={null} aria-label={`Reading ${step.fileName}`} className="[&_[data-slot=progress-indicator]]:w-full [&_[data-slot=progress-indicator]]:bg-ink [&_[data-slot=progress-indicator]]:motion-safe:animate-breathe [&_[data-slot=progress-track]]:h-0.5 [&_[data-slot=progress-track]]:bg-rule" />
             <p className="truncate text-sm leading-5 text-graphite">{step.fileName}</p>
           </div>
         )}
@@ -165,6 +165,7 @@ export function ImportDialog({ open, onOpenChange, zone, now }: { open: boolean;
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-3 text-sm leading-5 text-graphite">
                 Found {plural(preview.proposal.courses.length, "course")}. Uncheck any you don&apos;t want.
+                {preview.proposal.assumption && ` ${preview.proposal.assumption}`}
               </legend>
               {preview.proposal.courses.map((c) => (
                 <PreviewRow

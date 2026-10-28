@@ -11,7 +11,7 @@ import { db, useLive } from "@/lib/db";
 import { ids, type BlockStatus, type CalendarEvent, type EpochMs, type Lecture, type StudyBlock, type TimedEvent, type Zone } from "@/lib/domain";
 import { blockReasonText, blockTitle, loadPlanInput, planActions, schedule, usePlan } from "@/lib/plan";
 import { href } from "@/lib/routes";
-import { fmtDuration, fmtRange, fmtTime } from "@/lib/time";
+import { fmtRange, fmtTime } from "@/lib/time";
 import { eventTitle, shortDay, type BlockLook } from "./model";
 
 const DAY = 24 * 60 * 60_000;
@@ -37,10 +37,11 @@ export interface TriggerProps {
 export function ItemPopover({ subject, zone, now, trigger }: { subject: Subject; zone: Zone; now: EpochMs; trigger: TriggerProps }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const title = subject.kind === "block" ? blockTitle(subject.block, "timeline") : subject.kind === "event" ? eventTitle(subject.event) : `${subject.event.courseId} ${subject.event.short}`;
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger {...trigger} />
-      <PopoverContent side="right" align="start" sideOffset={8} className="w-max min-w-[280px] max-w-[min(360px,calc(100vw-32px))] gap-3 rounded-lg p-4 text-sm leading-5">
+      <PopoverContent aria-label={title} side="right" align="start" sideOffset={8} className="w-max min-w-[280px] max-w-[min(360px,calc(100vw-32px))] gap-3 rounded-lg p-4 text-sm leading-5">
         {subject.kind === "block" && <BlockDetails {...subject} zone={zone} now={now} close={close} />}
         {subject.kind === "event" && <EventDetails event={subject.event} live={subject.live} zone={zone} />}
         {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} close={close} />}
@@ -69,7 +70,7 @@ function BlockDetails({ block, status, look, zone, now, close }: { block: StudyB
   const [busy, setBusy] = useState<"reschedule" | "done" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const day = zone.dayOf(block.start);
-  const minutes = fmtDuration(block.end - block.start);
+  const minutes = Math.round((block.end - block.start) / 60_000);
   const finished = status === "done" && look !== "done";
 
   async function reschedule() {
@@ -78,7 +79,7 @@ function BlockDetails({ block, status, look, zone, now, close }: { block: StudyB
     try {
       const slot = await planActions.reschedule(block.id, { after: Math.max(now, Date.now()) as EpochMs });
       if (!slot) {
-        setError(`No free ${minutes} slot in the next 7 days. Mark it done, or clear some time and try again.`);
+        setError(`No free ${minutes}-minute slot in the next 7 days. Mark it done, or clear some time and try again.`);
         return;
       }
       close();
@@ -174,8 +175,8 @@ function LectureDetails({ event }: { event: Extract<TimedEvent, { kind: "lecture
     <>
       {line && <Meta>{line}</Meta>}
       <div className="flex flex-wrap gap-2">
-        <Link href={href.lecture(lectureId)} className={buttonVariants()} data-icon="inline-start">
-          <Mic className="size-4" strokeWidth={1.5} aria-hidden />
+        <Link href={href.lecture(lectureId)} className={buttonVariants()}>
+          <Mic data-icon="inline-start" className="size-4" strokeWidth={1.5} absoluteStrokeWidth aria-hidden />
           {saved ? "Open notes" : "Take notes"}
         </Link>
       </div>
@@ -217,6 +218,8 @@ function DeadlineDetails({ event, zone, close }: { event: Extract<CalendarEvent,
       const added = (await count()) - before;
       close();
       toast.add({ title: added > 0 ? `Cue planned ${added} more work block${added === 1 ? "" : "s"} for ${event.short}.` : `No free time before ${event.short} is due. Move something to make room.` });
+    } catch {
+      toast.add({ title: "Couldn't plan more time. Reload the page and try again." });
     } finally {
       setBusy(false);
     }

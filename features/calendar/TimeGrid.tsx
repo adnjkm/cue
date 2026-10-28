@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { blockTitle } from "@/lib/plan";
@@ -31,11 +31,10 @@ export interface GridProps {
   recording: ReadonlySet<string>;
   /** Changes when the view should return to its default scroll position. */
   scrollKey: string;
-  empty?: ReactNode;
 }
 
 /** The week and day grids: 50px per hour, a 52px gutter, opening at 8am (or at now when now is out of view). */
-export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, recording, scrollKey, empty }: GridProps) {
+export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, recording, scrollKey }: GridProps) {
   const gutter = narrow ? 44 : 52;
   const hoursRef = useRef<HTMLDivElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
@@ -182,7 +181,6 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
               {days?.[col] && <DayColumn items={days[col]} col={col} dueCount={days[col].due.filter((e) => e.kind === "deadline").length} zone={zone} now={now} day={day} current={current} recording={recording} label={longDay(d)} />}
             </div>
           ))}
-          {empty}
         </div>
       </div>
     </div>
@@ -323,13 +321,12 @@ function Item({ item, lines, zone, now, day, current, recording, nav }: { item: 
         "data-kind": "block",
         className: cn(
           BASE,
-          "px-2",
-          lines === 1 ? (day ? "justify-center" : "py-1") : day ? "justify-center" : "py-1",
+          day && "justify-center",
           look === "missed"
-            ? "border border-dashed border-border bg-page hover:bg-wash data-[popup-open]:border-ink"
+            ? cn("border border-dashed border-border bg-page px-[7px] hover:bg-wash data-[popup-open]:border-ink", !day && "py-[3px]")
             : look === "done"
-              ? "bg-wash hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]"
-              : "bg-fill hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]",
+              ? cn("bg-wash px-2 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1")
+              : cn("bg-fill px-2 hover:bg-control data-[popup-open]:shadow-[inset_0_0_0_1px_var(--color-ink)]", !day && "py-1"),
         ),
         children: (
           <>
