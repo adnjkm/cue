@@ -102,7 +102,7 @@ export function AskPanel({
           }
         />
       </div>
-      <Composer chat={chat} modes placeholder={placeholder} label={label} className="shrink-0" />
+      <Composer chat={chat} modes placeholder={placeholder} label={label} className="shrink-0 pointer-coarse:[&_textarea]:text-[16px]" />
     </section>
   );
 }
