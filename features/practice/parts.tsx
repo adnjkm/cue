@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type KeyboardEvent, type ReactNode, type SVGProps } from "react";
+import { useEffect, useMemo, useRef, type KeyboardEvent, type SVGProps } from "react";
 import { db, useLive } from "@/lib/db";
 import type { Attempt, BlobId, Option, Question, QuestionId, SourceRef, TreeNode } from "@/lib/domain";
 import { gradeOf } from "@/lib/domain";
@@ -172,7 +172,6 @@ export function QuestionBar({
   generating,
   generatingTopic,
   onSelect,
-  children,
 }: {
   questions: readonly Question[];
   current: QuestionId | null;
@@ -180,8 +179,6 @@ export function QuestionBar({
   generating: number;
   generatingTopic: string | null;
   onSelect: (q: Question) => void;
-  /** Trailing status inside the scroller, where the skeleton tiles were. */
-  children?: ReactNode;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -253,7 +250,6 @@ export function QuestionBar({
             </div>
           </div>
         ))}
-        {children}
       </div>
     </nav>
   );

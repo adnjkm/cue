@@ -184,14 +184,14 @@ function writtenFrom(set: PracticeSet): string {
   }
 }
 
-/** The bar's trailing status while Cue writes: the failure with its recovery, or a set of drops. */
+/** Beside the bar, where new tiles would have landed: why writing stopped, and the way to start again. */
 function GenerationStatus({ state, setId }: { state: GenerationState | undefined; setId: SetId }) {
   if (state?.status === "failed") {
     return (
       <ErrorLine
-        className="shrink-0 flex-nowrap whitespace-nowrap"
+        className="shrink-0 flex-nowrap whitespace-nowrap max-md:order-first max-md:w-full max-md:whitespace-normal"
         title={state.title}
-        detail={[state.detail, state.kept > 0 ? `${state.kept} kept.` : undefined].filter(Boolean).join(" ") || undefined}
+        detail={state.budget ? undefined : state.detail?.split(/(?<=\.) /)[0]}
         action={
           state.retry ? (
             <Button variant="secondary" size="sm" onClick={() => retryGeneration(setId)}>
@@ -205,8 +205,8 @@ function GenerationStatus({ state, setId }: { state: GenerationState | undefined
   if (state?.status === "done" && state.kept === 0) {
     return (
       <ErrorLine
-        className="shrink-0 flex-nowrap whitespace-nowrap"
-        title="None of the questions passed Cue's checks."
+        className="shrink-0 flex-nowrap whitespace-nowrap max-md:order-first max-md:w-full max-md:whitespace-normal"
+        title="None of the new questions passed Cue's checks."
         action={
           <Button variant="secondary" size="sm" onClick={() => retryGeneration(setId)}>
             Try again
@@ -239,7 +239,7 @@ function Frame({ heading, controls, children, footer, onKeyDown, rootRef }: { he
         {controls}
       </header>
       {children}
-      <footer className="flex shrink-0 items-center gap-6 border-t border-rule pt-4 max-md:gap-4 max-md:pt-3">{footer}</footer>
+      <footer className="flex shrink-0 items-center gap-6 border-t border-rule pt-4 max-md:flex-wrap max-md:gap-x-4 max-md:gap-y-3 max-md:pt-3">{footer}</footer>
     </div>
   );
 }
@@ -475,9 +475,8 @@ function Screen({ data }: { data: SetData }) {
             generating={generation?.status === "writing" ? generation.pending : 0}
             generatingTopic={generation?.topic ?? null}
             onSelect={(q) => dispatch({ type: "goto", id: q.id })}
-          >
-            <GenerationStatus state={generation} setId={set.id} />
-          </QuestionBar>
+          />
+          <GenerationStatus state={generation} setId={set.id} />
           <p className="sr-only" aria-live="polite">
             {announce(generation)}
           </p>
