@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Upload } from "lucide-react";
 import { SampleSemesterButton } from "@/components/cue";
 import { Button } from "@/components/ui/button";
@@ -18,27 +18,15 @@ import { WeekAgenda } from "./Agenda";
 import { ImportDialog } from "./ImportDialog";
 import { itemsByDay, parseDateParam, parseViewParam, periodLabel, shiftDate, viewDays } from "./model";
 import { MonthGrid } from "./MonthGrid";
+import { useNarrow } from "./narrow";
 import { tid } from "./testids";
 import { TimeGrid } from "./TimeGrid";
 
-const NARROW = "(max-width: 767px)";
 const VIEWS = [
   { value: "day", label: "Day" },
   { value: "week", label: "Week" },
   { value: "month", label: "Month" },
 ] as const;
-
-function useNarrow(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const mql = window.matchMedia(NARROW);
-      mql.addEventListener("change", onChange);
-      return () => mql.removeEventListener("change", onChange);
-    },
-    () => window.matchMedia(NARROW).matches,
-    () => false,
-  );
-}
 
 /** Calendar: week, day and month at /calendar?view=&date=, with `add=1` opening the import dialog. */
 export function CalendarPage() {

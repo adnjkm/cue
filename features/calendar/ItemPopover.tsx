@@ -5,6 +5,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { Mic } from "lucide-react";
 import { CourseChip, ErrorLine } from "@/components/cue";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
 import { db, useLive } from "@/lib/db";
@@ -13,6 +14,7 @@ import { blockReasonText, blockTitle, loadPlanInput, planActions, schedule, useP
 import { href } from "@/lib/routes";
 import { fmtRange, fmtTime } from "@/lib/time";
 import { eventTitle, shortDay, type BlockLook } from "./model";
+import { useNarrow } from "./narrow";
 import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
 
 const DAY = 24 * 60 * 60_000;
@@ -34,18 +36,37 @@ export interface TriggerProps {
   children: ReactNode;
 }
 
-/** Every block and chip is a button that opens its details: side right, align start, offset 8 (calendar.md 5). */
+/**
+ * Every block and chip is a button that opens its details: a 280px popover at the block's right, side right, align
+ * start, offset 8, or a bottom drawer below 768px (calendar.md 5).
+ */
 export function ItemPopover({ subject, zone, now, trigger }: { subject: Subject; zone: Zone; now: EpochMs; trigger: TriggerProps }) {
+  const narrow = useNarrow();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const title = subject.kind === "block" ? blockTitle(subject.block, "timeline") : subject.kind === "event" ? eventTitle(subject.event) : `${subject.event.courseId} ${subject.event.short}`;
+  const details = (
+    <>
+      {subject.kind === "block" && <BlockDetails {...subject} zone={zone} now={now} close={close} />}
+      {subject.kind === "event" && <EventDetails event={subject.event} live={subject.live} zone={zone} />}
+      {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} now={now} close={close} />}
+    </>
+  );
+  if (narrow) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger {...trigger} />
+        <DrawerContent aria-label={title}>
+          <div className="flex flex-col gap-3 px-5 pt-5 pb-[max(20px,env(safe-area-inset-bottom))] text-sm leading-5">{details}</div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger {...trigger} />
       <PopoverContent aria-label={title} side="right" align="start" sideOffset={8} className="w-[280px] max-w-[calc(100vw-32px)] gap-3 rounded-lg p-4 text-sm leading-5">
-        {subject.kind === "block" && <BlockDetails {...subject} zone={zone} now={now} close={close} />}
-        {subject.kind === "event" && <EventDetails event={subject.event} live={subject.live} zone={zone} />}
-        {subject.kind === "deadline" && <DeadlineDetails event={subject.event} zone={zone} now={now} close={close} />}
+        {details}
       </PopoverContent>
     </Popover>
   );
