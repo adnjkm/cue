@@ -3,26 +3,68 @@ import type { ChatCompletionContentPart } from "openai/resources/chat/completion
 import { extractJson, parseChunkOutput, parseResponseJsonSchema, parseSolutionOutput } from "./schema";
 import type { ApiError, AskRequest, ParseRequest, ParseResult, Solution, SolveRequest } from "./types";
 import * as mock from "./mock";
+import { BudgetExceeded, estimateInputTokens, reserve } from "./spend";
 
-// The one place provider details live. Swap LLM_BASE_URL and the MODEL_* ids to move providers.
-const config = {
-  baseURL: process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1",
-  apiKey: process.env.LLM_API_KEY?.trim() || "",
-  models: {
-    parse: process.env.MODEL_PARSE || "nvidia/nemotron-3.5-super-vl:free",
-    solve: process.env.MODEL_SOLVE || "nvidia/nemotron-3-ultra-550b-a55b:free",
-    fast: process.env.MODEL_FAST || "nvidia/nemotron-3.5-lightning:free",
-  },
-};
+// The one place provider details live. Token Factory wins when its key is set; OpenRouter's free tier is the fallback.
+const tokenFactoryKey = process.env.NEBIUS_API_KEY?.trim() || "";
+const config = tokenFactoryKey
+  ? {
+      provider: "token-factory" as const,
+      baseURL: "https://api.tokenfactory.nebius.com/v1",
+      apiKey: tokenFactoryKey,
+      models: {
+        parse: "nvidia/Nemotron-3.5-Super-VL",
+        solve: "nvidia/Nemotron-3-Ultra-550b-a55b",
+        fast: "nvidia/Nemotron-3_5-Lightning",
+      },
+      // Measured: with thinking on, Super VL spent 1,927 tokens and 22s to read one heading; off, 4 tokens and 1.7s.
+      noThinking: { chat_template_kwargs: { enable_thinking: false } },
+    }
+  : {
+      provider: "openrouter" as const,
+      baseURL: process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1",
+      apiKey: process.env.LLM_API_KEY?.trim() || "",
+      models: {
+        parse: process.env.MODEL_PARSE || "nvidia/nemotron-3.5-super-vl:free",
+        solve: process.env.MODEL_SOLVE || "nvidia/nemotron-3-ultra-550b-a55b:free",
+        fast: process.env.MODEL_FAST || "nvidia/nemotron-3.5-lightning:free",
+      },
+      noThinking: { reasoning: { enabled: false } },
+    };
 
 const useMock = !config.apiKey && process.env.NODE_ENV !== "production";
 
 let client: OpenAI | undefined;
 function llm(): OpenAI {
-  if (!config.apiKey) throw new LlmError({ kind: "missing_key", message: "LLM_API_KEY is not set on the server." });
+  if (!config.apiKey) throw new LlmError({ kind: "missing_key", message: "NEBIUS_API_KEY is not set on the server." });
   // The SDK retries 429 and 5xx with exponential backoff and honors Retry-After.
   client ??= new OpenAI({ baseURL: config.baseURL, apiKey: config.apiKey, maxRetries: 4, timeout: 280_000 });
   return client;
+}
+
+/** OpenRouter's :free models cost nothing, so only Token Factory calls go through the spending cap. */
+async function budgeted<T extends { usage?: { prompt_tokens?: number; completion_tokens?: number } | null }>(
+  model: string,
+  inputTokens: number,
+  maxTokens: number,
+  call: () => Promise<T>,
+): Promise<T> {
+  if (config.provider !== "token-factory") return call();
+  let hold;
+  try {
+    hold = await reserve(model, inputTokens, maxTokens);
+  } catch (e) {
+    if (e instanceof BudgetExceeded) throw new LlmError({ kind: "budget", message: e.message });
+    throw e;
+  }
+  try {
+    const res = await call();
+    await hold.settle(res.usage);
+    return res;
+  } catch (e) {
+    await hold.settle(null);
+    throw e;
+  }
 }
 
 export class LlmError extends Error {
@@ -32,12 +74,12 @@ export class LlmError extends Error {
 }
 
 export function toApiError(e: unknown): { error: ApiError; status: number } {
-  if (e instanceof LlmError) return { error: e.api, status: e.api.kind === "missing_key" ? 500 : 502 };
+  if (e instanceof LlmError) return { error: e.api, status: e.api.kind === "missing_key" ? 500 : e.api.kind === "budget" ? 402 : 502 };
   if (e instanceof OpenAI.APIError) {
     const status = e.status ?? 502;
     if (status === 429) return { error: { kind: "rate_limited", message: e.message }, status: 429 };
     if (status === 401 || status === 403)
-      return { error: { kind: "missing_key", message: "The provider rejected LLM_API_KEY." }, status: 500 };
+      return { error: { kind: "missing_key", message: "The provider rejected the API key." }, status: 500 };
     if (status === 413) return { error: { kind: "too_large", message: e.message }, status: 413 };
     return { error: { kind: "upstream", message: e.message }, status: 502 };
   }
@@ -79,10 +121,12 @@ export async function parseChunk(req: ParseRequest): Promise<ParseResult> {
     content.push({ type: "text", text: `Page ${p.page}\nText layer:\n${p.text.trim() || "(none, scanned page)"}` });
     content.push({ type: "image_url", image_url: { url: p.image } });
   }
-  const res = await llm().chat.completions.create({
+  const inputTokens = estimateInputTokens([PARSE_SYSTEM, ...req.pages.map((p) => p.text)], req.pages.length);
+  const res = await budgeted(config.models.parse, inputTokens, 12000, () => llm().chat.completions.create({
     model: config.models.parse,
     temperature: 0.1,
     max_tokens: 12000,
+    ...(config.noThinking as object),
     response_format: {
       type: "json_schema",
       json_schema: { name: "exam_chunk", strict: false, schema: parseResponseJsonSchema as Record<string, unknown> },
@@ -91,7 +135,7 @@ export async function parseChunk(req: ParseRequest): Promise<ParseResult> {
       { role: "system", content: PARSE_SYSTEM },
       { role: "user", content },
     ],
-  });
+  }));
   const text = res.choices[0]?.message?.content ?? "";
   try {
     return parseChunkOutput(extractJson(text));
@@ -119,7 +163,7 @@ export async function solve(req: SolveRequest): Promise<Solution> {
   if (useMock) return mock.solve(req);
   const q = req.question;
   const user = formatQuestion(q) + (q.answer ? `\n\nOfficial answer: ${q.answer}` : "");
-  const res = await llm().chat.completions.create({
+  const res = await budgeted(config.models.solve, estimateInputTokens([SOLVE_SYSTEM, user]), 8000, () => llm().chat.completions.create({
     model: config.models.solve,
     reasoning_effort: "medium",
     max_tokens: 8000,
@@ -127,7 +171,7 @@ export async function solve(req: SolveRequest): Promise<Solution> {
       { role: "system", content: SOLVE_SYSTEM },
       { role: "user", content: user },
     ],
-  });
+  }));
   const text = res.choices[0]?.message?.content ?? "";
   try {
     return parseSolutionOutput(
@@ -154,25 +198,44 @@ function askSystem(req: AskRequest): string {
 
 export async function askStream(req: AskRequest): Promise<ReadableStream<Uint8Array>> {
   if (useMock) return mock.askStream(req);
-  const stream = await llm().chat.completions.create({
-    model: config.models.fast,
-    stream: true,
-    max_tokens: 1500,
-    messages: [{ role: "system", content: askSystem(req) }, ...req.messages],
-    // Lightning reasons by default and spends the whole token budget before any visible text.
-    ...({ reasoning: { enabled: false } } as object),
-  });
+  const system = askSystem(req);
+  const maxTokens = 1500;
+  const hold =
+    config.provider === "token-factory"
+      ? await reserve(config.models.fast, estimateInputTokens([system, ...req.messages.map((m) => m.content)]), maxTokens).catch((e) => {
+          throw e instanceof BudgetExceeded ? new LlmError({ kind: "budget", message: e.message }) : e;
+        })
+      : null;
+  let stream;
+  try {
+    stream = await llm().chat.completions.create({
+      model: config.models.fast,
+      stream: true,
+      stream_options: { include_usage: true },
+      max_tokens: maxTokens,
+      messages: [{ role: "system", content: system }, ...req.messages],
+      // Lightning thinks by default and spends the whole token budget before any visible text.
+      ...(config.noThinking as object),
+    });
+  } catch (e) {
+    await hold?.settle(null);
+    throw e;
+  }
   const encoder = new TextEncoder();
+  let usage: { prompt_tokens?: number; completion_tokens?: number } | null = null;
   return new ReadableStream({
     async start(controller) {
       try {
         for await (const chunk of stream) {
+          if (chunk.usage) usage = chunk.usage;
           const delta = chunk.choices[0]?.delta?.content;
           if (delta) controller.enqueue(encoder.encode(delta));
         }
         controller.close();
       } catch (e) {
         controller.error(e);
+      } finally {
+        await hold?.settle(usage);
       }
     },
     cancel() {

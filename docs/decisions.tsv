@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-27T23:59:50Z	frame	grow cue-practice into the full Cue app instead of starting a new repo	practice screen, Nemotron layer and harness already work and match Paper; rebuilding them wastes the verified parts	commit a2e62ea	open
+2026-10-27T23:59:50Z	frame	done means: build passes, a scripted browser walkthrough of all six screens passes on the production build, a live Nemotron check passes on Token Factory, screenshots judged against Paper, no HIGH findings left from better-interface and Emil passes	the operator is away, so done has to be checkable by scripts, not by my say-so	docs/plan.md	open
+2026-10-27T23:59:50Z	frame	rigor set high: design bakeoff for the data model, build and screenshot gate per unit, adversarial review before hand-back	operator asked for an extremely high quality bar and will review after the fact	docs/plan.md	open
+2026-10-27T23:59:50Z	frame	deploy and public repo wait for the operator	both are outward-facing and on the always-pause list; the operator never answered the earlier deploy question	'-	open

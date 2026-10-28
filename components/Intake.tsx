@@ -10,11 +10,15 @@ type IntakePhase = Exclude<Phase, { status: "ready" }>;
 const ERROR_COPY: Record<ErrorKind, { title: string; recovery: string }> = {
   missing_key: {
     title: "Nemotron needs an API key",
-    recovery: "Set LLM_API_KEY in .env.local (or in your Vercel project settings), restart the server, then try again.",
+    recovery: "Set NEBIUS_API_KEY in .env.local (or in your Vercel project settings), restart the server, then try again.",
+  },
+  budget: {
+    title: "The $30 spending cap is reached",
+    recovery: "Cue stops calling Nemotron at the cap. Raise SPEND_CAP_USD on the server to keep going.",
   },
   rate_limited: {
     title: "Nemotron is rate limited",
-    recovery: "The free tier allows 20 requests a minute. Wait a minute and try again. Finished pages are kept.",
+    recovery: "Wait a minute and try again. Finished pages are kept.",
   },
   unreadable: {
     title: "Couldn't read that file",

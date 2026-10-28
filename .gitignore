@@ -5,3 +5,4 @@ next-env.d.ts
 *.tsbuildinfo
 .verify/
 .DS_Store
+.data/

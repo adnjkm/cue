@@ -48,6 +48,7 @@ export type ErrorKind =
   | "unreadable"
   | "no_questions"
   | "too_large"
+  | "budget"
   | "upstream";
 
 export type ApiError = { kind: ErrorKind; message: string };
