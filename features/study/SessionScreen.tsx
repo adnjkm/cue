@@ -146,6 +146,7 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
   };
 
   const [askOpen, setAskOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const openSource = (ref: SourceRef): boolean => {
     const next = viewer && showRef(viewer, ref);
     if (!next) return false;
@@ -328,7 +329,14 @@ function SessionScreen({ block, zone, row, prefs, start, tab }: { block: StudyBl
         </button>
       </div>
       <Sheet open={askOpen} onOpenChange={setAskOpen}>
-        <SheetContent side="right" className="gap-0 border-rule p-0 shadow-none data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]">
+        <SheetContent
+          ref={sheetRef}
+          initialFocus={() => {
+            const box = sheetRef.current?.querySelector("textarea");
+            return box && !box.disabled ? box : true;
+          }}
+          side="right"
+          className="gap-0 border-rule p-0 shadow-none data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]">
           <SheetHeader className="px-4 pt-5 pb-0">
             <SheetTitle className="text-sm leading-4 font-normal tracking-caps text-graphite uppercase">{askLabel}</SheetTitle>
             <SheetDescription className="sr-only">Answers cite the slides, transcript and notes for this session.</SheetDescription>
