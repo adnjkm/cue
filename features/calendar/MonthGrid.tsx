@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { AgendaDay } from "./Agenda";
 import { ItemPopover, type Subject } from "./ItemPopover";
 import { blockName, deadlineTitle, eventName, lookSuffix, MONTH_SHORT, testChipTitle, WEEKDAY_SHORT, type DayItems } from "./model";
-import { tid } from "./testids";
 
 /** One month chip: deadlines and tests outlined, study blocks filled, notes as plain text (calendar.md 3). */
 type Chip = { id: string; kind: "due" | "study" | "note"; label: string; name: string; state?: string; subject?: Subject };
@@ -74,7 +73,6 @@ export function MonthGrid({ days, dayList, month, zone, now, today, narrow }: { 
         role="grid"
         aria-label={fmtDay(firstOfMonth, zone, "month")}
         aria-busy={days ? undefined : true}
-        data-testid={tid.monthGrid}
         onKeyDown={onKeyDown}
         className={cn("flex flex-col border-t border-ink", !narrow && "min-h-0 flex-1")}
       >

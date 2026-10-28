@@ -12,7 +12,6 @@ import type { EpochMs, LocalDate, Zone } from "@/lib/domain";
 import { ItemPopover } from "./ItemPopover";
 import { layoutLanes } from "./lanes";
 import { blockLines, blockName, boxOf, DEFAULT_SCROLL, deadlineItem, deadlineTitle, eventMeta, eventName, eventTitle, HOUR_PX, lookSuffix, WEEKDAY_SHORT, type DayItems, type DueItem, type TimedItem } from "./model";
-import { tid } from "./testids";
 
 const HOURS = Array.from({ length: 23 }, (_, i) => i + 1);
 /** Below this the week scrolls sideways under a sticky gutter instead of squeezing seven columns (calendar.md 5, responsive). */
@@ -95,7 +94,6 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
       role="table"
       aria-label={day ? longDay(dayList[0]) : `Week of ${longDay(dayList[0])}`}
       aria-busy={days ? undefined : true}
-      data-testid={day ? tid.dayGrid : tid.weekGrid}
       className="flex min-h-0 flex-1 flex-col"
       onKeyDown={onKeyDown}
       onFocus={(e) => {
@@ -181,7 +179,6 @@ export function TimeGrid({ mode, days, dayList, zone, now, today, narrow, record
         role="rowgroup"
         aria-label="Hours"
         tabIndex={0}
-        data-testid={tid.hours}
         className="relative min-h-0 flex-1 overflow-auto overscroll-contain [scrollbar-width:none] focus-visible:outline-offset-[-2px] [&::-webkit-scrollbar]:hidden"
       >
         <div role="row" className="relative flex h-[1200px]" style={{ minWidth }}>

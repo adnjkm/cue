@@ -1,5 +1,3 @@
-import { tid } from "../../../features/calendar/testids.ts";
-
 /** The 25 buttons of the Paper week (docs/design/calendar.md), as accessible-name prefixes. */
 const PAPER_WEEK = [
   "CSC148 A2 due 11:59pm, Wednesday 28 October",
@@ -29,6 +27,8 @@ const PAPER_WEEK = [
   "Midterm prep · 3 of 6, Sunday 1 November, 3 to 5pm, Past paper, timed",
 ];
 
+const hours = (page) => page.getByRole("rowgroup", { name: "Hours", exact: true });
+
 // Calendar: the Paper week at 10:40, block and lecture popovers, day and month, ICS import with Undo, the vision import preview.
 export default async function calendar(t) {
   const { page, expect } = t;
@@ -40,9 +40,9 @@ export default async function calendar(t) {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("October 2026");
   await expect(page.getByRole("columnheader", { name: "Tuesday 27 October" })).toHaveAttribute("aria-current", "date");
   await expect(page.locator('[role="columnheader"][aria-current="date"]')).toHaveCount(1);
-  await expect.poll(() => page.getByTestId(tid.hours).evaluate((el) => el.scrollTop)).toBe(360);
+  await expect.poll(() => hours(page).evaluate((el) => el.scrollTop)).toBe(360);
 
-  const week = page.getByTestId(tid.weekGrid);
+  const week = page.getByRole("table", { name: "Week of Monday 26 October", exact: true });
   await expect(week.getByRole("button")).toHaveCount(25);
   await expect(week.locator('[data-kind="lecture"]')).toHaveCount(8);
   await expect(week.locator('[data-kind="block"]')).toHaveCount(14);
@@ -75,7 +75,7 @@ export default async function calendar(t) {
     await expect(page).toHaveURL(/\/study\/review\.evt_sample_mat137_thu\.1/);
     await expect(page.getByRole("button", { name: "End session" })).toBeVisible({ timeout: 15_000 });
     await page.goBack();
-    await expect(page.getByTestId(tid.weekGrid)).toBeVisible();
+    await expect(week).toBeVisible();
   });
 
   await page.getByRole("button", { name: "MAT137 Lecture, Thursday 29 October, 9 to 10am, MP 102" }).click();
@@ -85,7 +85,7 @@ export default async function calendar(t) {
     await lecturePopover.getByRole("link", { name: "Take notes" }).click();
     await expect(page.getByRole("button", { name: "Start recording" })).toBeVisible({ timeout: 15_000 });
     await page.goBack();
-    await expect(page.getByTestId(tid.weekGrid)).toBeVisible();
+    await expect(week).toBeVisible();
   });
   if (await lecturePopover.count()) await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -94,16 +94,16 @@ export default async function calendar(t) {
   await view.click();
   await page.getByRole("option", { name: "Day" }).click();
   await expect(page).toHaveURL(/view=day&date=2026-10-27/);
-  const day = page.getByTestId(tid.dayGrid);
+  const day = page.getByRole("table", { name: "Tuesday 27 October", exact: true });
   await expect(day.getByRole("button")).toHaveCount(4);
   await expect(day.getByRole("button", { name: /^Review · Recursion,/ })).toContainText("10:30–11:15am · now");
-  await expect.poll(() => page.getByTestId(tid.hours).evaluate((el) => el.scrollTop)).toBe(360);
+  await expect.poll(() => hours(page).evaluate((el) => el.scrollTop)).toBe(360);
   await t.shot("calendar-day");
 
   await view.click();
   await page.getByRole("option", { name: "Month" }).click();
   await expect(page).toHaveURL(/view=month&date=2026-10-27/);
-  const month = page.getByTestId(tid.monthGrid);
+  const month = page.getByRole("grid", { name: "October 2026", exact: true });
   const wed = month.locator('[data-date="2026-10-28"]');
   await expect(wed.getByRole("button", { name: "+2 more" })).toBeVisible();
   await expect(wed.locator("[data-kind]")).toHaveText(["CSC148 A2 due 11:59pm", "Review · Lec 9"]);
@@ -160,7 +160,7 @@ export default async function calendar(t) {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/calendar");
   await expect(page).toHaveURL(/\/calendar\?view=day&date=2026-10-27$/);
-  await expect(page.getByTestId(tid.dayGrid)).toBeVisible();
+  await expect(page.getByRole("table", { name: "Tuesday 27 October", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Oct 2026");
   await page.setViewportSize({ width: 1440, height: 900 });
   await t.checkNarrow();
