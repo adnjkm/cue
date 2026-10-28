@@ -90,7 +90,7 @@ export function AskPanel({
               <p className="text-sm leading-5 text-graphite">Ask about the slides, the transcript or your notes. Every answer says where it comes from.</p>
               <div className="flex flex-wrap gap-2">
                 {prompts.map((p) => (
-                  <Button key={p} variant="secondary" size="sm" className={cn(PILL, "h-auto min-h-7 py-1.5 text-left whitespace-normal")} onClick={() => chat.send(p)}>
+                  <Button key={p} variant="secondary" size="sm" className={cn(PILL, "h-auto min-h-7 max-w-full shrink justify-start py-1.5 text-left whitespace-normal")} onClick={() => chat.send(p)}>
                     {p}
                   </Button>
                 ))}
