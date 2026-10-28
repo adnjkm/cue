@@ -39,18 +39,11 @@ function overlayOpen(): boolean {
   return [...document.querySelectorAll('[role="dialog"], [role="alertdialog"], [role="listbox"]')].some((el) => el.checkVisibility() && !el.closest("[data-closed]"));
 }
 
-function AskPanel({ question, onClose }: { question: Question; onClose?: () => void }) {
+function AskPanel({ question }: { question: Question }) {
   const chat = useChat({ thread: threadKey.question(question.id), scope: { kind: "question", questionId: question.id } });
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <SectionLabel>Ask about question {question.number}</SectionLabel>
-        {onClose && (
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
-          </Button>
-        )}
-      </div>
+      <SectionLabel>Ask about question {question.number}</SectionLabel>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         <ChatThread
           chat={chat}
@@ -324,6 +317,7 @@ function Screen({ data }: { data: SetData }) {
   const askColumn = useRef<HTMLElement>(null);
   const askToggle = useRef<HTMLButtonElement>(null);
   const wide = useMediaQuery("(min-width: 1280px)", true);
+  const phone = useMediaQuery("(max-width: 767px)");
   const [asking, setAsking] = useState(false);
   const [writeOpen, setWriteOpen] = useState(false);
   const [topicOpen, setTopicOpen] = useState(false);
@@ -555,14 +549,17 @@ function Screen({ data }: { data: SetData }) {
         </main>
         {asking && wide && (
           <aside ref={askColumn} aria-label="Ask why" className="flex w-[360px] shrink-0 flex-col pt-4">
-            <AskPanel key={question.id} question={question} onClose={closeAsk} />
+            <AskPanel key={question.id} question={question} />
           </aside>
         )}
       </div>
 
       {!wide && (
         <Sheet open={asking} onOpenChange={setAsking}>
-          <SheetContent side="right" className="w-full p-6 data-[side=right]:sm:max-w-[400px]">
+          <SheetContent
+            side={phone ? "bottom" : "right"}
+            className="p-6 data-[side=bottom]:h-[85dvh] data-[side=bottom]:rounded-t-lg data-[side=bottom]:px-4 data-[side=bottom]:pb-[max(16px,env(safe-area-inset-bottom))] data-[side=right]:w-full data-[side=right]:sm:max-w-[400px]"
+          >
             <SheetHeader className="sr-only">
               <SheetTitle>Ask why</SheetTitle>
             </SheetHeader>

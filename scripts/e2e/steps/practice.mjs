@@ -97,6 +97,7 @@ export default async function practice(t) {
   await askToggle.click();
   await expect(askToggle).toHaveAttribute("aria-pressed", "true");
   await expect(composer).toBeFocused();
+  await expect(ask.getByRole("button", { name: "Close" })).toHaveCount(0);
   await composer.fill("What is this question testing?");
   await composer.press("Enter");
   await expect(ask.getByRole("log")).toContainText("Here's", { timeout: 15_000 });
@@ -160,6 +161,18 @@ export default async function practice(t) {
   await page.goto(`/practice/${t.sample.sets.csc148Midterm2024}`);
   await expect(page.getByText("Question 7 · Multiple choice · 2 marks")).toBeVisible();
   await t.checkNarrow();
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.getByRole("button", { name: "Ask why" }).click();
+  const sheet = page.getByRole("dialog", { name: "Ask why" });
+  await expect(sheet.getByRole("textbox", { name: "Ask about this question" })).toBeFocused();
+  await settle(page);
+  const box = await sheet.boundingBox();
+  expect({ x: box?.x, width: box?.width, bottom: Math.round((box?.y ?? 0) + (box?.height ?? 0)), height: Math.round(box?.height ?? 0) }).toEqual({ x: 0, width: 375, bottom: 812, height: Math.round(812 * 0.85) });
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByText("Question 7 · Multiple choice · 2 marks")).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 900 });
 }
 
 /** The scenarios .verify/harness/verify.mjs ran against the pre-shell app, on the same sample PDF. */
