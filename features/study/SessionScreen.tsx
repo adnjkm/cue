@@ -64,10 +64,10 @@ function LiveControls({ session, prefs, onTogglePause, onEnd }: { session: Study
         <span aria-live="polite" className="sr-only">
           {view.milestone}
         </span>
-        <Button variant="secondary" aria-keyshortcuts="P" onClick={onTogglePause}>
-          {paused ? "Resume" : "Pause"}
-        </Button>
       </div>
+      <Button variant="secondary" aria-keyshortcuts="P" onClick={onTogglePause}>
+        {paused ? "Resume" : "Pause"}
+      </Button>
       <AlertDialog>
         <AlertDialogTrigger render={<Button variant="secondary" />}>End session</AlertDialogTrigger>
         <AlertDialogContent>
