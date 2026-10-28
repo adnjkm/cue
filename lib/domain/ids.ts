@@ -86,6 +86,8 @@ export const ids = {
   importBatch: (): ImportId => `imp_${random()}` as ImportId,
   material: (sha256Hex: string): MaterialId => `mat_${sha256Hex.slice(0, 16)}` as MaterialId,
   blob: (sha256Hex: string): BlobId => `blob_${sha256Hex.slice(0, 16)}` as BlobId,
+  /** A rendered page image belongs to its material, so removing the material finds it. */
+  pageBlob: (material: MaterialId, index: number): BlobId => `blob_${material}_p${index}` as BlobId,
   block: (anchor: BlockAnchor): BlockId => {
     switch (anchor.kind) {
       case "review":

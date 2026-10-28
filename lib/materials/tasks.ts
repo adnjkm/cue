@@ -1,7 +1,15 @@
 import "server-only";
 import { z } from "zod";
 import { defineTasks, jsonTask } from "@/lib/ai/define";
-import type { PageImage } from "@/lib/domain";
+import type { PageImage, SlideContent } from "@/lib/domain";
+
+export interface MaterialPageRead {
+  page: number;
+  text: string;
+  slide?: SlideContent;
+  section?: string;
+  label?: string;
+}
 
 const pageImage = z.object({
   page: z.number().int().min(1),
@@ -27,13 +35,15 @@ export const materialTasks = defineTasks("material", {
     input: z.object({ pages: z.array(pageImage).min(1).max(3) }),
     output: z.object({
       pages: z.array(
-        z.object({
-          page: z.number().int(),
-          text: z.string(),
-          slide: slide.nullish().transform((v) => v ?? undefined),
-          section: z.string().nullish().transform((v) => v ?? undefined),
-          label: z.string().nullish().transform((v) => v ?? undefined),
-        }),
+        z
+          .object({ page: z.number().int(), text: z.string(), slide: slide.nullish(), section: z.string().nullish(), label: z.string().nullish() })
+          .transform(({ page, text, slide, section, label }): MaterialPageRead => ({
+            page,
+            text,
+            ...(slide ? { slide: { heading: slide.heading, body: slide.body, ...(slide.code ? { code: slide.code } : {}) } } : {}),
+            ...(section ? { section } : {}),
+            ...(label ? { label } : {}),
+          })),
       ),
     }),
     prompt: ({ pages }) => ({

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { SourcePeek } from "@/components/cue/source";
 import { Boot } from "@/components/cue/shell";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="isolate">
           <TooltipProvider>{children}</TooltipProvider>
         </div>
+        <SourcePeek />
         <Toaster />
         <Boot />
       </body>

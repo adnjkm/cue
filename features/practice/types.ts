@@ -1,4 +1,6 @@
-import type { Box, Option, Passage, PassageId, GenerationScope } from "@/lib/domain";
+import type { z } from "zod";
+import type { Box, Option, Passage, GenerationScope } from "@/lib/domain";
+import type { generatedQuestion, solveOutput } from "./schema";
 
 export type { Box, Option };
 
@@ -10,15 +12,6 @@ export interface PaperChunkRead {
   answerKey: readonly { number: string; answer: string }[];
 }
 
-export interface SolveOutput {
-  answer: string;
-  explanation: string;
-  steps: readonly { label: string; text: string }[];
-  conclusion?: string;
-  whyNot: Readonly<Record<string, string>>;
-  resources: readonly string[];
-}
-
 export interface GenerateInput {
   scope: GenerationScope;
   style: readonly { prompt: string; options: readonly Option[] }[];
@@ -27,12 +20,6 @@ export interface GenerateInput {
   note?: string;
 }
 
-export interface GeneratedQuestion {
-  topic: string;
-  prompt: string;
-  options: readonly Option[];
-  answer: string;
-  whyNot: Readonly<Record<string, string>>;
-  steps: readonly { label: string; text: string }[];
-  sources: readonly (PassageId | string)[];
-}
+
+export type SolveOutput = z.output<typeof solveOutput>;
+export type GeneratedQuestion = z.output<typeof generatedQuestion>;

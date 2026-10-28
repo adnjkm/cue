@@ -13,7 +13,7 @@ export interface Prompt {
 interface TaskCommon<I> {
   input: z.ZodType<I>;
   /** Posted by scripts/check-nemotron.mjs against the live provider. */
-  example: I;
+  example: NoInfer<I>;
   maxTokens: number | ((input: I) => number);
   /** Overrides the profile's temperature. */
   temperature?: number;
@@ -25,7 +25,7 @@ export interface JsonTask<I, O> extends TaskCommon<I> {
   profile: ChatProfileKey;
   output: z.ZodType<O>;
   prompt(input: I): Prompt;
-  mock(input: I): O | Promise<O>;
+  mock(input: I): NoInfer<O> | Promise<NoInfer<O>>;
 }
 
 /** A JSON object `{ items: T[] }` streamed item by item; an invalid item is dropped, zero valid items is bad_output. */
@@ -35,7 +35,7 @@ export interface ListTask<I, T> extends TaskCommon<I> {
   item: z.ZodType<T>;
   maxItems: number;
   prompt(input: I): Prompt;
-  mock(input: I): readonly T[];
+  mock(input: I): readonly NoInfer<T>[];
 }
 
 /** Free text with optional thinking. `profile` may depend on the input (ask: Quick → chat, Deep → reason). */

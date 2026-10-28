@@ -27,13 +27,13 @@ export async function blockMaterials(block: StudyBlock): Promise<BlockMaterials>
   const transcript = lecture ? { lectureId: lecture.id, label: lecture.number === undefined ? "Lecture transcript" : `Lecture ${lecture.number} transcript` } : undefined;
 
   const sets = block.courseId ? await db.practiceSets.where("courseId").equals(block.courseId).toArray() : [];
-  const perSet = new Map<SetId, number>();
+  const perSet: { setId: SetId; n: number; createdAt: number }[] = [];
   for (const set of sets) {
     const questions = await db.questions.where("setId").equals(set.id).toArray();
     const n = questions.filter((q) => topicMatch(q.topic, block.topic.full)).length;
-    if (n > 0) perSet.set(set.id, n);
+    if (n > 0) perSet.push({ setId: set.id, n, createdAt: set.createdAt });
   }
-  const best = [...perSet].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0];
-  const count = [...perSet.values()].reduce((a, b) => a + b, 0);
-  return { materials, ...(transcript ? { transcript } : {}), practice: { count, ...(best ? { setId: best[0] } : {}), topic: block.topic.full } };
+  const best = [...perSet].sort((a, b) => b.n - a.n || b.createdAt - a.createdAt)[0];
+  const count = perSet.reduce((a, b) => a + b.n, 0);
+  return { materials, ...(transcript ? { transcript } : {}), practice: { count, ...(best ? { setId: best.setId } : {}), topic: block.topic.full } };
 }
