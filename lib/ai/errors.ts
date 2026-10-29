@@ -25,21 +25,17 @@ export const STATUS_OF: Record<Exclude<AiErrorKind, "offline" | "aborted">, numb
   upstream: 502,
 };
 
-export function fmtUsd(usd: number): string {
-  return Number.isInteger(usd) ? `$${usd}` : `$${usd.toFixed(2)}`;
-}
-
 /** The one place UI copy for AI errors lives. */
 export function errorCopy(e: AiError): { title: string; detail?: string; retry: boolean } {
   switch (e.kind) {
     case "budget":
       return e.capUsd === undefined
         ? {
-            title: "The spending cap can’t be checked, so Cue paused model calls.",
+            title: "Cue’s AI isn’t set up on this server.",
             detail: "Set SPEND_CAP_USD to a number in .env.local (on Vercel, also add the Upstash Redis keys), then restart the server.",
             retry: false,
           }
-        : { title: `The ${fmtUsd(e.capUsd)} spending cap is reached.`, detail: "To keep going, raise SPEND_CAP_USD in .env.local and restart the server.", retry: false };
+        : { title: "Cue’s AI is paused for now.", detail: "Your plan, notes and saved questions still work. Try again later.", retry: false };
     case "rate_limited":
       return { title: "Cue is busy right now.", detail: "Try again in a moment.", retry: true };
     case "offline":

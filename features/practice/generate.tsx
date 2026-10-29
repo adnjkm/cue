@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState } from "react";
-import { fmtUsd, useAiStatus } from "@/lib/ai";
 import { gradeOf } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,10 +37,8 @@ export function WriteQuestionsDialog({
   const [count, setCount] = useState<"3" | "5" | "10">("5");
   const [missedOnly, setMissedOnly] = useState(() => hasMiss(defaultTopic ?? MISSED));
   const [note, setNote] = useState("");
-  const status = useAiStatus();
   const noteId = useId();
   const missedId = useId();
-  const cap = status?.spend?.capUsd;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
@@ -104,7 +101,7 @@ export function WriteQuestionsDialog({
               </Button>
               <Button type="submit">Write questions</Button>
             </div>
-            <p className="text-right text-sm leading-4 text-graphite">Uses Nemotron.{cap !== undefined ? ` Counts toward the ${fmtUsd(cap)} model budget.` : ""}</p>
+            <p className="text-right text-sm leading-4 text-graphite">Uses Nemotron.</p>
           </DialogFooter>
         </form>
       </DialogContent>

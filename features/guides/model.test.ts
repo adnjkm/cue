@@ -75,17 +75,17 @@ describe("restoredError", () => {
     expect(copy("rate_limited", undefined)).toEqual({ title: "Cue is busy right now.", detail: "Try again in a moment.", retry: true });
   });
 
-  it("takes a budget error’s cap from the current spend", () => {
+  it("says AI is paused, with no amount, when the cap is reached", () => {
     expect(copy("budget", { mode: "token-factory", embedder: null, spend: { spentUsd: 30.02, capUsd: 30 } })).toEqual({
-      title: "The $30 spending cap is reached.",
-      detail: "To keep going, raise SPEND_CAP_USD in .env.local and restart the server.",
+      title: "Cue’s AI is paused for now.",
+      detail: "Your plan, notes and saved questions still work. Try again later.",
       retry: false,
     });
   });
 
-  it("says the cap can’t be checked only when Token Factory reports no spend", () => {
+  it("says AI isn’t set up only when Token Factory reports no spend", () => {
     expect(copy("budget", { mode: "token-factory", embedder: null })).toEqual({
-      title: "The spending cap can’t be checked, so Cue paused model calls.",
+      title: "Cue’s AI isn’t set up on this server.",
       detail: "Set SPEND_CAP_USD to a number in .env.local (on Vercel, also add the Upstash Redis keys), then restart the server.",
       retry: false,
     });

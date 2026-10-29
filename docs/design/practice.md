@@ -328,6 +328,7 @@ Dialog (shadcn Dialog, 480 wide, padding 24, radius 10, bg `--color-page`):
 - `Focus on questions I missed`: Checkbox, on when the topic has a miss.
 - `Anything specific?`: Textarea, optional, placeholder `For example: harder, with code tracing`.
 - Footer: ghost `Cancel`, default `Write questions`. Under them, 13/16 graphite: `Uses Nemotron. Counts toward the $30 model budget.`
+  *Superseded 2026-10-29: students never see money, so the line reads `Uses Nemotron.` and a reached cap reads `Cue’s AI is paused for now.`*
 
 Flow:
 - Submit closes the dialog. New tiles appear at the end of their topic group in the "being generated" state and fill in as each question arrives. Numbers continue after the paper's last number (16, 17, …).

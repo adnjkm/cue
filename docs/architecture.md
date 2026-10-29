@@ -652,7 +652,7 @@ Error kinds and status codes: `bad_input` 400, `missing_key` 500, `budget` 402, 
 - **`RedisLedger`** (Upstash REST) runs reserve and settle as Lua scripts, atomic across every instance. It ships behind `UPSTASH_REDIS_REST_URL` and needs the operator before any deploy.
 - **Selection.** Redis when configured. Otherwise the file, unless `VERCEL` is set, in which case every Token Factory call fails closed with `budget` ("the cap can't be checked").
 - **`SPEND_CAP_USD`** is parsed at startup as a positive finite number. Anything else fails closed (fragile point 2).
-- **Spend display.** `/api/status` returns `{ spentUsd, capUsd }`. The spend is not shown to students. Budget copy reads the configured cap, never a hard-coded `$30` (fragile point 6).
+- **Spend display.** `/api/status` returns `{ spentUsd, capUsd }`. Students never see money: no spend line, no cap amount. A reached cap reads `Cue’s AI is paused for now.`; a cap that can't be checked reads as a setup error.
 
 ### 8.6 Mocks and live checks
 
@@ -882,7 +882,7 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 5. Send `Why does preorder visit the root first?` in Quick mode. The answer streams and chips appear. Chip `Slide 17` switches the viewer to `Slide 17 of 32`.
 6. Radio `Deep`, then send. `Thinking…` shows before the answer. `Add to study guide` becomes `Added to study guide`.
 7. `Pause` shows `Paused · 31:48 left`. `Resume`.
-8. Route `**/api/ai/ask` once with 402 `budget`, then send. The notice reads `The $30 spending cap is reached.` and the composer is disabled. Unroute.
+8. Route `**/api/ai/ask` once with 402 `budget`, then send. The notice reads `Cue’s AI is paused for now.` and the composer is disabled. Unroute.
 9. `End session` opens alertdialog `End this session?`. Click `End session`: the URL is `/`. **[integrated]** The row `Review — Recursion & tree traversal` reads `Done · 45m`.
 10. Preview: `/study/<SAMPLE block for Wed Mid-week · CSC>` shows button `Start session` and no running timer. After a reload it is still a preview. `checkNarrow()`.
 

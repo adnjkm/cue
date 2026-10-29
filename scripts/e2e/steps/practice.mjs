@@ -218,7 +218,7 @@ async function migratedHarness(t) {
 
   await bar.getByRole("button", { name: /^Question 3,/ }).click();
   await choices.getByRole("button").nth(1).click();
-  await expect(page.getByTestId(tid.solution)).toContainText("The $30 spending cap is reached.");
+  await expect(page.getByTestId(tid.solution)).toContainText("Cue’s AI is paused for now.");
   await expect(choices.getByRole("button").nth(1)).toContainText("Your answer · wrong");
   await expect(choices.getByRole("button").first()).toContainText("Correct answer");
 

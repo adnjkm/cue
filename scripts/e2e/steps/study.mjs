@@ -112,7 +112,7 @@ export default async function study(t) {
   );
   await composer.fill("What is most likely on the midterm?");
   await composer.press("Enter");
-  await expect(thread.getByRole("status").filter({ hasText: "The $30 spending cap is reached." })).toBeVisible({ timeout: 15_000 });
+  await expect(thread.getByRole("status").filter({ hasText: "Cue’s AI is paused for now." })).toBeVisible({ timeout: 15_000 });
   await expect(composer).toBeDisabled();
   await page.unroute("**/api/ai/ask");
 
