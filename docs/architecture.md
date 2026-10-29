@@ -628,7 +628,7 @@ The client imports the registry with `import type`, so prompts and mocks never s
 
 ### 8.4 Server path (`runTask`, called by `app/api/ai/[task]/route.ts`, `maxDuration = 300`)
 
-1. **Origin and throttle.** A cross-origin request is refused (`bad_input`, 403). The client throttle (one key per client IP hash, 60 requests per 10 minutes) answers `rate_limited` with `Retry-After`.
+1. **Origin and throttle.** A cross-origin request is refused (`bad_input`, 403). The client throttle (one key per client IP hash, 600 requests per 10 minutes, sized for a live lecture's two calls per transcript line) answers `rate_limited` with `Retry-After`.
 2. **Lookup and input.** An unknown task is 404. A body that fails `task.input` is 400 `bad_input`.
 3. **Mock mode** returns `task.mock(input)`, streamed with the real protocol for stream and list tasks.
 4. **Prompt and estimate.** Build the prompt. Estimate input tokens as characters / 3 plus 3,400 per image.

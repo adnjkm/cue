@@ -5,7 +5,11 @@ export interface ClientThrottle {
   take(clientKey: string, now: EpochMs): Promise<{ ok: true } | { ok: false; retryAfterMs: number }>;
 }
 
-export const THROTTLE = { limit: 60, windowMs: 10 * 60_000 } as const;
+/**
+ * A live lecture calls lecture.clean and lecture.hints for every transcript line, about 20 calls a minute, and the
+ * student may ask questions on top. 600 in ten minutes covers that; the spend cap, not this, bounds cost.
+ */
+export const THROTTLE = { limit: 600, windowMs: 10 * 60_000 } as const;
 
 /** Fixed window per client. In memory locally; RedisThrottle shares it across instances. */
 export class MemoryThrottle implements ClientThrottle {
