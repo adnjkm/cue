@@ -1670,7 +1670,7 @@ export const NAV = [
  * (plain constants, no imports), which its step file imports directly.
  */
 export const TID = {
-  shell: { spend: "shell-spend", main: "shell-main" },
+  shell: { main: "shell-main" },
   chat: { thread: "chat-thread" },
   source: { peek: "source-peek" },
 } as const;

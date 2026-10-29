@@ -12,7 +12,6 @@ export default async function boot(t) {
   await expect(nav.getByRole("link", { name: "Today" })).toHaveAttribute("aria-current", "page");
   await t.shot("boot");
 
-  await expect(page.getByTestId(t.tid.shell.spend)).toHaveCount(0);
   await page.getByRole("button", { name: "Data", exact: true }).click();
   await expect(page.getByRole("menuitem", { name: "Replace with sample semester…" })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "Reset all data" })).toBeVisible();

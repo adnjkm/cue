@@ -8,7 +8,6 @@ import { AppNav } from "./AppNav";
 import { DataMenu } from "./DataMenu";
 import { useLiveBadges } from "./LiveBadges";
 import { SidebarToggle } from "./SidebarToggle";
-import { SpendMeter } from "./SpendMeter";
 import { Wordmark } from "./Wordmark";
 
 function DockedSidebar() {
@@ -25,10 +24,7 @@ function DockedSidebar() {
           onNavigate={isMobile ? () => setOpenMobile(false) : undefined}
           toggle={isMobile ? undefined : <SidebarToggle />}
         />
-        <div className="flex flex-col gap-2">
-          {!collapsed && <SpendMeter />}
-          <DataMenu collapsed={collapsed} />
-        </div>
+        <DataMenu collapsed={collapsed} />
       </aside>
     </Sidebar>
   );

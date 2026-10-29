@@ -228,7 +228,7 @@ app/
 components/
   ui/*                                         F  shadcn base-nova, restyled to Cue; every component the specs name
   cue/                                         F  shared Cue parts:
-    shell/ AppSidebar, AppNav, SidebarToggle, SpendMeter, DataMenu, Mascot, LiveBadges
+    shell/ AppSidebar, AppNav, SidebarToggle, DataMenu, Mascot, LiveBadges
     chat/ ChatThread, Composer (Quick/Deep, scope note slot), SourceChip, SourceChips
     source/ SourceView (slide, page, transcript window), SourcePeek (Sheet)
     TranscriptLine (final | flagged | live), CourseChip, SectionLabel, FocusToolbar, TimerBar,
@@ -286,7 +286,7 @@ Moves and deletions done by foundation:
 - `components/AskChat.tsx` and the ask and solve helpers in `lib/client.ts` are replaced by `useChat` and `ai()`. Parse chunking and the solve queue move to `features/practice/`.
 - `lib/mock.ts` is split into each task's `mock`.
 - `lib/pages.ts` becomes `lib/materials/pages.ts` and emits Blobs.
-- `components/icons.tsx` and `components/Credit.tsx` are replaced by lucide and `SpendMeter`.
+- `components/icons.tsx` and `components/Credit.tsx` are replaced by lucide; the spend is no longer shown in the app.
 - `app/page.tsx` (`ssr: false`) and `app/api/{parse,solve,ask}` are deleted once Practice calls `/api/ai/practice.*`.
 - The `.verify/harness` scenarios move into `scripts/e2e/steps/practice.mjs`.
 
@@ -652,7 +652,7 @@ Error kinds and status codes: `bad_input` 400, `missing_key` 500, `budget` 402, 
 - **`RedisLedger`** (Upstash REST) runs reserve and settle as Lua scripts, atomic across every instance. It ships behind `UPSTASH_REDIS_REST_URL` and needs the operator before any deploy.
 - **Selection.** Redis when configured. Otherwise the file, unless `VERCEL` is set, in which case every Token Factory call fails closed with `budget` ("the cap can't be checked").
 - **`SPEND_CAP_USD`** is parsed at startup as a positive finite number. Anything else fails closed (fragile point 2).
-- **Spend display.** `/api/status` returns `{ spentUsd, capUsd }`. In token-factory mode the sidebar's `SpendMeter` shows `$0.03 of $30`. Budget copy reads the configured cap, never a hard-coded `$30` (fragile point 6).
+- **Spend display.** `/api/status` returns `{ spentUsd, capUsd }`. The spend is not shown to students. Budget copy reads the configured cap, never a hard-coded `$30` (fragile point 6).
 
 ### 8.6 Mocks and live checks
 
@@ -701,7 +701,7 @@ Error kinds and status codes: `bad_input` 400, `missing_key` 500, `budget` 402, 
   - `SidebarProvider` with `--sidebar-width: 232px` and `defaultOpen` on the client (no cookie read).
   - An icon rail from 768 to 1023 px and an off-canvas Sheet below 768.
   - `AppSidebar`: the wordmark link with the mascot, and the six `NAV` items (`Today`, `Calendar`, `Study sessions`, `Lecture notes`, `Practice`, `Study guides`) with `aria-current="page"`.
-  - The sidebar footer: `SpendMeter` (token-factory mode only) and `DataMenu` (`Load sample semester`, `Reset all data`).
+  - The sidebar footer: `DataMenu` (`Load sample semester`, `Reset all data`).
   - The main column uses document scroll. Today, Calendar, the guide reader and the three index pages are browse screens.
 - **Focus layout** (F): a full-bleed `h-dvh` frame with no docked sidebar. `Cmd/Ctrl+B` opens the same `AppNav` in a left Sheet (232 wide) over the content, so a live transcript or a timed paper never reflows. Study session, the note taker and saved notes, the practice paper and the export view are focus screens. Each has its own exit: `End session`, `End and save notes`, `Esc` in Practice.
 - **Live badges** (F): `LiveBadges` reads `useLiveActivity(now)`. A lecture whose `lectureLive` is `recording` shows an 8px dot and `Recording` next to Lecture notes. A running session shows its time left next to Study sessions. Neither imports feature code.
@@ -767,7 +767,7 @@ Foundation is one owner, blocking. Features start when steps 1 to 9 pass. Steps 
    - Every dependency a feature needs: dexie, dexie-react-hooks, @date-fns/tz, ical.js, @huggingface/transformers, @upstash/redis, lucide-react, zod, openai, pdfjs-dist, client-only, server-only.
 
    Done when: `pnpm typecheck && pnpm lint && pnpm build` pass on an empty shell.
-2. **Tokens, fonts, both layouts, the shell.** The sidebar with NAV, the nav Sheet, `LiveBadges`, `SpendMeter`, `DataMenu`, `<Boot>`. COOP/COEP headers.
+2. **Tokens, fonts, both layouts, the shell.** The sidebar with NAV, the nav Sheet, `LiveBadges`, `DataMenu`, `<Boot>`. COOP/COEP headers.
 
    Done when: `/` and a stub focus route render at 1440 and 375 with no console errors.
 3. **Core data.** `lib/db` (all 21 tables, `SCHEMA_V1`, `useLive`, `useLiveActivity`), `lib/domain` (every type in `types.ts`, the derived functions and their tests), `lib/time` (with the Paper format tests), `lib/courses`, `lib/prefs`, `lib/routes`, `lib/testids`, `lib/sources` (`sourceLabel` and `footnoteText` tests against every Paper string), and `workstreams.ts` with the derived `TABLE_WRITERS`.
@@ -811,7 +811,7 @@ Foundation is one owner, blocking. Features start when steps 1 to 9 pass. Steps 
 ### 13.2 Hooks
 
 - **Roles and accessible names first.** `data-testid` is used only for regions with no role.
-- **Test id files.** Shared ids are in `lib/testids.ts` (`shell-spend`, `shell-main`, `chat-thread`, `source-peek`). Each feature's ids are in `features/<x>/testids.ts`: plain `as const` objects with no imports, which the step file imports directly (Node 26 strips the types).
+- **Test id files.** Shared ids are in `lib/testids.ts` (`shell-main`, `chat-thread`, `source-peek`). Each feature's ids are in `features/<x>/testids.ts`: plain `as const` objects with no imports, which the step file imports directly (Node 26 strips the types).
 - **States** are asserted through the `data-state` attributes the components already need for styling (`flagged`, `current`, `missed`, `done`, `emphasized`, `generating`).
 - **Mutations** are asserted on screen, not by reading IndexedDB, except the Calendar overlap check, which compares rendered boxes.
 
@@ -824,7 +824,7 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 1. `/` shows h1 `Add your schedule to plan today.`, a button `Upload calendar` and a button `Try the sample semester`. Click the second. The h1 becomes `Two sessions today. Start with recursion.`
 2. `navigation` named `Main` has six links in order. `Today` has `aria-current="page"`.
 3. `/practice/<SAMPLE set>` shows no docked sidebar. `ControlOrMeta+B` opens a `dialog` named `Navigation` with the same six links, and `Escape` closes it.
-4. `getByTestId("shell-spend")` has count 0 in mock mode. Button `Data` opens a menu with `Load sample semester` and `Reset all data`.
+4. Button `Data` opens a menu with `Load sample semester` and `Reset all data`.
 5. `checkNarrow()` on `/`: button `Open navigation` is visible and there is no horizontal overflow.
 
 **today (T)**, clock 10:12, `reseed()`:
