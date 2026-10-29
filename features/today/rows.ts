@@ -27,6 +27,8 @@ export interface TodayRow {
   current: boolean;
   state: RowState;
   trailing: Trailing;
+  /** Busy time from the student's own calendar, drawn quieter so the studying leads. */
+  personal: boolean;
 }
 
 export interface RowFacts {
@@ -76,7 +78,7 @@ function lectureTrailing(event: TimedEvent, lecture: Lecture | undefined, now: E
 }
 
 function eventRow(event: TimedEvent, f: RowFacts): TodayRow {
-  const base = { key: event.id, start: event.start, time: fmtTime(event.start, f.zone), current: false };
+  const base = { key: event.id, start: event.start, time: fmtTime(event.start, f.zone), current: false, personal: event.kind === "busy" };
   const dayView = href.calendar({ view: "day", date: f.zone.dayOf(event.start) });
   const past = f.now >= event.end;
   switch (event.kind) {
@@ -112,6 +114,7 @@ function blockRow(block: StudyBlock, f: RowFacts): TodayRow {
     title: blockTitle(block, "timeline"),
     href: status === "inProgress" ? href.study(block.id, { start: true }) : href.study(block.id),
     current,
+    personal: false,
   };
   switch (status) {
     case "done":

@@ -69,12 +69,12 @@ export function AgendaDay({ items, zone, now, today }: { items: DayItems; zone: 
                   trigger={{
                     "aria-label": eventName(t.event, zone, now >= t.start && now < t.end),
                     "data-kind": t.event.kind,
-                    className: cn(ROW, "border-border bg-page hover:bg-wash data-[popup-open]:border-ink"),
+                    className: cn(ROW, "bg-page hover:bg-wash data-[popup-open]:border-ink", t.event.kind === "busy" ? "border-rule text-graphite" : "border-border"),
                     children: (
                       <>
                         <span className="w-16 shrink-0 text-graphite">{fmtTime(t.start, zone)}</span>
                         <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="truncate font-medium">{eventTitle(t.event)}</span>
+                          <span className={cn("truncate", t.event.kind !== "busy" && "font-medium")}>{eventTitle(t.event)}</span>
                           <span className="truncate">{eventMeta(t.event, zone, now >= t.start && now < t.end)}</span>
                         </span>
                       </>

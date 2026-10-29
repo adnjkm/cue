@@ -223,3 +223,24 @@ describe("findSlot", () => {
     expect(slot).toEqual({ start: zone.at("2026-10-27" as LocalDate, "11:45" as never), end: zone.at("2026-10-27" as LocalDate, "12:30" as never) });
   });
 });
+
+describe("busy time from the student's calendar", () => {
+  const imp = "imp_busy" as ImportId;
+  const wed = "2026-10-07" as LocalDate;
+  const at = (hhmm: string) => zone.at(wed, hhmm as never);
+  const lecture: CalendarEvent = { id: "evt_eco_lec" as EventId, kind: "lecture", courseId: "ECO101" as CourseId, start: at("10:00"), end: at("11:00"), importId: imp };
+  const climbing: CalendarEvent = { id: "evt_climbing" as EventId, kind: "busy", title: "Climbing", start: at("11:00"), end: at("13:00"), importId: imp };
+  const input = (events: CalendarEvent[]): PlanInput => {
+    const imports = [{ id: imp, planFrom: zone.at("2026-10-05" as LocalDate, "00:00" as never) }];
+    return { zone: ZONE, window: planWindow(zone, { imports, events, overrides: [], sessions: [] }), courses: [], events, imports, topics: new Map(), overrides: [], sessions: [], prefs: DEFAULT_PLAN_PREFS };
+  };
+  const review = (events: CalendarEvent[]) => {
+    const b = schedule(input(events)).blocks.find((x) => x.anchor.kind === "review")!;
+    return { start: b.start, end: b.end };
+  };
+
+  it("moves a lecture's review past busy time that follows the class", () => {
+    expect(review([lecture])).toEqual({ start: at("11:15"), end: at("11:45") });
+    expect(review([lecture, climbing])).toEqual({ start: at("13:15"), end: at("13:45") });
+  });
+});

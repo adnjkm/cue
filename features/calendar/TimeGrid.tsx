@@ -362,6 +362,7 @@ function Item(props: { item: TimedItem; lines: 1 | 2; zone: Zone; now: EpochMs; 
     const live = now >= e.start && now < e.end;
     const rec = recording.has(e.id);
     const meta = eventMeta(e, zone, live && !rec) + (rec ? " · recording" : "");
+    const personal = e.kind === "busy";
     return (
       <ItemPopover
         subject={{ kind: "event", event: e, live }}
@@ -371,10 +372,10 @@ function Item(props: { item: TimedItem; lines: 1 | 2; zone: Zone; now: EpochMs; 
           ...common,
           "aria-label": eventName(e, zone, live) + (rec ? ", recording" : ""),
           "data-kind": e.kind,
-          className: cn(BASE, hitClass, "border border-border bg-page pr-2 pl-[7px] hover:bg-wash data-[popup-open]:border-ink", day ? "justify-center" : "py-[3px]"),
+          className: cn(BASE, hitClass, "border bg-page pr-2 pl-[7px] hover:bg-wash data-[popup-open]:border-ink", personal ? "border-rule text-graphite" : "border-border", day ? "justify-center" : "py-[3px]"),
           children: (
             <Clip>
-              <span className={cn(LINE, "flex items-center gap-1.5 font-medium")}>
+              <span className={cn(LINE, "flex items-center gap-1.5", !personal && "font-medium")}>
                 {rec && <span aria-hidden className="size-2 shrink-0 rounded-full bg-ink motion-safe:animate-breathe" />}
                 <span className="truncate">{eventTitle(e)}</span>
               </span>

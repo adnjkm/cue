@@ -105,7 +105,7 @@ function Row({ row, linkRef, onReschedule }: { row: TodayRow; linkRef: (el: HTML
           {row.time}
         </time>
         <span className="col-start-2 row-start-1 flex shrink-0 md:w-[84px]">{row.course && <CourseChip code={row.course} />}</span>
-        <span className={cn("col-span-2 col-start-2 row-start-2 min-w-0 text-base leading-5 text-ink md:flex-1", row.current && "font-medium")}>{row.title}</span>
+        <span className={cn("col-span-2 col-start-2 row-start-2 min-w-0 text-base leading-5 md:flex-1", row.personal ? "text-graphite" : "text-ink", row.current && "font-medium")}>{row.title}</span>
       </Link>
       <div
         className="pointer-events-none relative col-start-3 row-start-1 flex items-center justify-end justify-self-end pl-3 text-right text-sm leading-[18px] text-graphite md:w-[180px] md:shrink-0 md:pl-0"
