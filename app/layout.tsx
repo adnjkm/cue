@@ -4,6 +4,7 @@ import { SourcePeek } from "@/components/cue/source";
 import { Boot } from "@/components/cue/shell";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DEMO_CLOCK_SCRIPT } from "@/lib/demo-clock";
 import "./globals.css";
 
 const timeless = localFont({
@@ -26,6 +27,9 @@ export const viewport: Viewport = { themeColor: "oklch(100% 0 0)", colorScheme: 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${timeless.variable} max-md:scroll-pt-16 max-md:scroll-pb-20`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: DEMO_CLOCK_SCRIPT }} />
+      </head>
       <body className="relative">
         <div className="isolate">
           <TooltipProvider>{children}</TooltipProvider>

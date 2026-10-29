@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { SampleScenario } from "@/lib/domain";
 import { currentZone } from "@/lib/time";
 import { setPrefs, useShortcuts } from "@/lib/prefs";
+import { exitDemo, startDemo, useDemoActive } from "@/lib/demo";
 import { resetAll, seedSampleSemester } from "@/lib/sample";
 import { hasStoredData, ReplaceDataDialog, useHasData } from "@/components/cue/sample";
 import {
@@ -31,6 +32,7 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
   const [confirmReplace, setConfirmReplace] = useState(false);
   const hasData = useHasData();
   const shortcuts = useShortcuts();
+  const demo = useDemoActive();
   const [busy, setBusy] = useState(false);
 
   async function run(task: () => Promise<unknown>) {
@@ -65,6 +67,15 @@ export function DataMenu({ collapsed = false }: { collapsed?: boolean }) {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setConfirmReset(true)}>Reset all data</DropdownMenuItem>
           </DropdownMenuGroup>
+          {demo && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => void run(startDemo)}>Restart demo at Tuesday 10:12</DropdownMenuItem>
+                <DropdownMenuItem onClick={exitDemo}>Exit demo</DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem checked={shortcuts} onCheckedChange={(on) => void setPrefs("foundation", { shortcuts: on })}>
             Keyboard shortcuts
