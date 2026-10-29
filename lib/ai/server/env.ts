@@ -26,15 +26,23 @@ export function capFromEnv(env: Env): MicroUsd | null {
   return Number.isFinite(usd) && usd > 0 ? (Math.round(usd * 1e6) as MicroUsd) : null;
 }
 
+/** Upstash's REST credentials under their own names, or the KV_REST_API_ names Vercel's Upstash integration sets. */
+export function redisFromEnv(env: Env): { url: string; token: string } | null {
+  const url = env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN;
+  return url && token ? { url, token } : null;
+}
+
 /** Redis if configured; the file locally; on Vercel without Redis, null, and every paid call fails closed. */
 export function ledgerFromEnv(env: Env): LedgerStore | null {
-  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) return new RedisLedger(env.UPSTASH_REDIS_REST_URL, env.UPSTASH_REDIS_REST_TOKEN);
+  const redis = redisFromEnv(env);
+  if (redis) return new RedisLedger(redis.url, redis.token);
   if (env.VERCEL) return null;
   return new FileLedger(path.join(process.cwd(), ".data", "spend-ledger.json"));
 }
 
 /** Shared across instances when Redis is configured; per process otherwise. */
 export function throttleFromEnv(env: Env): ClientThrottle {
-  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) return new RedisThrottle(env.UPSTASH_REDIS_REST_URL, env.UPSTASH_REDIS_REST_TOKEN);
-  return new MemoryThrottle();
+  const redis = redisFromEnv(env);
+  return redis ? new RedisThrottle(redis.url, redis.token) : new MemoryThrottle();
 }
