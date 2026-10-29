@@ -150,12 +150,20 @@ function SessionScreen({
     await sessionActions.start(block, { ...(lectureId ? { lectureId } : {}), ...(plan ? { plan } : {}), mode: prefs.defaultMode });
   };
   const handledStart = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (!start || handledStart.current) return;
     handledStart.current = true;
     void (async () => {
       if (!row) await startSession();
-      router.replace(href.study(block.id, tab ? { tab } : undefined), { scroll: false });
+      // A student who pressed Back while the session was being written has left; replacing now would pull them back.
+      if (mounted.current) router.replace(href.study(block.id, tab ? { tab } : undefined), { scroll: false });
     })();
   });
 
