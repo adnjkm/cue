@@ -4,6 +4,10 @@ Cue is a study app for university students. It plans study sessions around your 
 
 Cue runs on NVIDIA Nemotron models served by Nebius Token Factory. It was built for the Nebius × NVIDIA Global AI Hackathon, Best Apps and Agents track.
 
+## Try it
+
+Open https://learn-with-cue.vercel.app. A first visit opens on a sample student's semester at 10:12 on Tuesday of the current week, two weeks before midterms, and the clock runs forward from there. Open https://learn-with-cue.vercel.app/?demo to start over. `docs/demo.md` walks through every screen and links the files to upload.
+
 ## What Cue does
 
 - **Today.** A short brief of the day, the next session with its material already attached, and every study block, lecture and deadline in order. A missed block offers **Reschedule**.
