@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CourseId, EpochMs, EventId, ImportId, LectureId, Material, MaterialId, PracticeSet, QuestionId, Segment, SetId } from "@/lib/domain";
-import { applyHints, catalogInput, coursework, flagLabel, linkFromMention, notesFrom, parseStamp, partRange, segmentForQuote, transcriptForNotes, type LinkContext } from "./hints";
+import { applyHints, catalogInput, coursework, flagLabel, linkFromMention, namesAssessment, notesFrom, parseStamp, partRange, segmentForQuote, transcriptForNotes, type LinkContext } from "./hints";
 
 const ZONE = "America/Toronto";
 const LECTURE = "lec.evt_mat137_tue" as LectureId;
@@ -128,6 +128,14 @@ describe("hint dedupe", () => {
   it("keeps a line the student unflagged, and ignores a quote no line holds", () => {
     expect(applyHints(ctx, work, window, out, { dismissed: new Set([9]) }).flags).toEqual([]);
     expect(applyHints(ctx, work, window, { hints: [{ quote: "office hours are on Thursday", assessment: null }], tasks: [], mentions: [] }).flags).toEqual([]);
+  });
+
+  it("links a test only when the professor's words name it", () => {
+    const wrongTest = { hints: [{ quote: "there will be one of these on Term Test 2", assessment: "A1" }], tasks: [], mentions: [{ ref: "A1", quote: "plug into the formula", title: null, part: null, note: null }] };
+    const r = applyHints(ctx, work, window, wrongTest);
+    expect(r.flags).toEqual([{ seq: 9, flag: { by: "model", assessment: null } }]);
+    expect(r.links).toEqual([]);
+    expect([namesAssessment("Term Test 2", "one of these on term test two"), namesAssessment("Term Test 1", "on Term Test 2"), namesAssessment("Problem Set 5", "Problem Set 5 questions 3 to 6")]).toEqual([true, false, true]);
   });
 
   it("finds a quote that the cleanup reworded slightly", () => {

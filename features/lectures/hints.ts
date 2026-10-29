@@ -81,6 +81,17 @@ const words = (s: string) =>
     .split(/[^a-z0-9]+/)
     .filter(Boolean);
 
+const NUMBER_WORDS: Record<string, string> = { one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", ten: "10" };
+
+/**
+ * Whether the professor's words name this assessment: every word of its label, numbers spoken or written. The model
+ * links a test it was only shown in the list (a Term Test 1 card when the lecture said Term Test 2), so a link needs this.
+ */
+export function namesAssessment(label: string, said: string): boolean {
+  const heard = new Set(words(said).map((w) => NUMBER_WORDS[w] ?? w));
+  return words(label).every((w) => heard.has(NUMBER_WORDS[w] ?? w));
+}
+
 /** How much of the quote a line contains: 1 when it holds the quote verbatim, else the share of its words. */
 export function quoteScore(quote: string, line: string): number {
   const q = words(quote);
@@ -242,12 +253,15 @@ export function applyHints(
     const seg = segmentForQuote(hint.quote, windowSegments);
     if (!seg || seg.flag || taken.has(seg.seq) || opts.dismissed?.has(seg.seq)) continue;
     taken.add(seg.seq);
-    const a = hint.assessment ? work.assessments.find((x) => x.id === hint.assessment) : undefined;
+    const named = hint.assessment ? work.assessments.find((x) => x.id === hint.assessment) : undefined;
+    const a = named && namesAssessment(named.event.label, `${hint.quote} ${seg.text ?? seg.raw}`) ? named : undefined;
     flags.push({ seq: seg.seq, flag: { by: "model", assessment: a ? { label: a.event.label, eventId: a.event.id } : null } });
     if (a) addLink(linkFromMention(ctx, work, { ref: a.id, title: null, part: null, note: null }, seg.atMs, "hint"));
   }
   for (const m of out.mentions) {
     const seg = segmentForQuote(m.quote, windowSegments);
+    const assessment = work.assessments.find((a) => a.id === m.ref);
+    if (assessment && !namesAssessment(assessment.event.label, `${m.quote} ${seg ? (seg.text ?? seg.raw) : ""}`)) continue;
     addLink(linkFromMention(ctx, work, m, seg?.atMs ?? fallbackAt, "mention"));
   }
   for (const task of out.tasks) {
