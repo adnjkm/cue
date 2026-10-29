@@ -50,7 +50,7 @@ From Today, click **Start session** on the CSC148 review.
 Open **Lecture notes**, then MAT137 Lecture 15, Integration by parts.
 
 - The saved notes show a summary, the flagged exam hint "on Term Test 2", key points and the student's questions.
-- Go back and click **Record a lecture**, pick MAT137, start. The sample replays a recorded lecture, so no microphone or model download is needed. Lines appear live, Nemotron cleans them, and a hint like "this will be on the test" gets flagged.
+- Go back and click **Record a lecture**, pick MAT137, start. The sample replays a recorded lecture, so no microphone or model download is needed. The first line appears after 2 seconds, Nemotron cleans each line, and related coursework cards appear on the right. About 55 seconds in, the professor says "this will be on Term Test 2": the line is flagged and a Term Test 2 card appears. In the video, start recording, talk over it, and cut to the flag.
 - Ask "What did she just say about choosing u?" The answer uses the last five minutes.
 - Click **End and save notes**, then **Review now** to start a session on it.
 
