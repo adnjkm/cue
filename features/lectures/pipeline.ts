@@ -6,7 +6,7 @@ import type { EpochMs, Lecture, LectureId, Segment } from "@/lib/domain";
 import { readPrefs } from "@/lib/prefs";
 import { reindexSource, sourceKey } from "@/lib/retrieval";
 import { fmtStamp } from "@/lib/time";
-import { addLinks, lectureSegments, linkIds, saveNotes, setFlag, setSegmentText } from "./data";
+import { addLinks, knownLinks, lectureSegments, saveNotes, setFlag, setSegmentText } from "./data";
 import { applyHints, catalogInput, coursework, notesFrom, transcriptForNotes, type Coursework } from "./hints";
 import { latexToUnicode } from "./latex";
 
@@ -53,7 +53,7 @@ export async function scanHints(lectureId: LectureId, untilMs: number, dismissed
   const segments = (await lectureSegments(lectureId)).filter((s) => s.endMs > untilMs - HINT_WINDOW_MS && s.atMs <= untilMs);
   if (segments.length === 0) return [];
   const now = Date.now() as EpochMs;
-  const [{ zone }, work, course, existing] = await Promise.all([readPrefs("foundation"), loadCoursework(lecture, now), courseLabel(lecture), linkIds(lectureId)]);
+  const [{ zone }, work, course, existing] = await Promise.all([readPrefs("foundation"), loadCoursework(lecture, now), courseLabel(lecture), knownLinks(lectureId)]);
   const catalog = catalogInput(work, zone);
   const out = await ai(
     "lecture.hints",
@@ -61,7 +61,7 @@ export async function scanHints(lectureId: LectureId, untilMs: number, dismissed
     { signal },
   );
   const professor = lecture.professor ?? (await db.courses.get(lecture.courseId))?.instructor ?? null;
-  const result = applyHints({ lectureId, timeZone: zone, professor }, work, segments, out, { dismissed, existingLinks: existing });
+  const result = applyHints({ lectureId, timeZone: zone, professor }, work, segments, out, { dismissed, existingLinks: existing.ids, existingCards: existing.cards });
   const applied: { atMs: number; flag: NonNullable<Segment["flag"]> }[] = [];
   for (const { seq, flag } of result.flags) {
     const current = await db.segments.get([lectureId, seq]);

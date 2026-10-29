@@ -131,6 +131,16 @@ export interface LinkContext {
   professor: string | null;
 }
 
+/**
+ * What a student reads as one card: the same file, test or set under the same title. The model often names one slide
+ * range twice with different parts ("Deriving the formula" at 0:03 and 0:27), which would otherwise stack.
+ */
+export function cardKey(link: Pick<RelatedLink, "target" | "title">): string {
+  const t = link.target;
+  const owner = "materialId" in t ? t.materialId : "eventId" in t ? t.eventId : "setId" in t ? t.setId : t.kind;
+  return `${owner}|${link.title.toLowerCase()}`;
+}
+
 export function linkId(lectureId: LectureId, target: SourceRef): LinkId {
   return `lnk_${hashId(`${lectureId}|${JSON.stringify(target)}`)}` as LinkId;
 }
@@ -200,7 +210,7 @@ export function linkFromMention(
   }
   const { material } = entry;
   const target = materialTarget(entry, part);
-  const titled = mention.title?.trim();
+  const titled = mention.title?.trim().replace(/^\p{Ll}/u, (c) => c.toUpperCase());
   let title: string;
   let meta: string;
   switch (material.kind) {
@@ -239,14 +249,17 @@ export function applyHints(
   work: Coursework,
   windowSegments: readonly Segment[],
   out: HintsOutput,
-  opts: { dismissed?: ReadonlySet<number>; existingLinks?: ReadonlySet<string> } = {},
+  opts: { dismissed?: ReadonlySet<number>; existingLinks?: ReadonlySet<string>; existingCards?: ReadonlySet<string> } = {},
 ): HintResult {
   const flags: HintResult["flags"] = [];
   const links = new Map<string, RelatedLink>();
   const taken = new Set<number>();
   const fallbackAt = windowSegments.length ? windowSegments[windowSegments.length - 1].atMs : 0;
+  const cards = new Set(opts.existingCards);
   const addLink = (link: RelatedLink | null) => {
-    if (link && !links.has(link.id) && !opts.existingLinks?.has(link.id)) links.set(link.id, link);
+    if (!link || links.has(link.id) || opts.existingLinks?.has(link.id) || cards.has(cardKey(link))) return;
+    cards.add(cardKey(link));
+    links.set(link.id, link);
   };
 
   for (const hint of out.hints) {

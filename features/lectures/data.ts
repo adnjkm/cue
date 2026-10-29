@@ -18,6 +18,7 @@ import {
   type Topic,
 } from "@/lib/domain";
 import { readPrefs } from "@/lib/prefs";
+import { cardKey } from "./hints";
 
 const MIN = 60_000;
 
@@ -156,8 +157,10 @@ export async function addLinks(links: readonly RelatedLink[]): Promise<void> {
   });
 }
 
-export async function linkIds(lectureId: LectureId): Promise<Set<string>> {
-  return new Set((await db.links.where("lectureId").equals(lectureId).primaryKeys()) as string[]);
+/** The lecture's cards so far, by id and by what a student reads as the same card. */
+export async function knownLinks(lectureId: LectureId): Promise<{ ids: Set<string>; cards: Set<string> }> {
+  const links = await db.links.where("lectureId").equals(lectureId).toArray();
+  return { ids: new Set(links.map((l) => l.id)), cards: new Set(links.map(cardKey)) };
 }
 
 export async function addAudio(chunk: AudioChunk): Promise<void> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CourseId, EpochMs, EventId, ImportId, LectureId, Material, MaterialId, PracticeSet, QuestionId, Segment, SetId } from "@/lib/domain";
-import { applyHints, catalogInput, coursework, flagLabel, linkFromMention, namesAssessment, notesFrom, parseStamp, partRange, segmentForQuote, transcriptForNotes, type LinkContext } from "./hints";
+import { applyHints, cardKey, catalogInput, coursework, flagLabel, linkFromMention, namesAssessment, notesFrom, parseStamp, partRange, segmentForQuote, transcriptForNotes, type LinkContext } from "./hints";
 
 const ZONE = "America/Toronto";
 const LECTURE = "lec.evt_mat137_tue" as LectureId;
@@ -136,6 +136,20 @@ describe("hint dedupe", () => {
     expect(r.flags).toEqual([{ seq: 9, flag: { by: "model", assessment: null } }]);
     expect(r.links).toEqual([]);
     expect([namesAssessment("Term Test 2", "one of these on term test two"), namesAssessment("Term Test 1", "on Term Test 2"), namesAssessment("Problem Set 5", "Problem Set 5 questions 3 to 6")]).toEqual([true, false, true]);
+  });
+
+  it("shows one card for the same slides under the same title, and capitalizes the model's titles", () => {
+    const twice = {
+      hints: [],
+      tasks: [],
+      mentions: [
+        { ref: "M3", quote: "plug into the formula", title: "deriving the formula", part: "4–9", note: null },
+        { ref: "M3", quote: "plug into the formula", title: "Deriving the formula", part: "6", note: "same technique" },
+      ],
+    };
+    const r = applyHints(ctx, work, window, twice);
+    expect(r.links.map((l) => l.title)).toEqual(["Deriving the formula"]);
+    expect(applyHints(ctx, work, window, twice, { existingCards: new Set(r.links.map(cardKey)) }).links).toEqual([]);
   });
 
   it("finds a quote that the cleanup reworded slightly", () => {
