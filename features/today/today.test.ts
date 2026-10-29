@@ -84,7 +84,7 @@ function facts(now: EpochMs, opts: { sessions?: StudySession[]; materials?: Bloc
 describe("ruleBrief", () => {
   it("writes Paper’s brief at 10:12 on Tuesday", () => {
     expect(ruleBrief(facts(SEEDED))).toEqual({
-      headline: "Three sessions today. Start with recursion.",
+      headline: "Two sessions today. Start with recursion.",
       subline: "Your CSC148 midterm is in 10 days, so Cue moved this morning’s review up. Everything you need is already pulled from yesterday’s lecture.",
     });
   });
@@ -97,31 +97,32 @@ describe("ruleBrief", () => {
 
   it("names a missed session and how to move it", () => {
     expect(ruleBrief(facts(at("11:40")))).toEqual({
-      headline: "Two of three sessions left. Next, memory & learning.",
+      headline: "One of two sessions left. Next, PS4.",
       subline: "This morning’s review was missed. Pick Reschedule in the list to move it.",
     });
   });
 
   it("resumes a session in progress", () => {
-    expect(ruleBrief(facts(at("10:45"), { sessions: [running(review, at("10:31"))] })).headline).toBe("Three sessions today. Resume recursion.");
+    expect(ruleBrief(facts(at("10:45"), { sessions: [running(review, at("10:31"))] })).headline).toBe("Two sessions today. Resume recursion.");
   });
 
   it("moves on once a session is done, with the next block’s own reason", () => {
     expect(ruleBrief(facts(at("11:20"), { sessions: [completed(review)] }))).toEqual({
-      headline: "Two of three sessions left. Next, memory & learning.",
-      subline: "PSY100 meets more than once a week, so Cue added a mid-week review.",
-    });
-    const [, midweek] = todayBlocks();
-    expect(ruleBrief(facts(at("18:00"), { sessions: [completed(review), completed(midweek)] }))).toEqual({
-      headline: "One of three sessions left. Next, PS4.",
+      headline: "One of two sessions left. Next, PS4.",
       subline: "ECO101 Problem Set 4 is due Thursday, so Cue set aside 2h this evening.",
+    });
+    const wednesday = "2026-10-28";
+    const [lec9, elasticity] = todayBlocks(wednesday);
+    expect(ruleBrief(facts(at("14:40", wednesday), { day: wednesday, sessions: [completed(lec9), completed(elasticity)] }))).toEqual({
+      headline: "Three of five sessions left. Next, memory & learning.",
+      subline: "PSY100 meets more than once a week, so Cue added a mid-week review.",
     });
   });
 
   it("closes a finished day and points at the next session", () => {
     const done = todayBlocks().map(completed);
     expect(ruleBrief(facts(at("22:00"), { sessions: done, later: wednesdayReview }))).toEqual({
-      headline: "All three sessions done.",
+      headline: "Both sessions done.",
       subline: "Next up is the Lecture 9 review tomorrow at 11:15am.",
     });
   });
@@ -141,7 +142,6 @@ describe("ruleBrief", () => {
     expect(value.nextTest).toEqual({ course: "CSC148", label: "Midterm", daysUntil: 10 });
     expect(value.sessions.map((s) => `${s.when} · ${s.title} · ${s.status}`)).toEqual([
       "10:30–11:15am · Review — Recursion & tree traversal · upcoming",
-      "2–2:30pm · Mid-week review — Memory & learning · upcoming",
       "7–9pm · Work block — Problem Set 4 · upcoming",
     ]);
     expect(todayTasks["today.brief"].input.safeParse(value).success).toBe(true);
@@ -157,7 +157,7 @@ describe("summary and card meta", () => {
   it("counts lectures and study blocks but not busy time, and only study blocks as study time", () => {
     const items = agenda();
     expect(items.filter((a) => a.kind === "event" && a.event.kind === "busy")).toHaveLength(1);
-    expect(summaryText(items, todayBlocks())).toBe("4 blocks · 3h 15m of study");
+    expect(summaryText(items, todayBlocks())).toBe("3 blocks · 2h 45m of study");
     expect(summaryText(items.slice(0, 1), [])).toBe("1 block");
     expect(summaryText([], [])).toBe("0 blocks");
   });
@@ -178,24 +178,22 @@ function rowFacts(now: EpochMs, opts: { sessions?: StudySession[]; lectures?: Re
 const read = (f: RowFacts) => timelineRows(f).map((r) => [r.time, r.course, r.title, trailingText(r.trailing, f.now)].filter(Boolean).join(" "));
 
 describe("timelineRows", () => {
-  it("draws Paper’s four rows and the café shift, with the review current", () => {
+  it("draws the lecture, review and work block rows and the café shift, with the review current", () => {
     const f = rowFacts(SEEDED);
     expect(read(f)).toEqual([
       "9am MAT137 Lecture — Integration by parts Transcript ready",
       "10:30am CSC148 Review — Recursion & tree traversal After-lecture · 45m",
-      "2pm PSY100 Mid-week review — Memory & learning Mid-week · 30m",
       "3pm Café shift Campus café",
       "7pm ECO101 Work block — Problem Set 4 Due Thu · 2h",
     ]);
     const out = timelineRows(f);
-    expect(out.map((r) => r.state)).toEqual(["past", "current", "upcoming", "upcoming", "upcoming"]);
-    expect(out.map((r) => r.current)).toEqual([false, true, false, false, false]);
-    expect(out.map((r) => r.personal)).toEqual([false, false, false, true, false]);
-    expect(out.map((r) => r.trailing.kind)).toEqual(["dot", "text", "text", "text", "text"]);
+    expect(out.map((r) => r.state)).toEqual(["past", "current", "upcoming", "upcoming"]);
+    expect(out.map((r) => r.current)).toEqual([false, true, false, false]);
+    expect(out.map((r) => r.personal)).toEqual([false, false, true, false]);
+    expect(out.map((r) => r.trailing.kind)).toEqual(["dot", "text", "text", "text"]);
     expect(out.map((r) => r.href)).toEqual([
       "/lectures/lec.evt_sample_mat137_tue",
       "/study/review.evt_sample_csc148_l08.2",
-      "/study/midweek.PSY100.2026-W44",
       "/calendar?view=day&date=2026-10-27",
       `/study/work.${SAMPLE.events.eco101Ps4}.1`,
     ]);
@@ -204,7 +202,7 @@ describe("timelineRows", () => {
   it("marks a block missed after it ends and moves current to the next one", () => {
     const out = timelineRows(rowFacts(at("11:40")));
     expect(trailingText(out[1].trailing, at("11:40"))).toBe("Missed · Reschedule");
-    expect(out.map((r) => r.state)).toEqual(["past", "missed", "current", "upcoming", "upcoming"]);
+    expect(out.map((r) => r.state)).toEqual(["past", "missed", "upcoming", "current"]);
   });
 
   it("shows done, and the time left with a resume link while a session runs", () => {

@@ -191,7 +191,7 @@ import { tid } from "../../../features/today/testids.ts";
 export default async function today(t) {
   await t.reseed();
   await t.page.goto("/");
-  await t.expect(t.page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
+  await t.expect(t.page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.");
   await t.expect(t.page.getByTestId(tid.nextUp)).toContainText("Next up · 10:30–11:15am · Review 1 day after lecture");
   await t.shot("today");
   await t.integrated("Start opens the session", async () => { /* crosses into Study's screen */ });
@@ -445,7 +445,7 @@ Each rule produces demands with a stable anchor id, minutes, an allowed window a
 | --- | --- | --- | --- | --- | --- |
 | review n 1 (`review.<evt>.1`) | lecture | 30, or 45 when the course has a test within 21 days after the lecture (`why.boostedBy`) | lecture end + 15 min to lecture end + 36 h | first fit that day, else next day from 09:00 | `Review · Recursion` / `Review — Recursion & tree traversal` |
 | review n 2 (`review.<evt>.2`), spaced | lecture whose course has a test within 21 days | 45 | the next local day, 09:00 to 22:00 | from 09:00 | same titles; sentence `Review 1 day after lecture` |
-| midweek (`midweek.<course>.<week>`) | course × ISO week with 2 or more lectures | 30 | Tue 12:00 to Thu 22:00 | 14:00 to 17:00 | `Mid-week · PSY` / `Mid-week review — Memory & learning` |
+| midweek (`midweek.<course>.<week>`) | course × ISO week with 2 or more lectures | 30 | Tue 12:00 to Thu 22:00 | Wed 14:00 to 17:00, then Thu, then Tue | `Mid-week · PSY` / `Mid-week review — Memory & learning` |
 | endOfWeek (`eow.<week>`) | ISO week with any lecture | 90 | Sat 09:00 to Sun 22:00 | Sat 11:00 | `End-of-week review` |
 | testPrep (`prep.<evt>.<i>`) | test × i of n; n by weight: quiz 0, test 4, midterm 6, exam 8 | 60; the last is 120 with note `Past paper, timed` | day = test day − span + round((i − 1)(span − 1)/(n − 1)), span: test 12, midterm 7, exam 14; 09:00 to 22:00, then the day before | 13:00 | `Test 2 prep · 1 of 4` |
 | work (`work.<evt>.<i>`) | deadline × i of n; n = ceil(effort / 120), effort: small 0, medium 120, large 240 | up to 120 | due − 5 days to due − 3 h | 18:00 to 21:00, one per day, block n on the latest day | `Work block · PS4`; the last of 2 or more is `A2 final push` |
@@ -821,7 +821,7 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 
 **boot (F)**, clock 10:12, fresh storage:
 
-1. `/` shows h1 `Add your schedule to plan today.`, a button `Upload calendar` and a button `Try the sample semester`. Click the second. The h1 becomes `Three sessions today. Start with recursion.`
+1. `/` shows h1 `Add your schedule to plan today.`, a button `Upload calendar` and a button `Try the sample semester`. Click the second. The h1 becomes `Two sessions today. Start with recursion.`
 2. `navigation` named `Main` has six links in order. `Today` has `aria-current="page"`.
 3. `/practice/<SAMPLE set>` shows no docked sidebar. `ControlOrMeta+B` opens a `dialog` named `Navigation` with the same six links, and `Escape` closes it.
 4. `getByTestId("shell-spend")` has count 0 in mock mode. Button `Data` opens a menu with `Load sample semester` and `Reset all data`.
@@ -829,15 +829,15 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 
 **today (T)**, clock 10:12, `reseed()`:
 
-1. h1 `Three sessions today. Start with recursion.` Paragraph `Your CSC148 midterm is in 10 days, so Cue moved this morning's review up. Everything you need is already pulled from yesterday's lecture.`
+1. h1 `Two sessions today. Start with recursion.` Paragraph `Your CSC148 midterm is in 10 days, so Cue moved this morning's review up. Everything you need is already pulled from yesterday's lecture.`
 2. Inside the next-up card `tid.nextUp`:
    - text `CSC148` and `Next up · 10:30–11:15am · Review 1 day after lecture`
    - h2 `Recursion & tree traversal`
    - links `Lecture 8 slides`, `Lecture 8 transcript`, `Lab 6 handout`, `+ 12 practice Qs`, `Start session`
-3. Header text `4 blocks · 3h 15m of study`. The list named `Today` has 4 items:
+3. Header text `3 blocks · 2h 45m of study`. The list named `Today` has 4 items:
    - `9am MAT137 Lecture — Integration by parts Transcript ready`
    - `10:30am CSC148 Review — Recursion & tree traversal After-lecture · 45m`, with `aria-current="time"`
-   - `2pm PSY100 Mid-week review — Memory & learning Mid-week · 30m`
+   - `3pm Café shift Campus café`
    - `7pm ECO101 Work block — Problem Set 4 Due Thu · 2h`
 4. Shot `today`.
 5. `Lecture 8 slides` goes to `/study/review.evt_sample_csc148_l08.2?tab=slides`, which shows no `End session` button (preview), then Back.
@@ -851,9 +851,9 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 1. `/calendar` resolves to `view=week&date=2026-10-27`. h1 `October 2026`. The `columnheader` for Tue 27 has `aria-current="date"`. `tid.hours` has `scrollTop` 360.
 2. `tid.weekGrid` contains 25 buttons (8 lectures, 14 study blocks, 3 deadline chips), matching the Paper week table.
 3. Button `Review · Recursion, Tuesday 27 October, 10:30 to 11:15am` contains `10:30–11:15am · now`. Button `CSC148 A2 due 11:59pm` exists. Shot `calendar-week`.
-4. Click the `Mid-week · PSY` block. A popover offers `Start session`, `Reschedule` and `Mark done`. `Mark done` makes the block show `· done` with `data-state="done"`. **[integrated]** `Start session` from another block opens the session screen.
+4. Click the Wed 28 `Mid-week · PSY` block. A popover offers `Start session`, `Reschedule` and `Mark done`. `Mark done` makes the block show `· done` with `data-state="done"`. **[integrated]** `Start session` from another block opens the session screen.
 5. Lecture button `MAT137 Lecture, Thursday 29 October, 9 to 10am, MP 102` opens a popover. Link `Take notes` has href `/lectures/lec.evt_sample_mat137_thu`. **[integrated]** Following it shows button `Start recording`.
-6. Combobox `View`, option `Day`: the URL has `view=day`. Shot `calendar-day`. Option `Month`: Wed 28 shows `+2 more`, and Tue 27 shows 3 items. Shot `calendar-month`. Buttons `Next month`, `Previous month` and `Today` move the period.
+6. Combobox `View`, option `Day`: the URL has `view=day`. Shot `calendar-day`. Option `Month`: Wed 28 shows `+4 more`, and Tue 27 shows 2 items. Shot `calendar-month`. Buttons `Next month`, `Previous month` and `Today` move the period.
 7. `Add schedule`, then set the input file to `fixtures/calendar/timetable.ics`. The preview shows checkbox `AST101 · Tue, Thu 3–4pm · …`. Click `Add 1 course`. A toast matches `/^Added 1 course\. Cue planned \d+ study blocks\.$/`. In week view, no study block's box intersects a lecture block's box in any day column. `Undo`: no `AST101` text remains in the grid.
 8. Same dialog with `fixtures/calendar/timetable.png` (mock `calendar.read`): the preview lists the parsed courses, then `Cancel`.
 9. `checkNarrow()` (default view at 375 is Day).
@@ -884,7 +884,7 @@ Assertions marked **[integrated]** cross into another workstream's screen. They 
 7. `Pause` shows `Paused · 31:48 left`. `Resume`.
 8. Route `**/api/ai/ask` once with 402 `budget`, then send. The notice reads `The $30 spending cap is reached.` and the composer is disabled. Unroute.
 9. `End session` opens alertdialog `End this session?`. Click `End session`: the URL is `/`. **[integrated]** The row `Review — Recursion & tree traversal` reads `Done · 45m`.
-10. Preview: `/study/<SAMPLE block for Thu Mid-week · CSC>` shows button `Start session` and no running timer. After a reload it is still a preview. `checkNarrow()`.
+10. Preview: `/study/<SAMPLE block for Wed Mid-week · CSC>` shows button `Start session` and no running timer. After a reload it is still a preview. `checkNarrow()`.
 
 **practice (P)**, clock 10:12, `reseed()`:
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PLAN_PREFS, ids, type BlockStatus, type CalendarEvent, type EpochMs, type Interval, type PlanInput, type TimeZone, type WallTime } from "@/lib/domain";
 import { blockStatus, planInputFrom, schedule } from "@/lib/plan";
-import { sampleRows } from "@/lib/sample";
+import { SAMPLE, sampleRows } from "@/lib/sample";
 import { fmtRange, zoneOf } from "@/lib/time";
 import { extraWorkSlot, extraWorkTopic, isExtraWork, rescheduleSlot } from "./slots";
 
@@ -40,14 +40,14 @@ describe("rescheduleSlot", () => {
   it("moves a missed block to the first free slot after now, past the café shift and the PS4 block", () => {
     const later = at("2026-10-27T15:00:00-04:00");
     const s = setup(later);
-    expect(s.status("midweek.PSY100.2026-W44")).toBe("missed");
-    expect(label(rescheduleSlot(s.input, s.block("midweek.PSY100.2026-W44"), "missed", later))).toBe("2026-10-27 9–9:30pm");
+    expect(s.status(SAMPLE.blocks.recursionReview)).toBe("missed");
+    expect(label(rescheduleSlot(s.input, s.block(SAMPLE.blocks.recursionReview), "missed", later))).toBe("2026-10-27 9–9:45pm");
   });
 
   it("looks earlier when nothing fits between an upcoming work block and its deadline", () => {
-    const s = setup(NOW, (i) => ({ ...i, prefs: { ...i.prefs, dayEnd: "20:00" as WallTime } }));
+    const s = setup(NOW, (i) => ({ ...i, prefs: { ...i.prefs, dayEnd: "20:00" as WallTime, maxStudyMinPerDay: 300 } }));
     const slot = rescheduleSlot(s.input, s.block("work.evt_sample_csc148_a2.2"), "upcoming", NOW);
-    expect(label(slot)).toBe("2026-10-28 2:30–4:30pm");
+    expect(label(slot)).toBe("2026-10-27 11:15am–1:15pm");
   });
 
   it("gives up when the deadline has no room left", () => {

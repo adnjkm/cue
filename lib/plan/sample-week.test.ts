@@ -35,7 +35,7 @@ function weekRows(plan: { input: PlanInput; blocks: readonly StudyBlock[] }, fro
   return rows.sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0)).map(([a, b, c, d, e]) => [a, b, c, d, e]);
 }
 
-/** docs/design/calendar.md, "Week of Mon 26 Oct to Sun 1 Nov", without the clock-dependent " · now". */
+/** docs/design/calendar.md, "Week of Mon 26 Oct to Sun 1 Nov", without the clock-dependent " · now", and with both mid-week reviews on Wednesday. */
 const PAPER_WEEK: Row[] = [
   ["Mon 26", "CSC148 Lecture", "10–11am · BA 1160", "10:00", "11:00"],
   ["Mon 26", "Review · Trees", "11:15am–12pm", "11:15", "12:00"],
@@ -43,18 +43,18 @@ const PAPER_WEEK: Row[] = [
   ["Mon 26", "Review · Memory", "", "15:00", "15:30"],
   ["Tue 27", "MAT137 Lecture", "9–10am · MP 102", "09:00", "10:00"],
   ["Tue 27", "Review · Recursion", "10:30–11:15am", "10:30", "11:15"],
-  ["Tue 27", "Mid-week · PSY", "", "14:00", "14:30"],
   ["Tue 27", "Work block · PS4", "7–9pm", "19:00", "21:00"],
   ["Wed 28", "CSC148 A2 due 11:59pm", "", "", ""],
   ["Wed 28", "CSC148 Lecture", "10–11am · BA 1160", "10:00", "11:00"],
   ["Wed 28", "Review · Lec 9", "11:15am–12pm", "11:15", "12:00"],
   ["Wed 28", "ECO101 Lecture", "1–2pm · SS 2102", "13:00", "14:00"],
   ["Wed 28", "Review · Elasticity", "", "14:00", "14:30"],
+  ["Wed 28", "Mid-week · PSY", "", "15:00", "15:30"],
+  ["Wed 28", "Mid-week · CSC", "4–4:45pm", "16:00", "16:45"],
   ["Wed 28", "A2 final push", "6–8pm", "18:00", "20:00"],
   ["Thu 29", "ECO101 PS4 due 5pm", "", "", ""],
   ["Thu 29", "MAT137 Lecture", "9–10am · MP 102", "09:00", "10:00"],
   ["Thu 29", "Review · By parts", "10:15–11am", "10:15", "11:00"],
-  ["Thu 29", "Mid-week · CSC", "4–4:45pm", "16:00", "16:45"],
   ["Fri 30", "PSY100 quiz due 12pm", "", "", ""],
   ["Fri 30", "CSC148 Lecture", "10–11am · BA 1160", "10:00", "11:00"],
   ["Fri 30", "PSY100 Lecture", "2–3pm · MS 2158", "14:00", "15:00"],
@@ -64,7 +64,7 @@ const PAPER_WEEK: Row[] = [
   ["Sun 1", "Midterm prep · 3 of 6", "3–5pm / Past paper, timed", "15:00", "17:00"],
 ];
 
-/** docs/design/calendar.md, "October 2026": study chips per day, in order. `more` = chips hidden behind "+N more". */
+/** docs/design/calendar.md, "October 2026", with the mid-week reviews on Wednesday: study chips per day, in order. `more` = chips hidden behind "+N more". */
 const PAPER_MONTH: Record<string, { shown: string[]; more?: number }> = {
   "2026-10-01": { shown: ["Review · Lists"] },
   "2026-10-02": { shown: ["Review · Ch. 3"] },
@@ -72,8 +72,8 @@ const PAPER_MONTH: Record<string, { shown: string[]; more?: number }> = {
   "2026-10-04": { shown: [] },
   "2026-10-05": { shown: ["Review · Lec 5"] },
   "2026-10-06": { shown: ["Review · Limits"] },
-  "2026-10-07": { shown: ["Review · Supply"] },
-  "2026-10-08": { shown: ["Mid-week · CSC"] },
+  "2026-10-07": { shown: ["Review · Supply", "Mid-week · CSC"] },
+  "2026-10-08": { shown: [] },
   "2026-10-09": { shown: ["Review · Ch. 4"] },
   "2026-10-10": { shown: ["End-of-week review"] },
   "2026-10-11": { shown: [] },
@@ -86,15 +86,15 @@ const PAPER_MONTH: Record<string, { shown: string[]; more?: number }> = {
   "2026-10-18": { shown: ["Test 1 prep · 1 of 3"] },
   "2026-10-19": { shown: ["Test 1 prep · 2 of 3", "Review · Lec 8"] },
   "2026-10-20": { shown: ["Test 1 prep · 3 of 3"] },
-  "2026-10-21": { shown: ["Review · Elasticity"] },
-  "2026-10-22": { shown: ["Mid-week · CSC"] },
+  "2026-10-21": { shown: ["Review · Elasticity", "Mid-week · CSC"] },
+  "2026-10-22": { shown: [] },
   "2026-10-23": { shown: ["Review · Ch. 7"] },
   "2026-10-24": { shown: ["End-of-week review"] },
   "2026-10-25": { shown: [] },
   "2026-10-26": { shown: ["Review · Trees", "Review · Memory"] },
-  "2026-10-27": { shown: ["Review · Recursion", "Mid-week · PSY"], more: 1 },
-  "2026-10-28": { shown: ["Review · Lec 9"], more: 2 },
-  "2026-10-29": { shown: ["Review · By parts", "Mid-week · CSC"] },
+  "2026-10-27": { shown: ["Review · Recursion", "Work block · PS4"] },
+  "2026-10-28": { shown: ["Review · Lec 9"], more: 4 },
+  "2026-10-29": { shown: ["Review · By parts"] },
   "2026-10-30": { shown: ["Review · Ch. 8"] },
   "2026-10-31": { shown: ["End-of-week review"] },
   "2026-11-01": { shown: ["Test 2 prep · 1 of 4", "Midterm prep · 3 of 6"] },
@@ -108,7 +108,7 @@ to Mon 26 Oct 00:00. Reviewed once; it changes only in a reviewed commit. Expect
 - the PS4 work block lands Wed 8–10pm, because the Thu shift fills its latest day before due minus 3 hours
 - Wed then reaches the 240-minute cap, so both CSC148 Lecture 9 reviews and both ECO101 reviews fall on Thu
 - MAT137 reviews land on Tue, Thu evening and Fri
-- a mid-week review for CSC148 (Tue); MAT137's and PSY100's are unplaced by the cap
+- mid-week reviews prefer Wed, then Thu, then Tue; Wed and Thu are at the cap, so CSC148's falls back to Tue and MAT137's and PSY100's are unplaced
 - CSC148 Lecture 10 (Fri) gets reviews on Fri and Sat
 - midterm prep 1 and 2 of 6 land on Fri and Sat; prep 3 of 6 is 60 minutes with no note (only the last of a series is the timed past paper)
 `;

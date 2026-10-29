@@ -6,7 +6,7 @@ to Mon 26 Oct 00:00. Reviewed once; it changes only in a reviewed commit. Expect
 - the PS4 work block lands Wed 8–10pm, because the Thu shift fills its latest day before due minus 3 hours
 - Wed then reaches the 240-minute cap, so both CSC148 Lecture 9 reviews and both ECO101 reviews fall on Thu
 - MAT137 reviews land on Tue, Thu evening and Fri
-- a mid-week review for CSC148 (Tue); MAT137's and PSY100's are unplaced by the cap
+- mid-week reviews prefer Wed, then Thu, then Tue; Wed and Thu are at the cap, so CSC148's falls back to Tue and MAT137's and PSY100's are unplaced
 - CSC148 Lecture 10 (Fri) gets reviews on Fri and Sat
 - midterm prep 1 and 2 of 6 land on Fri and Sat; prep 3 of 6 is 60 minutes with no note (only the last of a series is the timed past paper)
 

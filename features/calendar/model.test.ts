@@ -44,16 +44,16 @@ describe("itemsByDay on the Paper week", () => {
 
   it("keeps finished past blocks plain and marks the current one now", () => {
     const tuesday = days[1].timed.flatMap((t) => (t.kind === "block" ? [`${blockTitle(t.block, "calendar")}${lookSuffix(t.look)}`] : []));
-    expect(tuesday).toEqual(["Review · Recursion · now", "Mid-week · PSY", "Work block · PS4"]);
+    expect(tuesday).toEqual(["Review · Recursion · now", "Work block · PS4"]);
     const monday = days[0].timed.flatMap((t) => (t.kind === "block" ? [t.look] : []));
     expect(monday).toEqual(["plain", "plain"]);
   });
 
   it("gives only an explicit Mark done the done look", () => {
-    const midweek = out.blocks.find((b) => blockTitle(b, "calendar") === "Mid-week · PSY" && zone.dayOf(b.start) === "2026-10-27")!;
+    const midweek = out.blocks.find((b) => blockTitle(b, "calendar") === "Mid-week · PSY" && zone.dayOf(b.start) === "2026-10-28")!;
     const marked: PlanOverride = { blockId: midweek.id, placement: { kind: "pinned", at: { start: midweek.start, end: midweek.end } }, status: "done", updatedAt: NOW };
     const done = itemsByDay(view([marked]), week, new Map([[midweek.id, marked]]));
-    const item = done[1].timed.find((t) => t.id === midweek.id);
+    const item = done[2].timed.find((t) => t.id === midweek.id);
     expect(item?.kind === "block" && [item.status, item.look]).toEqual(["done", "done"]);
   });
 

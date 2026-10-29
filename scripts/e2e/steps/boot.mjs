@@ -5,7 +5,7 @@ export default async function boot(t) {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Add your schedule to plan today.");
   await expect(page.getByRole("button", { name: "Add schedule" })).toBeVisible();
   await page.getByRole("button", { name: "Try the sample semester" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.", { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.", { timeout: 15_000 });
 
   const nav = page.getByRole("navigation", { name: "Main" });
   await expect(nav.getByRole("link")).toHaveText(["Today", "Calendar", "Study sessions", "Lecture notes", "Practice", "Study guides"]);
@@ -23,7 +23,7 @@ export default async function boot(t) {
   await expect(replace).toContainText("can’t be undone");
   await replace.getByRole("button", { name: "Cancel" }).click();
   await expect(replace).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.");
 
   await page.goto(`/practice/${t.sample.sets.csc148Midterm2024}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("CSC148 · 2024 Midterm");

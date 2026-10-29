@@ -21,12 +21,12 @@ describe("seedSampleSemester", () => {
     expect(await db.questions.where("setId").equals(SAMPLE.sets.csc148Midterm2024).count()).toBe(15);
   });
 
-  it("gives Today its Paper day: three sessions, the recursion review next, its materials and 12 practice Qs", async () => {
+  it("gives Today its Paper day: two sessions, the recursion review next, its materials and 12 practice Qs", async () => {
     await seedSampleSemester({ now: NOW, zone: ZONE });
     const zone = zoneOf(ZONE);
     const { blocks } = schedule(await loadPlanInput());
     const today = blocks.filter((b) => zone.dayOf(b.start) === "2026-10-27");
-    expect(today.map((b) => blockTitle(b, "timeline"))).toEqual(["Review — Recursion & tree traversal", "Mid-week review — Memory & learning", "Work block — Problem Set 4"]);
+    expect(today.map((b) => blockTitle(b, "timeline"))).toEqual(["Review — Recursion & tree traversal", "Work block — Problem Set 4"]);
     const review = today[0];
     expect(review.id).toBe(SAMPLE.blocks.recursionReview);
     const sessions = await db.sessions.toArray();

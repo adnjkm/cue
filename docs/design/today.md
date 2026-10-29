@@ -35,6 +35,8 @@ Timeline:
 | `2pm` | `PSY100` | `Mid-week review — Memory & learning` | `Mid-week · 30m` | upcoming |
 | `7pm` | `ECO101` | `Work block — Problem Set 4` | `Due Thu · 2h` | upcoming |
 
+*Superseded 2026-10-29: the app places mid-week reviews on Wednesday, not on Paper's Tuesday and Thursday, so Tue 27 has no `Mid-week review` row. The sample day reads `Two sessions today. Start with recursion.` and `3 blocks · 2h 45m of study`.*
+
 ### Facts the content implies
 
 - The clock reads between 10:00 and 10:30 on Tuesday 27 October 2026. The 9am lecture is over and has a transcript. The 10:30 review is next. Use 10:12am (America/Toronto, UTC-4) as the sample "now".

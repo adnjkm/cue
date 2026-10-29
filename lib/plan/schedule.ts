@@ -221,7 +221,7 @@ function demands(input: PlanInput, board: Board): Demand[] {
       topic: { full: topicFor(input, source).full, short: courseShort(courseId) },
       minutes: prefs.midweekMin,
       allowed: { start: windowStart, end: at(thu, "22:00") },
-      candidates: [tue, wed, thu].map((day) => ({ day, from: 14 * 60 })),
+      candidates: [wed, thu, tue].map((day) => ({ day, from: 14 * 60 })),
       rank: 4,
       planFrom: latestPlanFrom(ls),
     });

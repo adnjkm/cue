@@ -8,7 +8,7 @@ export default async function today(t) {
   await t.reseed();
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.");
   await expect(
     page.getByText("Your CSC148 midterm is in 10 days, so Cue moved this morning’s review up. Everything you need is already pulled from yesterday’s lecture.", { exact: true }),
   ).toBeVisible();
@@ -23,12 +23,11 @@ export default async function today(t) {
   await expect(card.getByRole("link", { name: "+ 12 practice Qs" })).toHaveAttribute("href", `/practice/${t.sample.sets.csc148Midterm2024}?topic=Recursion+%26+tree+traversal`);
 
   const timeline = page.getByTestId(tid.timeline);
-  await expect(timeline).toContainText("4 blocks · 3h 15m of study");
+  await expect(timeline).toContainText("3 blocks · 2h 45m of study");
   const items = page.getByRole("list", { name: "Today" }).getByRole("listitem");
   await expect(items).toHaveText([
     "9am MAT137 Lecture — Integration by parts Transcript ready",
     "10:30am CSC148 Review — Recursion & tree traversal After-lecture · 45m",
-    "2pm PSY100 Mid-week review — Memory & learning Mid-week · 30m",
     "3pm Café shift Campus café",
     "7pm ECO101 Work block — Problem Set 4 Due Thu · 2h",
   ], { useInnerText: true });
@@ -40,7 +39,7 @@ export default async function today(t) {
   await expect(page).toHaveURL(`${REVIEW}?tab=slides`);
   await expect(page.getByRole("button", { name: "End session" })).toHaveCount(0);
   await page.goBack();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.");
 
   await card.getByRole("link", { name: "Start session" }).click();
   await expect(page).toHaveURL(new RegExp(`${REVIEW.replace(/\./g, "\\.")}(\\?|$)`));
@@ -62,7 +61,7 @@ export default async function today(t) {
   await expect(review).toContainText("Missed · Reschedule");
   await expect(review.getByRole("button", { name: "Reschedule" })).toHaveAccessibleName("Reschedule 10:30am CSC148 Review — Recursion & tree traversal");
   await expect(review.getByRole("link")).toHaveAccessibleDescription("Missed");
-  await expect(items.nth(2)).toHaveAttribute("aria-current", "time");
+  await expect(items.nth(3)).toHaveAttribute("aria-current", "time");
   await review.getByRole("button", { name: "Reschedule" }).focus();
   await page.keyboard.press("Enter");
   const moved = items.filter({ hasText: "11:45am" }).filter({ hasText: "Review — Recursion & tree traversal" });
@@ -70,10 +69,10 @@ export default async function today(t) {
   await expect(moved).toHaveAttribute("data-state", "current");
   await expect(moved.getByRole("link")).toBeFocused();
   await expect(page.getByText("Moved to 11:45am.")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
-  // From the moved row, Tab passes the 2pm, 3pm and 7pm rows and the toast itself before reaching Undo.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Two sessions today. Start with recursion.");
+  // From the moved row, Tab passes the 3pm and 7pm rows and the toast itself before reaching Undo.
   const undo = page.getByRole("button", { name: "Undo" });
-  for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
   await expect(undo).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);
@@ -84,7 +83,7 @@ export default async function today(t) {
   await review.getByRole("button", { name: "Reschedule" }).focus();
   await page.keyboard.press("Enter");
   await expect(moved.getByRole("link")).toBeFocused();
-  for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
   await expect(undo).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);

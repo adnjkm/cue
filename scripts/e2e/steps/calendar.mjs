@@ -1,4 +1,4 @@
-/** The 25 buttons of the Paper week (docs/design/calendar.md), as accessible-name prefixes. */
+/** The 25 buttons of the Paper week (docs/design/calendar.md) with both mid-week reviews on Wednesday, as accessible-name prefixes. */
 const PAPER_WEEK = [
   "CSC148 A2 due 11:59pm, Wednesday 28 October",
   "ECO101 PS4 due 5pm, Thursday 29 October",
@@ -9,16 +9,16 @@ const PAPER_WEEK = [
   "Review · Memory, Monday 26 October, 3 to 3:30pm",
   "MAT137 Lecture, Tuesday 27 October, 9 to 10am, MP 102",
   "Review · Recursion, Tuesday 27 October, 10:30 to 11:15am",
-  "Mid-week · PSY, Tuesday 27 October, 2 to 2:30pm",
   "Work block · PS4, Tuesday 27 October, 7 to 9pm",
   "CSC148 Lecture, Wednesday 28 October, 10 to 11am, BA 1160",
   "Review · Lec 9, Wednesday 28 October, 11:15am to 12pm",
   "ECO101 Lecture, Wednesday 28 October, 1 to 2pm, SS 2102",
   "Review · Elasticity, Wednesday 28 October, 2 to 2:30pm",
+  "Mid-week · PSY, Wednesday 28 October, 3 to 3:30pm",
+  "Mid-week · CSC, Wednesday 28 October, 4 to 4:45pm",
   "A2 final push, Wednesday 28 October, 6 to 8pm",
   "MAT137 Lecture, Thursday 29 October, 9 to 10am, MP 102",
   "Review · By parts, Thursday 29 October, 10:15 to 11am",
-  "Mid-week · CSC, Thursday 29 October, 4 to 4:45pm",
   "CSC148 Lecture, Friday 30 October, 10 to 11am, BA 1160",
   "PSY100 Lecture, Friday 30 October, 2 to 3pm, MS 2158",
   "Review · Ch. 8, Friday 30 October, 3 to 3:30pm",
@@ -60,7 +60,7 @@ export default async function calendar(t) {
   await expect(page.getByRole("button", { name: "CSC148 A2 due 11:59pm" })).toBeVisible();
   await t.shot("calendar-week");
 
-  const midweek = week.getByRole("button", { name: /^Mid-week · PSY, Tuesday 27 October/ });
+  const midweek = week.getByRole("button", { name: /^Mid-week · PSY, Wednesday 28 October/ });
   await midweek.click();
   const blockPopover = page.getByRole("dialog");
   await expect(blockPopover.getByRole("link", { name: "Start session" })).toHaveAttribute("href", "/study/midweek.PSY100.2026-W44?start=1");
@@ -96,7 +96,7 @@ export default async function calendar(t) {
   await page.getByRole("option", { name: "Day" }).click();
   await expect(page).toHaveURL(/view=day&date=2026-10-27/);
   const day = page.getByRole("table", { name: "Tuesday 27 October", exact: true });
-  await expect(day.getByRole("button")).toHaveCount(5);
+  await expect(day.getByRole("button")).toHaveCount(4);
   await expect(day.getByRole("button", { name: /^Review · Recursion,/ })).toContainText("10:30–11:15am · now");
   await expect.poll(() => hours(page).evaluate((el) => el.scrollTop)).toBe(360);
   await t.shot("calendar-day");
@@ -106,11 +106,11 @@ export default async function calendar(t) {
   await expect(page).toHaveURL(/view=month&date=2026-10-27/);
   const month = page.getByRole("grid", { name: "October 2026", exact: true });
   const wed = month.locator('[data-date="2026-10-28"]');
-  await expect(wed.getByRole("button", { name: "+2 more" })).toBeVisible();
+  await expect(wed.getByRole("button", { name: "+4 more" })).toBeVisible();
   await expect(wed.locator("[data-kind]")).toHaveText(["CSC148 A2 due 11:59pm", "Review · Lec 9"]);
   const tue = month.locator('[data-date="2026-10-27"]');
-  await expect(tue.getByRole("button")).toHaveCount(3);
-  await expect(tue.getByRole("button")).toHaveText(["Review · Recursion · now", "Mid-week · PSY · done", "Work block · PS4"]);
+  await expect(tue.getByRole("button")).toHaveCount(2);
+  await expect(tue.getByRole("button")).toHaveText(["Review · Recursion · now", "Work block · PS4"]);
   await expect(tue.getByText(/more$/)).toHaveCount(0);
   await expect(month.getByRole("link", { name: /^Tuesday 27 October/ })).toHaveAttribute("aria-current", "date");
   await t.shot("calendar-month");

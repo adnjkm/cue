@@ -61,6 +61,8 @@ Strings are verbatim. Times use an en dash (U+2013). Separators are a spaced mid
 | Sun 1 | study | `Test 2 prep · 1 of 4` | `1–2pm` | 13:00 | 14:00 | MAT137 |
 | Sun 1 | study | `Midterm prep · 3 of 6` | `3–5pm`, then note `Past paper, timed` | 15:00 | 17:00 | CSC148 |
 
+*Superseded 2026-10-29: the app places mid-week reviews on Wednesday, not on Paper's Tuesday and Thursday. The sample draws `Mid-week · PSY` Wed 28 3–3:30pm and `Mid-week · CSC` Wed 28 4–4:45pm, and the October cells move them from Thu 8 and Thu 22 to Wed 7 and Wed 21.*
+
 The Today artboard confirms the 30-minute lengths (`Mid-week · 30m`) and the topics: MAT137 lecture "Integration by parts", CSC148 review "Recursion & tree traversal", PSY100 "Memory & learning", ECO101 "Problem Set 4".
 
 ### October 2026 (month artboard)
