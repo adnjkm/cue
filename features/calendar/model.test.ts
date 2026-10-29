@@ -33,9 +33,12 @@ function view(overrides: PlanOverride[] = []): PlanView {
 describe("itemsByDay on the Paper week", () => {
   const days = itemsByDay(view(), week, new Map());
 
-  it("draws the 25 Paper items: 3 deadlines, 8 lectures, 14 study blocks", () => {
+  it("draws the 25 Paper items (3 deadlines, 8 lectures, 14 study blocks) and 4 personal events", () => {
     expect(days.flatMap((d) => d.due.map((e) => e.kind))).toEqual(["deadline", "deadline", "deadline"]);
-    expect(days.flatMap((d) => d.timed.filter((t) => t.kind === "event")).length).toBe(8);
+    const events = days.flatMap((d) => d.timed.flatMap((t) => (t.kind === "event" ? [t.event.kind] : [])));
+    expect(events.filter((k) => k === "lecture")).toHaveLength(8);
+    expect(events.filter((k) => k === "busy")).toHaveLength(4);
+    expect(events).toHaveLength(12);
     expect(days.flatMap((d) => d.timed.filter((t) => t.kind === "block")).length).toBe(14);
   });
 

@@ -29,6 +29,7 @@ export default async function today(t) {
     "9am MAT137 Lecture — Integration by parts Transcript ready",
     "10:30am CSC148 Review — Recursion & tree traversal After-lecture · 45m",
     "2pm PSY100 Mid-week review — Memory & learning Mid-week · 30m",
+    "3pm Café shift Campus café",
     "7pm ECO101 Work block — Problem Set 4 Due Thu · 2h",
   ], { useInnerText: true });
   await expect(items.nth(1)).toHaveAttribute("aria-current", "time");
@@ -70,9 +71,9 @@ export default async function today(t) {
   await expect(moved.getByRole("link")).toBeFocused();
   await expect(page.getByText("Moved to 11:45am.")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Three sessions today. Start with recursion.");
-  // From the moved row, Tab passes the 2pm and 7pm rows and the toast itself before reaching Undo.
+  // From the moved row, Tab passes the 2pm, 3pm and 7pm rows and the toast itself before reaching Undo.
   const undo = page.getByRole("button", { name: "Undo" });
-  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
   await expect(undo).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);
@@ -83,7 +84,7 @@ export default async function today(t) {
   await review.getByRole("button", { name: "Reschedule" }).focus();
   await page.keyboard.press("Enter");
   await expect(moved.getByRole("link")).toBeFocused();
-  for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+  for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
   await expect(undo).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByText("Moved to 11:45am.")).toHaveCount(0);

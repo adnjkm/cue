@@ -255,7 +255,7 @@ function TodayView({ day, now, later, focusHeadline, onHeadlineFocused }: { day:
       )}
       <Timeline
         rows={rows}
-        summary={summaryText(day.agenda.length, day.blocks)}
+        summary={summaryText(day.agenda, day.blocks)}
         linkRef={(key, el) => {
           if (el) links.current.set(key, el);
           else links.current.delete(key);

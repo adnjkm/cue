@@ -125,6 +125,34 @@ const TESTS: readonly { id: EventId; course: CourseId; week: number; day: Weekda
   { id: SAMPLE.events.mat137TermTest2, course: MAT, week: 2, day: 5, label: "Term Test 2", short: "Test 2", weight: "test", room: "EX 100" },
 ];
 
+/**
+ * The student's own life, as a Google Calendar import would bring it in: busy time the plan works around.
+ * The times miss every authored block, so weeks up to the Paper week stay as drawn and later weeks plan around them.
+ */
+const PERSONAL: readonly { slug: string; title: string; days: readonly Weekday[]; start: string; end: string; location?: string }[] = [
+  { slug: "climbing", title: "Climbing with Priya", days: [1], start: "19:00", end: "20:30" },
+  { slug: "shift_tue", title: "Café shift", days: [2], start: "15:00", end: "18:30", location: "Campus café" },
+  { slug: "shift_thu", title: "Café shift", days: [4], start: "12:00", end: "15:30", location: "Campus café" },
+  { slug: "dinner", title: "Family dinner", days: [7], start: "18:00", end: "20:00" },
+];
+
+function personal(ctx: SampleContext): CalendarEvent[] {
+  return PERSONAL.flatMap((p) =>
+    Array.from({ length: LAST_WEEK - FIRST_WEEK + 1 }, (_, i) => FIRST_WEEK + i).flatMap((week) =>
+      p.days.map((day): CalendarEvent => ({
+        id: `evt_sample_busy_${p.slug}_w${week + 10}d${day}` as EventId,
+        kind: "busy",
+        title: p.title,
+        start: ctx.at(day, p.start, week),
+        end: ctx.at(day, p.end, week),
+        importId: SAMPLE.importId,
+        seriesId: `sample_busy_${p.slug}`,
+        ...(p.location ? { location: p.location } : {}),
+      })),
+    ),
+  );
+}
+
 export function sampleEvents(ctx: SampleContext): CalendarEvent[] {
   const deadlines = DEADLINES.map((d) =>
     deadlineEvent({
@@ -157,7 +185,7 @@ export function sampleEvents(ctx: SampleContext): CalendarEvent[] {
     importId: SAMPLE.importId,
     text: "Thanksgiving · no class",
   };
-  return [...lectures(ctx), ...deadlines, ...tests, thanksgiving];
+  return [...lectures(ctx), ...deadlines, ...tests, thanksgiving, ...personal(ctx)];
 }
 
 export function sampleImport(ctx: SampleContext): ImportBatch {

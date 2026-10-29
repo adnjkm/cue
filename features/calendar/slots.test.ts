@@ -33,15 +33,15 @@ describe("rescheduleSlot", () => {
 
   it("keeps a work block before its deadline", () => {
     const slot = rescheduleSlot(input, block("work.evt_sample_eco101_ps4.1"), "upcoming", NOW);
-    expect(label(slot)).toBe("2026-10-29 11am–1pm");
+    expect(label(slot)).toBe("2026-10-27 11:15am–1:15pm");
     expect(slot!.end).toBeLessThanOrEqual(at("2026-10-29T17:00:00-04:00"));
   });
 
-  it("moves a missed block to the first free slot after now", () => {
+  it("moves a missed block to the first free slot after now, past the café shift and the PS4 block", () => {
     const later = at("2026-10-27T15:00:00-04:00");
     const s = setup(later);
     expect(s.status("midweek.PSY100.2026-W44")).toBe("missed");
-    expect(label(rescheduleSlot(s.input, s.block("midweek.PSY100.2026-W44"), "missed", later))).toBe("2026-10-27 3–3:30pm");
+    expect(label(rescheduleSlot(s.input, s.block("midweek.PSY100.2026-W44"), "missed", later))).toBe("2026-10-27 9–9:30pm");
   });
 
   it("looks earlier when nothing fits between an upcoming work block and its deadline", () => {

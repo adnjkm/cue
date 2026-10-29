@@ -103,12 +103,13 @@ const PAPER_MONTH: Record<string, { shown: string[]; more?: number }> = {
 const RULES_WEEK_HEADER = `Rules-week snapshot: the sample calendar with the authored Paper blocks removed and planFrom moved
 to Mon 26 Oct 00:00. Reviewed once; it changes only in a reviewed commit. Expected differences from Paper:
 - reviews start 15 minutes after the lecture, and a test within 21 days makes them 45 minutes plus a spaced review next day
-- MAT137 reviews land on Tue, Wed and Fri; both reviews of the Thu lecture fall on Fri because Thu reaches the 240-minute cap
+- the personal events plan around: the café shifts (Tue 3–6:30pm, Thu 12–3:30pm) push Thu's afternoon reviews to 3:45pm and later
+- the A2 work series has block 1 of 2 (Tue, 6:45pm after the shift) as well as the final push (Wed)
+- the PS4 work block lands Wed 8–10pm, because the Thu shift fills its latest day before due minus 3 hours
+- Wed then reaches the 240-minute cap, so both CSC148 Lecture 9 reviews and both ECO101 reviews fall on Thu
+- MAT137 reviews land on Tue, Thu evening and Fri
+- a mid-week review for CSC148 (Tue); MAT137's and PSY100's are unplaced by the cap
 - CSC148 Lecture 10 (Fri) gets reviews on Fri and Sat
-- the A2 work series has block 1 of 2 (Tue) as well as the final push (Wed)
-- the PS4 work block lands Thu 12–2pm, its latest day, because the evening is past due minus 3 hours
-- the ECO101 Wed lecture review moves to Thu because Wed reaches the cap, and its spaced review is unplaced
-- mid-week reviews for CSC148 (Tue), MAT137 (Wed) and PSY100 (Thu)
 - midterm prep 1 and 2 of 6 land on Fri and Sat; prep 3 of 6 is 60 minutes with no note (only the last of a series is the timed past paper)
 `;
 

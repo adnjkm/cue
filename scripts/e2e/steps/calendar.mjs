@@ -43,9 +43,10 @@ export default async function calendar(t) {
   await expect.poll(() => hours(page).evaluate((el) => el.scrollTop)).toBe(360);
 
   const week = page.getByRole("table", { name: "Week of Monday 26 October", exact: true });
-  await expect(week.getByRole("button")).toHaveCount(25);
+  await expect(week.getByRole("button")).toHaveCount(29);
   await expect(week.locator('[data-kind="lecture"]')).toHaveCount(8);
   await expect(week.locator('[data-kind="block"]')).toHaveCount(14);
+  await expect(week.locator('[data-kind="busy"]')).toHaveCount(4);
   await expect(week.locator('[data-kind="deadline"]')).toHaveText(["CSC148 A2 due 11:59pm", "ECO101 PS4 due 5pm", "PSY100 quiz due 12pm"]);
   const names = await week.getByRole("button").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
   for (const expected of PAPER_WEEK) {
@@ -95,7 +96,7 @@ export default async function calendar(t) {
   await page.getByRole("option", { name: "Day" }).click();
   await expect(page).toHaveURL(/view=day&date=2026-10-27/);
   const day = page.getByRole("table", { name: "Tuesday 27 October", exact: true });
-  await expect(day.getByRole("button")).toHaveCount(4);
+  await expect(day.getByRole("button")).toHaveCount(5);
   await expect(day.getByRole("button", { name: /^Review · Recursion,/ })).toContainText("10:30–11:15am · now");
   await expect.poll(() => hours(page).evaluate((el) => el.scrollTop)).toBe(360);
   await t.shot("calendar-day");
@@ -146,7 +147,7 @@ export default async function calendar(t) {
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(week.getByText("AST101")).toHaveCount(0);
   await expect(week.getByRole("button", { name: /AST101/ })).toHaveCount(0);
-  await expect(week.getByRole("button")).toHaveCount(25);
+  await expect(week.getByRole("button")).toHaveCount(29);
 
   await page.getByRole("button", { name: "Add schedule" }).click();
   await dialog.locator('input[type="file"]').setInputFiles(t.fixture("calendar/timetable.png"));

@@ -1,4 +1,4 @@
-import type { BlockMaterials, BlockStatus, CourseId, EpochMs, LocalDate, StudyBlock, Zone } from "@/lib/domain";
+import type { AgendaItem, BlockMaterials, BlockStatus, CourseId, EpochMs, LocalDate, StudyBlock, Zone } from "@/lib/domain";
 import { blockReasonText, blockTitle } from "@/lib/plan";
 import { daysBetween, fmtDay, fmtDuration, fmtRange, fmtTime, minutesOfDay } from "@/lib/time";
 
@@ -192,10 +192,11 @@ export function ruleBrief(f: BriefFacts): Brief {
   return { headline, subline: sentences.join(" ") };
 }
 
-/** "4 blocks · 3h 15m of study": every timed item counts as a block, only study blocks count as study time. */
-export function summaryText(agendaCount: number, blocks: readonly StudyBlock[]): string {
+/** "4 blocks · 3h 15m of study": lectures and study blocks count as blocks, busy time from the student's own calendar does not. */
+export function summaryText(agenda: readonly AgendaItem[], blocks: readonly StudyBlock[]): string {
   const studyMs = blocks.reduce((sum, b) => sum + (b.end - b.start), 0);
-  const count = `${agendaCount} ${plural(agendaCount, "block")}`;
+  const n = agenda.filter((a) => a.kind === "block" || a.event.kind !== "busy").length;
+  const count = `${n} ${plural(n, "block")}`;
   return studyMs > 0 ? `${count} · ${fmtDuration(studyMs)} of study` : count;
 }
 

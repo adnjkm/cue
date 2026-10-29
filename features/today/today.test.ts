@@ -154,10 +154,12 @@ describe("ruleBrief", () => {
 });
 
 describe("summary and card meta", () => {
-  it("counts every timed item as a block and only study blocks as study time", () => {
-    expect(summaryText(agenda().length, todayBlocks())).toBe("4 blocks · 3h 15m of study");
-    expect(summaryText(1, [])).toBe("1 block");
-    expect(summaryText(0, [])).toBe("0 blocks");
+  it("counts lectures and study blocks but not busy time, and only study blocks as study time", () => {
+    const items = agenda();
+    expect(items.filter((a) => a.kind === "event" && a.event.kind === "busy")).toHaveLength(1);
+    expect(summaryText(items, todayBlocks())).toBe("4 blocks · 3h 15m of study");
+    expect(summaryText(items.slice(0, 1), [])).toBe("1 block");
+    expect(summaryText([], [])).toBe("0 blocks");
   });
 
   it("reads Paper’s meta line, and names the day for a later block", () => {
@@ -173,25 +175,28 @@ function rowFacts(now: EpochMs, opts: { sessions?: StudySession[]; lectures?: Re
   return { zone, now, agenda: agenda(), status, lectures: opts.lectures ?? lectures, sessions, next: todayBlocks().find((b) => ["upcoming", "now", "inProgress"].includes(status(b))) };
 }
 
-const read = (f: RowFacts) => timelineRows(f).map((r) => `${r.time} ${r.course ?? ""} ${r.title} ${trailingText(r.trailing, f.now)}`);
+const read = (f: RowFacts) => timelineRows(f).map((r) => [r.time, r.course, r.title, trailingText(r.trailing, f.now)].filter(Boolean).join(" "));
 
 describe("timelineRows", () => {
-  it("draws Paper’s four rows with the review current", () => {
+  it("draws Paper’s four rows and the café shift, with the review current", () => {
     const f = rowFacts(SEEDED);
     expect(read(f)).toEqual([
       "9am MAT137 Lecture — Integration by parts Transcript ready",
       "10:30am CSC148 Review — Recursion & tree traversal After-lecture · 45m",
       "2pm PSY100 Mid-week review — Memory & learning Mid-week · 30m",
+      "3pm Café shift Campus café",
       "7pm ECO101 Work block — Problem Set 4 Due Thu · 2h",
     ]);
     const out = timelineRows(f);
-    expect(out.map((r) => r.state)).toEqual(["past", "current", "upcoming", "upcoming"]);
-    expect(out.map((r) => r.current)).toEqual([false, true, false, false]);
-    expect(out.map((r) => r.trailing.kind)).toEqual(["dot", "text", "text", "text"]);
+    expect(out.map((r) => r.state)).toEqual(["past", "current", "upcoming", "upcoming", "upcoming"]);
+    expect(out.map((r) => r.current)).toEqual([false, true, false, false, false]);
+    expect(out.map((r) => r.personal)).toEqual([false, false, false, true, false]);
+    expect(out.map((r) => r.trailing.kind)).toEqual(["dot", "text", "text", "text", "text"]);
     expect(out.map((r) => r.href)).toEqual([
       "/lectures/lec.evt_sample_mat137_tue",
       "/study/review.evt_sample_csc148_l08.2",
       "/study/midweek.PSY100.2026-W44",
+      "/calendar?view=day&date=2026-10-27",
       `/study/work.${SAMPLE.events.eco101Ps4}.1`,
     ]);
   });
@@ -199,7 +204,7 @@ describe("timelineRows", () => {
   it("marks a block missed after it ends and moves current to the next one", () => {
     const out = timelineRows(rowFacts(at("11:40")));
     expect(trailingText(out[1].trailing, at("11:40"))).toBe("Missed · Reschedule");
-    expect(out.map((r) => r.state)).toEqual(["past", "missed", "current", "upcoming"]);
+    expect(out.map((r) => r.state)).toEqual(["past", "missed", "current", "upcoming", "upcoming"]);
   });
 
   it("shows done, and the time left with a resume link while a session runs", () => {
