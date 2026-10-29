@@ -95,9 +95,9 @@ export default async function lectures(t) {
   await dialog.getByRole("button", { name: "Start recording" }).click();
   await expect(page).toHaveURL(/\/lectures\/lec\.adhoc\./);
   await expect(status).toHaveText("Recording");
-  await t.clock.runFor(60_000);
-  await expect(row("0:45")).toBeVisible();
-  await expect(row("0:45")).toContainText("Okay everyone, let's get started.");
+  await t.clock.runFor(10_000);
+  await expect(row("0:02")).toBeVisible();
+  await expect(row("0:02")).toContainText("Okay everyone, let's get started.");
   page.on("dialog", (d) => void d.accept());
   await t.checkNarrow();
 }

@@ -6,11 +6,8 @@ const WORD = /\S+/g;
 /** lecture.wav holds 259 words in 78.59 s, so the replay speaks at the fixture's own pace. */
 export const FIXTURE_MS_PER_WORD = Math.round(78_590 / 259);
 
-/**
- * The professor in the fixture starts 45 s into the recording, the way the sample lecture's first line
- * sits at 0:45, so a fresh recording shows `Listening…` before its first row.
- */
-export const FIXTURE_LEAD_IN_MS = 45_000;
+/** The professor in the fixture starts 2 s into the recording, so a fresh recording shows `Listening…` only briefly. */
+export const FIXTURE_LEAD_IN_MS = 2_000;
 
 /** One line per sentence, timed by word count from `startMs`. */
 export function scriptFromText(text: string, opts: { startMs: number; msPerWord: number }): DemoScript {

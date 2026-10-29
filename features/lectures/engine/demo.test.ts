@@ -12,15 +12,15 @@ describe("the fixture script", () => {
     expect(FIXTURE_TEXT).toBe(fs.readFileSync(path.resolve(import.meta.dirname, "../../../scripts/fixtures/audio/lecture.txt"), "utf8"));
   });
 
-  it("starts at 0:45 and keeps lecture.wav's pace, so Term Test 2 comes about 55 s in, where lecture.wav says it (53.6 s)", () => {
+  it("starts at 0:02 and keeps lecture.wav's pace, so Term Test 2 comes about 55 s in, where lecture.wav says it (53.6 s)", () => {
     expect(FIXTURE_SCRIPT.partialEveryMs).toBe(303);
     expect(FIXTURE_SCRIPT.lines.slice(0, 3)).toEqual([
-      { atMs: 45_000, raw: "Okay everyone, let's get started." },
-      { atMs: 46_515, raw: "Today we are continuing with techniques of integration, and the main topic is integration by parts." },
-      { atMs: 51_363, raw: "If you remember the product rule for derivatives, integration by parts is really just the product rule run backwards." },
+      { atMs: 2_000, raw: "Okay everyone, let's get started." },
+      { atMs: 3_515, raw: "Today we are continuing with techniques of integration, and the main topic is integration by parts." },
+      { atMs: 8_363, raw: "If you remember the product rule for derivatives, integration by parts is really just the product rule run backwards." },
     ]);
     const termTest = FIXTURE_SCRIPT.lines.find((l) => l.raw.includes("Term Test 2"))!;
-    expect(termTest.atMs - 45_000).toBe(54_843);
+    expect(termTest.atMs - 2_000).toBe(54_843);
   });
 });
 

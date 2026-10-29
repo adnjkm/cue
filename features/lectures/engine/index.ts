@@ -28,7 +28,7 @@ const FIXTURE_END_MS = (() => {
 
 /**
  * What the demo engine replays from `resumeAtMs`: a sample lecture's own remaining lines when it has any
- * (the Paper live state resumes into them), else lecture.txt from 0:45, or a fresh replay 45 s after a
+ * (the Paper live state resumes into them), else lecture.txt from 0:02, or a fresh replay 2 s after a
  * resume that comes after the fixture has ended.
  */
 export function demoScriptFor(lectureId: LectureId, resumeAtMs: number): DemoScript {
